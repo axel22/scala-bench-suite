@@ -15,6 +15,7 @@ import java.net.URL
 import java.net.URLClassLoader
 
 import scala.compat.Platform
+import scala.Math.sqrt
 
 /**
  * Control the runtime of benchmark classes to do measurements.
@@ -32,14 +33,11 @@ object BenchmarkDriver {
 
 			benchmarkRunner.run
 
-			for (i <- benchmarkRunner.getAllRunningTimeStartup) {
+			/*for (i <- benchmarkRunner.allStartup) {
 				println("[Running Time] 	" + i + "ms")
 			}
-			/*println("[Total Running Time]	" + benchmarkRunner.getRunTime + "ms")
-			println("[Max Running Time]	" + benchmarkRunner.getMaxTime + "ms")
-			println("[Min Running Time]	" + benchmarkRunner.getMinTime + "ms")
-			println("[Average Running Time]	" + benchmarkRunner.getAverageTime + "ms")
-			println("[Standard Deviation]	" + benchmarkRunner.getStandardDeviation + "ms")*/
+			println("[Sample Mean]	" + benchmarkRunner.sampleMeanStartup + "ms")*/
+
 		} catch {
 			case e: Exception => throw e
 		}
@@ -58,6 +56,13 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 	private var runningTimesStartup: List[Long] = List()
 	private var runningTimesSteady: List[Long] = List()
 
+	var sampleMeanStartup: Double = 0
+	var CIStartupLeft: Double = 0
+	var CIStartupRight: Double = 0
+
+	val alpha = 0.05
+	val z = 1.96
+
 	/**
 	 * Do the warm up and measure running time of the class snippet
 	 */
@@ -70,13 +75,16 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 
 	def runStartupState {
 
-		processBuilder = new ProcessBuilder("C:\\Program Files\\scala-2.9.0.1\\bin\\scala.bat", "-classpath", CLASSPATH, CLASSNAME)
+		var s: Double = 0
+		var diff: Double = 0
+
+		processBuilder = new ProcessBuilder("D:\\University\\5thYear\\Internship\\scala-2.9.0.1\\bin\\scala.bat", "-classpath", CLASSPATH, CLASSNAME)
 
 		// Ignore the first launch due to system status changing
 		process = processBuilder.start
 		process.waitFor
 
-		for (i <- 0 to RUNS) {
+		for (i <- 1 to RUNS) {
 			timeStartStartup = Platform.currentTime
 			process = processBuilder.start
 			process.waitFor
@@ -84,34 +92,49 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 			runningTimesStartup ::= timeEndStartup - timeStartStartup
 			// printOutput
 		}
+
+		sampleMeanStartup = average(runningTimesStartup, RUNS)
+		s = getStandardDeviation(runningTimesStartup, RUNS)
+
+		if (RUNS >= 30) {
+			diff = getGaussian(alpha) * s / sqrt(RUNS)
+		} else {
+			diff = getStudent(alpha) * s / sqrt(RUNS)
+		}
+
+		CIStartupLeft = sampleMeanStartup - diff
+		CIStartupRight = sampleMeanStartup + diff
+
+		for (i <- runningTimesStartup) {
+			println("[Running Time] 	" + i + "ms")
+		}
+
+		println("[Sample Mean]	" + sampleMeanStartup.formatted("%.2f") + "ms")
+		println("[Confident Intervals]	[" + CIStartupLeft.formatted("%.2f") + "; " + CIStartupRight.formatted("%.2f") + "]")
+		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / sampleMeanStartup * 100).formatted("%.2f") + "%")
 	}
 
 	/**
-	 * Get the output from command line and print out
+	 * Function getGaussian
+	 * @param alpha: the significant level
 	 */
-	private def printOutput: Unit = {
+	def getGaussian(alpha: Double): Double = {
+		if (alpha == 0.05) {
+			1.96
+		} else {
+			1
+		}
+	}
 
-		try {
-			var outLine: String = null
-			var brCleanUp: BufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream))
-
-			outLine = brCleanUp.readLine
-			while (outLine != null) {
-				println("[Startup State] " + outLine)
-				outLine = brCleanUp.readLine
-			}
-			brCleanUp.close
-
-			brCleanUp = new BufferedReader(new InputStreamReader(process.getErrorStream))
-
-			outLine = brCleanUp.readLine
-			while (outLine != null) {
-				println("[Startup State] " + outLine)
-				outLine = brCleanUp.readLine
-			}
-			brCleanUp.close
-		} catch {
-			case e: Exception => e.printStackTrace
+	/**
+	 * Function getStudent
+	 * @param alpha: the significant level
+	 */
+	def getStudent(alpha: Double): Double = {
+		if (alpha == 0.05) {
+			1.796
+		} else {
+			1
 		}
 	}
 
@@ -153,12 +176,13 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 			timeEndSteady += mulTimeEnd - mulTimeStart
 		}
 	}
+
 	/**
-	 * @return the minimum running time of each repetition
+	 * @return the minimum running time
 	 */
-	def getMinTime: Long = {
-		var result = runningTimesSteady.head
-		for (i <- runningTimesSteady) {
+	def getMinTime(runningTimes: List[Long]): Long = {
+		var result = runningTimes.head
+		for (i <- runningTimes) {
 			if (result > i) {
 				result = i
 			}
@@ -167,11 +191,11 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 	}
 
 	/**
-	 * @return the maximum running time of each repetition
+	 * @return the maximum running time
 	 */
-	def getMaxTime: Long = {
-		var result = runningTimesSteady.head
-		for (i <- runningTimesSteady) {
+	def getMaxTime(runningTimes: List[Long]): Long = {
+		var result = runningTimes.head
+		for (i <- runningTimes) {
 			if (result < i) {
 				result = i
 			}
@@ -182,30 +206,39 @@ class BenchmarkRunner(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: I
 	/**
 	 * @return the average running time of repetitions
 	 */
-	def getAverageTime = getRunTime.asInstanceOf[Double] / MULTIPLIER
+	def average(runningTimes: List[Long], runs: Int): Double = {
+		getRunTime(runningTimes).asInstanceOf[Double] / runs
+	}
 
 	/**
 	 * @return the total running time
 	 */
-	def getRunTime = timeEndSteady - timeStartSteady
+	def getRunTime(runningTimes: List[Long]) = {
+		var sum: Double = 0
+		for (i <- runningTimes) {
+			sum += i
+		}
+		sum
+	}
 
 	/**
 	 * @return all the running times of startup benchmarking
 	 */
-	def getAllRunningTimeStartup = runningTimesStartup
+	def allStartup = runningTimesStartup
 	/**
 	 * @return all the running times of multipliers
 	 */
-	def getAllRunningTimeSteady = runningTimesSteady
+	def allSteady = runningTimesSteady
 
 	/**
 	 * @return the standard deviation of repetitions
 	 */
-	def getStandardDeviation: Double = {
+	def getStandardDeviation(runningTimes: List[Long], runs: Int): Double = {
 		var squareSum: Double = 0
-		for (i <- runningTimesSteady) {
-			squareSum += (i - getAverageTime) * (i - getAverageTime)
+		val sampleMean = average(runningTimes, runs)
+		for (i <- runningTimes) {
+			squareSum += (i - sampleMean) * (i - sampleMean)
 		}
-		scala.math.sqrt(squareSum / MULTIPLIER)
+		sqrt(squareSum / (runs - 1))
 	}
 }
