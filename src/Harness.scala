@@ -19,15 +19,14 @@ abstract class Harness {
 
 	protected var timeStart: Long = 0
 	protected var timeEnd: Long = 0
-	protected var runningTimes: List[Long] = List()
+	protected var TimeSeries: List[Long] = List()
+	protected var Mean: Double = 0
 
 	protected var CILeft: Double = 0
 	protected var CIRight: Double = 0
 	
-	protected var sampleMean: Double = 0
-
 	val alpha = 0.05
-	val steadyThreshold = 0.02
+	val steadyThreshold = 0.01
 
 	/**
 	 * Do the warm up and measure running time of the class snippet
@@ -39,7 +38,7 @@ abstract class Harness {
 	/**
 	 * Calculate the result's Statistic
 	 */
-	def CalculateStatistic() {
+	def constructStatistic() {
 		println("Override this")
 	}
 
@@ -96,12 +95,13 @@ abstract class Harness {
 	/**
 	 * @return the average running time of repetitions
 	 */
-	def SampleMean(runs: Int): Double = {
+	def ConstructMean(runs: Int): Double = {
 		var sum: Double = 0
-		for (i <- runningTimes) {
+		for (i <- TimeSeries) {
 			sum += i
 		}
-		sum / runs
+		Mean = sum / runs
+		Mean
 	}
 	
 	/**
@@ -115,17 +115,12 @@ abstract class Harness {
 	def ConfidentIntervalRight = CIRight
 
 	/**
-	 * @return all the running times of startup benchmarking
-	 */
-	def RunningTimes = runningTimes
-
-	/**
 	 * @return the standard deviation of repetitions
 	 */
 	def StandardDeviation(runs: Int): Double = {
 		var squareSum: Double = 0
-		sampleMean = SampleMean(runs)
-		for (i <- runningTimes) {
+		val sampleMean = ConstructMean(runs)
+		for (i <- TimeSeries) {
 			squareSum += (i - sampleMean) * (i - sampleMean)
 		}
 		sqrt(squareSum / (runs - 1))
@@ -135,6 +130,6 @@ abstract class Harness {
 	 * @return the coefficient of variation
 	 */
 	def CoV(runs: Int): Double = {
-		StandardDeviation(runs) / SampleMean(runs)
+		StandardDeviation(runs) / ConstructMean(runs)
 	}
 }

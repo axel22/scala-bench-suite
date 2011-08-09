@@ -4,6 +4,7 @@ D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.s
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala
@@ -18,10 +19,15 @@ D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.s
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness$$anonfun$printOuput$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness$$anonfun$run$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Statistic$$anonfun$MinTime$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Statistic$$anonfun$StandardDeviation$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Statistic$$anonfun$SampleMean$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Statistic.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Statistic$$anonfun$MaxTime$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$StandardDeviation$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$SampleMean$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$MaxTime$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$ConstructMean$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$MinTime$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver$.class

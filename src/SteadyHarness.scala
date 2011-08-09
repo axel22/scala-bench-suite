@@ -48,10 +48,10 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			}
 			timeEnd = Platform.currentTime
 
-			runningTimes ::= timeEnd - timeStart
+			TimeSeries ::= timeEnd - timeStart
 
 		}
-		println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
+		println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + Mean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
 
 		while (CoV(MULTIPLIER) >= steadyThreshold) {
 			timeStart = Platform.currentTime
@@ -60,54 +60,53 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			}
 			timeEnd = Platform.currentTime
 
-			runningTimes = runningTimes.tail ++  List(timeEnd - timeStart)
-			println("[Newest] " + runningTimes.last)
-			println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
+			TimeSeries = TimeSeries.tail ++ List(timeEnd - timeStart)
+			println("[Newest] " + TimeSeries.last)
+			println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + Mean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
 		}
-		
+
 		println("[Steady State] ")
 
-		runningTimes = Nil
-		
-		Platform.collectGarbage
+		TimeSeries = Nil
 
 		for (mul <- 1 to MULTIPLIER) {
+			Platform.collectGarbage
 			timeStart = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
 			}
 			timeEnd = Platform.currentTime
 
-			runningTimes ::= timeEnd - timeStart
+			TimeSeries ::= timeEnd - timeStart
 		}
 
-		CalculateStatistic
+		constructStatistic
 	}
 
-	override def CalculateStatistic() {
+	override def constructStatistic() {
 
-		sampleMean = SampleMean(MULTIPLIER)
+		Mean = ConstructMean(MULTIPLIER)
 
 		if (RUNS >= 30) {
-			diff = getGaussian(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
+			diff = getGaussian(alpha) * StandardDeviation(MULTIPLIER) / sqrt(MULTIPLIER)
 		} else {
-			diff = getStudent(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
+			diff = getStudent(alpha) * StandardDeviation(MULTIPLIER) / sqrt(MULTIPLIER)
 		}
 
-		CILeft = sampleMean - diff
+		CILeft = Mean - diff
 		CIRight = CILeft + 2 * diff
 	}
 
-	def SampleMean = sampleMean
-
 	def printOuput() {
 
-		for (i <- runningTimes) {
+		var sum: Long = 0
+		var x: Long = 0
+		for (i <- TimeSeries) {
 			println("[Running Time] 	" + i + "ms")
 		}
 
-		println("[Sample Mean]	" + sampleMean.formatted("%.2f") + "ms")
+		println("[Sample Mean]	" + Mean.formatted("%.2f") + "ms")
 		println("[Confident Intervals]	[" + CILeft.formatted("%.2f") + "; " + CIRight.formatted("%.2f") + "]")
-		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / sampleMean * 100).formatted("%.2f") + "%")
+		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 }

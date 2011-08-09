@@ -39,15 +39,15 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 			process = processBuilder.start
 			process.waitFor
 			timeEnd = Platform.currentTime
-			runningTimes ::= timeEnd - timeStart
+			TimeSeries ::= timeEnd - timeStart
 		}
 
-		CalculateStatistic
+		constructStatistic
 	}
 
-	override def CalculateStatistic() {
+	override def constructStatistic() {
 
-		sampleMean = SampleMean(RUNS)
+		Mean = ConstructMean(RUNS)
 
 		if (RUNS >= 30) {
 			diff = getGaussian(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
@@ -55,20 +55,19 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 			diff = getStudent(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
 		}
 
-		CILeft = sampleMean - diff
+		CILeft = Mean - diff
 		CIRight = CILeft + 2 * diff
-	}
 
-	def SampleMean = sampleMean
+	}
 
 	def printOuput() {
 		
-		for (i <- runningTimes) {
+		for (i <- TimeSeries) {
 			println("[Running Time] 	" + i + "ms")
 		}
 
-		println("[Sample Mean]	" + sampleMean.formatted("%.2f") + "ms")
+		println("[Sample Mean]	" + Mean.formatted("%.2f") + "ms")
 		println("[Confident Intervals]	[" + CILeft.formatted("%.2f") + "; " + CIRight.formatted("%.2f") + "]")
-		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / sampleMean * 100).formatted("%.2f") + "%")
+		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 }
