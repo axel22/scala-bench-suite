@@ -1,16 +1,27 @@
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin;C:\Program Files\Eclipse\configuration\org.eclipse.osgi\bundles\294\1\.cp\lib\scala-library.jar;C:\Program Files\Eclipse\configuration\org.eclipse.osgi\bundles\294\1\.cp\lib\scala-dbc.jar;C:\Program Files\Eclipse\configuration\org.eclipse.osgi\bundles\294\1\.cp\lib\scala-swing.jar;C:\Program Files\Java\jre6\lib\resources.jar;C:\Program Files\Java\jre6\lib\rt.jar;C:\Program Files\Java\jre6\lib\jsse.jar;C:\Program Files\Java\jre6\lib\jce.jar;C:\Program Files\Java\jre6\lib\charsets.jar;C:\Program Files\Java\jre6\lib\ext\dnsns.jar;C:\Program Files\Java\jre6\lib\ext\localedata.jar;C:\Program Files\Java\jre6\lib\ext\sunjce_provider.jar;C:\Program Files\Java\jre6\lib\ext\sunmscapi.jar;C:\Program Files\Java\jre6\lib\ext\sunpkcs11.jar;C:\Program Files\Eclipse\configuration\org.eclipse.osgi\bundles\293\1\.cp\lib\scala-compiler.jar
 -------
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala
 -------
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$getStandardDeviation$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$getMinTime$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$runStartupState$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$1$$anonfun$apply$mcVI$sp$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$printOuput$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$2$$anonfun$apply$mcVI$sp$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$3.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness$$anonfun$printOuput$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\StartupHarness$$anonfun$run$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$StandardDeviation$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$SampleMean$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$MaxTime$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness$$anonfun$MinTime$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$runSteadyState$2.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver$.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$getMaxTime$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$getRunTime$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$runStartupState$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$runSteadyState$1$$anonfun$apply$mcVI$sp$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner$$anonfun$runSteadyState$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkRunner.class
