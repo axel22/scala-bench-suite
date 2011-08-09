@@ -51,7 +51,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			runningTimes ::= timeEnd - timeStart
 
 		}
-		println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean + "	[CoV] " + CoV(MULTIPLIER));
+		println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
 
 		while (CoV(MULTIPLIER) >= steadyThreshold) {
 			timeStart = Platform.currentTime
@@ -60,13 +60,10 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			}
 			timeEnd = Platform.currentTime
 
-			runningTimes = runningTimes.tail
-			runningTimes ::= timeEnd - timeStart
-			println("[First] " + runningTimes.head + "	[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
+			runningTimes = runningTimes.tail ++  List(timeEnd - timeStart)
+			println("[Newest] " + runningTimes.last)
+			println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + SampleMean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
 		}
-		
-		println("[Warmup]	" + runningTimes)
-		println("[CoV]	" + CoV(MULTIPLIER));
 		
 		println("[Steady State] ")
 
@@ -74,18 +71,14 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 		
 		Platform.collectGarbage
 
-		timeStart = Platform.currentTime
-		timeEnd = timeStart
 		for (mul <- 1 to MULTIPLIER) {
-			mulTimeStart = Platform.currentTime
+			timeStart = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
 			}
-			mulTimeEnd = Platform.currentTime
+			timeEnd = Platform.currentTime
 
-			runningTimes ::= mulTimeEnd - mulTimeStart
-
-			timeEnd += mulTimeEnd - mulTimeStart
+			runningTimes ::= timeEnd - timeStart
 		}
 
 		CalculateStatistic
