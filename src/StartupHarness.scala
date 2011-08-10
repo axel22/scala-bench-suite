@@ -20,7 +20,6 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 
 	private var processBuilder: ProcessBuilder = null
 	private var process: Process = null
-	private var diff: Double = 0
 
 	/**
 	 * Function runStartupState
@@ -42,32 +41,22 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 			TimeSeries ::= timeEnd - timeStart
 		}
 
+		statistic = new Statistic(TimeSeries)
 		constructStatistic
 	}
 
 	override def constructStatistic() {
 
-		Mean = ConstructMean(RUNS)
-
-		if (RUNS >= 30) {
-			diff = getGaussian(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
-		} else {
-			diff = getStudent(alpha) * StandardDeviation(RUNS) / sqrt(RUNS)
-		}
-
-		CILeft = Mean - diff
-		CIRight = CILeft + 2 * diff
-
-	}
-
-	def printOuput() {
+		val Mean = statistic.Mean()
+		val ConfidencInterval = statistic.ConfidentInterval()
+		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
 		
 		for (i <- TimeSeries) {
 			println("[Running Time] 	" + i + "ms")
 		}
-
-		println("[Sample Mean]	" + Mean.formatted("%.2f") + "ms")
-		println("[Confident Intervals]	[" + CILeft.formatted("%.2f") + "; " + CIRight.formatted("%.2f") + "]")
+		println("[Average]	" + Mean.formatted("%.2f") + "ms")
+		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
 		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
+	
 }

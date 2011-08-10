@@ -23,7 +23,6 @@ import scala.compat.Platform
 class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
 	private var benchmarkMainMethod: Method = null
-	private var diff: Double = 0
 
 	/**
 	 * Function runStartupState
@@ -39,9 +38,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 
 		println("[Warm Up] ")
 
-		Platform.collectGarbage
-
 		for (mul <- 1 to MULTIPLIER) {
+			Platform.collectGarbage
+			
 			timeStart = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -51,9 +50,12 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			TimeSeries ::= timeEnd - timeStart
 
 		}
-		println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + Mean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
+		statistic = new Statistic(TimeSeries)
+		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 
-		while (CoV(MULTIPLIER) >= steadyThreshold) {
+		while (statistic.CoV >= steadyThreshold) {
+			Platform.collectGarbage
+			
 			timeStart = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -61,8 +63,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			timeEnd = Platform.currentTime
 
 			TimeSeries = TimeSeries.tail ++ List(timeEnd - timeStart)
+			statistic = new Statistic(TimeSeries)
 			println("[Newest] " + TimeSeries.last)
-			println("[Standard Deviation] " + StandardDeviation(MULTIPLIER) + "	[Sample Mean] " + Mean.formatted("%.2f") + "	[CoV] " + CoV(MULTIPLIER));
+			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 		}
 
 		println("[Steady State] ")
@@ -71,6 +74,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 
 		for (mul <- 1 to MULTIPLIER) {
 			Platform.collectGarbage
+			
 			timeStart = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -80,33 +84,22 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			TimeSeries ::= timeEnd - timeStart
 		}
 
+		statistic = new Statistic(TimeSeries)
 		constructStatistic
 	}
 
 	override def constructStatistic() {
 
-		Mean = ConstructMean(MULTIPLIER)
-
-		if (RUNS >= 30) {
-			diff = getGaussian(alpha) * StandardDeviation(MULTIPLIER) / sqrt(MULTIPLIER)
-		} else {
-			diff = getStudent(alpha) * StandardDeviation(MULTIPLIER) / sqrt(MULTIPLIER)
-		}
-
-		CILeft = Mean - diff
-		CIRight = CILeft + 2 * diff
-	}
-
-	def printOuput() {
-
-		var sum: Long = 0
-		var x: Long = 0
+		val Mean = statistic.Mean()
+		val ConfidencInterval = statistic.ConfidentInterval()
+		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
+		
 		for (i <- TimeSeries) {
 			println("[Running Time] 	" + i + "ms")
 		}
-
-		println("[Sample Mean]	" + Mean.formatted("%.2f") + "ms")
-		println("[Confident Intervals]	[" + CILeft.formatted("%.2f") + "; " + CIRight.formatted("%.2f") + "]")
+		println("[Average]	" + Mean.formatted("%.2f") + "ms")
+		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
 		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
+
 }

@@ -3,30 +3,52 @@
  *
  * Copyright 2011 HCMUT - EPFL
  *
- * Created on August 09th 2011
+ * Created on August 10th 2011
  *
  * By ND P
  */
 
 import scala.math.sqrt
 
-class Statistic(TIMESERIES: List[Long]) {
-
-	val alpha = 0.05
-	val steadyThreshold = 0.02
+class TimeSeries {
+	
+	private var series: List[Long] = Nil
+	private var alpha: Double = 0.05
+	
+	def this(TIMESERIES: List[Long]) {
+		this
+		series = TIMESERIES
+	}
+	
+	def :: (ele: Long): TimeSeries = {
+		series ::= ele
+		this
+	}
+	
+	def ++ (ele: Long) {
+		series = series ++ List(ele)
+	}
+	
+	def head: TimeSeries = {
+		new TimeSeries(List(series.head))
+	}
+	
+	def tail(): TimeSeries = {
+		new TimeSeries(series.tail)
+	}
 	
 	def ConfidentInterval(): List[Double] = {
 		
 		var diff: Double = 0
-		val runs = TIMESERIES.length
+		val runs = series.length
 
 		if (runs >= 30) {
-			diff = getGaussian(alpha) * StandardDeviation / sqrt(runs)
+			diff = getGaussian(alpha) * StandardDeviation() / sqrt(runs)
 		} else {
-			diff = getStudent(alpha, 1) * StandardDeviation / sqrt(runs)
+			diff = getStudent(alpha) * StandardDeviation() / sqrt(runs)
 		}
 
-		List(Mean - diff, Mean + diff)
+		List(Mean() - diff, Mean() + diff)
 	}
 	
 	/**
@@ -45,7 +67,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * Function getStudent
 	 * @param alpha: the significant level
 	 */
-	def getStudent(alpha: Double, n: Int): Double = {
+	def getStudent(alpha: Double): Double = {
 		if (alpha == 0.05) {
 			1.796
 		} else {
@@ -57,8 +79,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @return the minimum running time
 	 */
 	def MinTime(): Long = {
-		var result = TIMESERIES.head
-		for (i <- TIMESERIES) {
+		var result = series.head
+		for (i <- series) {
 			if (result > i) {
 				result = i
 			}
@@ -70,8 +92,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @return the maximum running time
 	 */
 	def MaxTime(): Long = {
-		var result = TIMESERIES.head
-		for (i <- TIMESERIES) {
+		var result = series.head
+		for (i <- series) {
 			if (result < i) {
 				result = i
 			}
@@ -84,8 +106,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	 */
 	def Mean(): Double = {
 		var sum: Double = 0
-		val runs = TIMESERIES.length
-		for (i <- TIMESERIES) {
+		val runs = series.length
+		for (i <- series) {
 			sum += i
 		}
 		sum / runs
@@ -96,9 +118,9 @@ class Statistic(TIMESERIES: List[Long]) {
 	 */
 	def StandardDeviation(): Double = {
 		var squareSum: Double = 0
-		val runs = TIMESERIES.length
-		val mean = Mean
-		for (i <- TIMESERIES) {
+		val runs = series.length
+		val mean = Mean()
+		for (i <- series) {
 			squareSum += (i - mean) * (i - mean)
 		}
 		sqrt(squareSum / (runs - 1))
@@ -108,6 +130,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @return the coefficient of variation
 	 */
 	def CoV(): Double = {
-		StandardDeviation / Mean
+		StandardDeviation() / Mean()
 	}
+
 }

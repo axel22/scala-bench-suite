@@ -24,7 +24,6 @@ object BenchmarkDriver {
 			var harness = new SteadyHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
 
 			harness.run
-			harness.printOuput()
 
 			/*for (i <- harness.RunningTimes) {
 				println("[Running Time] 	" + i + "ms")
