@@ -27,9 +27,8 @@ object BenchmarkDriver {
 			
 			var reg = new Regression(List())
 			
-			val abc = new StoredResult("D:\\out")
-			abc.load()
-
+			reg.regression
+			
 			/*for (i <- harness.RunningTimes) {
 				println("[Running Time] 	" + i + "ms")
 			}
@@ -42,4 +41,5 @@ object BenchmarkDriver {
 			case e: Exception => throw e
 		}
 	}
+
 }

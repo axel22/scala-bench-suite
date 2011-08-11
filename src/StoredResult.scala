@@ -12,22 +12,25 @@ import scala.io.Source.fromFile
 
 class StoredResult {
 	
-	private var FileName: String = null
-	private var TimeSeries: List[Long] = List()
+	private var fileName: String = null
+	private var series: List[Long] = List()
 	
-	def this(fileName:String) {
+	def this(name:String) {
 		this
-		FileName = fileName
+		fileName = name
 	}
 	
 	def load() {
-		val file = fromFile(FileName)
-		var lines = file.getLines()
-		for (line <- lines) {
-			if (line.startsWith("a")) {
-				println(line)
+		for (line <- fromFile(fileName).getLines()) {
+			try {
+				series ::= line.toLong
+			}
+			catch {
+				case _ => println(line)
 			}
 		}
 	}
+	
+	def TimeSeries = series
 
 }

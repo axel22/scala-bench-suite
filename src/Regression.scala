@@ -12,12 +12,43 @@ import scala.math.sqrt
 import scala.math.pow
 import scala.math.abs
 
-class Regression(SERIES: List[List[Long]]) {
+class Regression() {
 
-	var statistic: Statistic = null
+	private var SERIES: List[List[Long]] = List()
+	private var statistic: Statistic = null
 	val alpha = 0.05
 
-	def compare() {
+	def this(series: List[List[Long]]) {
+		this
+		this.SERIES = series
+	}
+		
+	def regression() {
+		var storedResult: StoredResult = null
+		var line: String = null
+		
+		println("Input previous result file, double-enter to stop")
+		do {
+			line = Console.readLine()
+			if (!line.equals("")) {
+				try {
+					storedResult = new StoredResult(line)
+					storedResult.load()
+					SERIES ::= storedResult.TimeSeries
+				}
+				catch {
+					case _ => println("File name incorrect")
+				}
+			}
+		}
+		while (!line.equals(""))
+			
+		println(SERIES)
+		
+		run()
+	}
+	
+	def run() {
 
 		if (SERIES.length < 2) {
 			println("No gression")

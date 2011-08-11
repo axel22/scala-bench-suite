@@ -9,6 +9,7 @@ D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StartupHarness.
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StoredResult.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StoredResult.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\TimeSeries.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\TimeSeries.scala
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StoredResult.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Statistic.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala
@@ -16,7 +17,6 @@ D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\StoredResult.scala
 -------
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$run$1$$anonfun$apply$mcVI$sp$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\SteadyHarness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\SteadyHarness$$anonfun$constructStatistic$1.class
@@ -41,10 +41,10 @@ D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\TimeSeries.scal
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\TimeSeries.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\TimeSeries.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\TimeSeries.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\TimeSeries$$anonfun$MaxTime$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$compare$2$$anonfun$apply$2.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$compare$1$$anonfun$apply$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$compare$1.class
-D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$compare$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$run$2$$anonfun$apply$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$run$1.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$run$2.class
+D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Regression.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Regression$$anonfun$run$1$$anonfun$apply$1.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\Harness.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\Harness.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver.class
 D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\src\BenchmarkDriver.scala -> D:\University\5thYear\Internship\Working\ScalaBenchmarkSuite\bin\BenchmarkDriver$.class
