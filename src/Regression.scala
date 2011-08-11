@@ -9,6 +9,8 @@
  */
 
 import scala.math.sqrt
+import scala.math.pow
+import scala.math.abs
 
 class Regression(SERIES: List[List[Long]]) {
 
@@ -55,7 +57,56 @@ class Regression(SERIES: List[List[Long]]) {
 				println(" At confidence level 1 - alpha " + " no statistic significant difference")
 			}
 		} else {
-			// TODO
+			var sum: Long = 0
+			for (alternative <- SERIES) {
+				for (invidual <- alternative) {
+					sum += invidual
+				}
+			}
+			val overall = sum / (SERIES.length * SERIES.head.length)
+
+			var SSA: Double = 0
+			var SSE: Double = 0
+			for (alternative <- SERIES) {
+				statistic = new Statistic(alternative)
+				val alternativeMean = statistic.Mean
+				SSA += (alternativeMean - overall) * (alternativeMean - overall)
+
+				for (invidual <- alternative) {
+					SSE += (invidual - alternativeMean) * (invidual - alternativeMean)
+				}
+			}
+			SSA *= SERIES.head.length
+
+			if (SSA * (SERIES.length * SERIES.head.length - SERIES.length) / SSE / (SERIES.length - 1) > F(SERIES.length - 1, SERIES.length * SERIES.head.length - SERIES.length)) {
+
+			} else {
+
+			}
 		}
+	}
+
+	def F(df1: Int, df2: Int): Double = {
+		var result: Double = interpolate(1, df1, df2)
+		var temp = interpolate(result, df1, df2)
+		while (abs(result - temp) < 0.00001) {
+			temp = result
+			result = interpolate(result, df1, df2)
+		}
+		result
+	}
+
+	def interpolate(x: Double, df1: Double, df2: Double): Double = {
+		pow(((1 - alpha) * betaIntegral(df1 / 2, df2 / 2) * pow(df2, df1 / 2) * pow(df1 * x + df2, (df1 + df2) / 2)) / (pow(df1, df1 / 2) * pow(df2, (df1 + df2) / 2)), 2 / (df1 - 2))
+	}
+
+	def betaIntegral(x: Double, y: Double): Double = {
+		var t: Double = 0
+		var result: Double = 0
+		while (t <= 1) {
+			result += pow(t, x - 1) * pow(1 - t, y - 1)
+			t += 0.05
+		}
+		result
 	}
 }

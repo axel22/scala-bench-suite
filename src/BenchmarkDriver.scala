@@ -23,7 +23,12 @@ object BenchmarkDriver {
 		try {
 			var harness = new SteadyHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
 
-			harness.run
+			//harness.run
+			
+			var reg = new Regression(List())
+			
+			val abc = new StoredResult("D:\\out")
+			abc.load()
 
 			/*for (i <- harness.RunningTimes) {
 				println("[Running Time] 	" + i + "ms")
