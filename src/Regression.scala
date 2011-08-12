@@ -8,13 +8,12 @@
  * By ND P
  */
 
-import scala.math.sqrt
-import scala.math.pow
-import scala.math.abs
 import scala.math.Pi
-import scala.math.sin
-import scala.math.cos
 import scala.math.atan
+import scala.math.cos
+import scala.math.pow
+import scala.math.sin
+import scala.math.sqrt
 
 class Regression() {
 
@@ -114,9 +113,10 @@ class Regression() {
 			SSA *= SERIES.head.length
 
 			if (SSA * (SERIES.length * SERIES.head.length - SERIES.length) / SSE / (SERIES.length - 1) > FInverseCDF(alpha, SERIES.length - 1, SERIES.length * SERIES.head.length - SERIES.length)) {
-
-			} else {
-
+				println(" At confidence level " + (1 - alpha) + " no statistic significant difference")
+			}
+			else {
+				println()
 			}
 		}
 	}

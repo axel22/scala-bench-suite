@@ -29,14 +29,9 @@ object BenchmarkDriver {
 			
 			println(reg.FInverseCDF(0.99, 1, 2))
 			
-			/*for (i <- harness.RunningTimes) {
-				println("[Running Time] 	" + i + "ms")
-			}
-			println("[Sample Mean]	" + harness.SampleMean.formatted("%.2f") + "ms")
-			println("[Confident Interval]	[" + harness.ConfidentIntervalLeft.formatted("%.2f") + "; " + harness.ConfidentIntervalRight.formatted("%.2f") + "]")
-			var diff = (harness.ConfidentIntervalRight - harness.ConfidentIntervalLeft) / 2
-			println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / harness.SampleMean * 100).formatted("%.2f") + "%")*/
-
+			val a = new BenchmarkResult("D:\\out", List(1, 34, 3243, 798)).load()
+			println(a)
+			
 		} catch {
 			case e: Exception => throw e
 		}
