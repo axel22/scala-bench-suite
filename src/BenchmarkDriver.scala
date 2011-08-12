@@ -23,14 +23,12 @@ object BenchmarkDriver {
 		try {
 			var harness = new SteadyHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
 
-			//harness.run
+			harness.run
 			
-			var reg = new Regression(List())
+//			var reg = new Regression(List())
 			
-			println(reg.FInverseCDF(0.99, 1, 2))
+//			println(reg.FInverseCDF(0.99, 1, 2))
 			
-			val a = new BenchmarkResult("D:\\out", List(1, 34, 3243, 798)).load()
-			println(a)
 			
 		} catch {
 			case e: Exception => throw e

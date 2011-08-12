@@ -21,6 +21,7 @@ abstract class Harness {
 	protected var timeEnd: Long = 0
 	protected var TimeSeries: List[Long] = List()
 	protected var statistic: Statistic = null
+	protected var result: BenchmarkResult = null
 	
 	val alpha = 0.05
 	val steadyThreshold = 0.01

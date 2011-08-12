@@ -86,6 +86,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 
 		statistic = new Statistic(TimeSeries)
 		constructStatistic
+		
+		result = new BenchmarkResult(TimeSeries)
+		result.store
 	}
 
 	override def constructStatistic() {

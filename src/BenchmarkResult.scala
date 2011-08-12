@@ -23,6 +23,11 @@ class BenchmarkResult {
 		fileName = name
 	}
 	
+	def this (timeSeries: List[Long]) {
+		this
+		series = timeSeries
+	}
+	
 	def this(name: String, timeSeries: List[Long]) {
 		this(name)
 		series = timeSeries
@@ -49,17 +54,32 @@ class BenchmarkResult {
 	}
 	
 	def store() {
-		try {
-			val out = new FileWriter(this.fileName)
-			out write "Benchmark: " + new SimpleDateFormat().format(new Date) + "\n"
-			out write "-------------------------------\n"
-			for (invidual <- series) {
-				out write invidual.toString + "\n"
-			}
-			out close
+		
+		if (this.series == Nil) {
+			println("Nothing to store")
+			return
 		}
-		catch {
-			case e => throw e
+		
+		this.fileName = null
+		println("Input file name to store")
+		
+		while (this.fileName == null) {
+			this.fileName = Console.readLine()
+			try {
+				val out = new FileWriter(this.fileName)
+				out write "Benchmark: " + new SimpleDateFormat().format(new Date) + "\n"
+				out write "-------------------------------\n"
+				for (invidual <- series) {
+					out write invidual.toString + "\n"
+				}
+				out close
+			}
+			catch {
+				case e => {
+					println("There is error in the file name: " + e)
+					this.fileName = null
+				}
+			}
 		}
 	}
 	

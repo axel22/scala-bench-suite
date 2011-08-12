@@ -27,7 +27,7 @@ class Regression() {
 	}
 		
 	def regression() {
-		var storedResult: StoredResult = null
+		var storedResult: BenchmarkResult = null
 		var line: String = null
 		
 		println("Input previous result file, double-enter to stop")
@@ -35,7 +35,7 @@ class Regression() {
 			line = Console.readLine()
 			if (!line.equals("")) {
 				try {
-					storedResult = new StoredResult(line)
+					storedResult = new BenchmarkResult(line)
 					storedResult.load()
 					SERIES ::= storedResult.TimeSeries
 				}
