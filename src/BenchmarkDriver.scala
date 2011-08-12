@@ -27,7 +27,7 @@ object BenchmarkDriver {
 			
 			var reg = new Regression(List())
 			
-			reg.regression
+			println(reg.FInverseCDF(0.99, 1, 2))
 			
 			/*for (i <- harness.RunningTimes) {
 				println("[Running Time] 	" + i + "ms")
