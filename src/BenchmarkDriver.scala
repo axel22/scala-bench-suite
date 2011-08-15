@@ -21,17 +21,12 @@ object BenchmarkDriver {
 	def main(args: Array[String]): Unit = {
 
 		try {
-			var harness = new SteadyHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
+			var harness = new StartupHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
 
-			//harness.run
-			val a = new Statistic(List())
+//			harness.run
 			
-			println(a.inverseFDistribution(0.01, 11, 23))
-			
-//			var reg = new Regression(List())
-			
-//			println(reg.FInverseCDF(0.99, 1, 2))
-			
+			var reg = new Regression(List())
+			reg.regression()
 			
 		} catch {
 			case e: Exception => throw e

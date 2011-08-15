@@ -31,8 +31,6 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 	override def run() {
 
 		val args = { null }
-		var mulTimeStart: Long = 0
-		var mulTimeEnd: Long = 0
 
 		benchmarkMainMethod = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME).getMethod("main", classOf[Array[String]])
 

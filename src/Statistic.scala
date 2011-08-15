@@ -12,7 +12,7 @@ import scala.math.sqrt
 
 class Statistic(TIMESERIES: List[Long]) {
 
-	private val alpha = 0.05
+	private val alpha = 0.01
 	private val steadyThreshold = 0.02
 
 	def ConfidentInterval(): List[Double] = {
@@ -21,9 +21,9 @@ class Statistic(TIMESERIES: List[Long]) {
 		val runs = TIMESERIES.length
 
 		if (runs >= 30) {
-			diff = inverseGaussianDistribution(alpha) * StandardDeviation / sqrt(runs)
+			diff = inverseGaussianDistribution * StandardDeviation / sqrt(runs)
 		} else {
-			diff = inverseStudentDistribution(alpha, 1) * StandardDeviation / sqrt(runs)
+			diff = inverseStudentDistribution(1) * StandardDeviation / sqrt(runs)
 		}
 
 		List(Mean - diff, Mean + diff)
@@ -35,7 +35,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @param alpha: the significant level
 	 * @return: the z value
 	 */
-	def inverseGaussianDistribution(alpha: Double): Double = {
+	def inverseGaussianDistribution(): Double = {
 		if (alpha == 0.10) {
 			return 1.281551566
 		} else if (alpha == 0.05) {
@@ -54,7 +54,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @param n: the degree of freedom
 	 * @return the t value
 	 */
-	def inverseStudentDistribution(alpha: Double, df: Int): Double = {
+	def inverseStudentDistribution(df: Int): Double = {
 		if (df > Utility.StudentDistTblMAXROW) {
 			throw new Exception("Maximum degree of freedom is " + Utility.StudentDistTblMAXROW)
 		}
@@ -77,7 +77,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	 * @param n2: the second degree of freedom
 	 * @return the F value
 	 */
-	def inverseFDistribution(alpha: Double, n1: Int, n2: Int): Double = {
+	def inverseFDistribution(n1: Int, n2: Int): Double = {
 		if (n1 > Utility.FDistTblMAXCOLUMN) {
 			throw new Exception("Maximum first degree of freedom is " + Utility.FDistTblMAXCOLUMN)
 		}
@@ -152,4 +152,14 @@ class Statistic(TIMESERIES: List[Long]) {
 	def CoV(): Double = {
 		StandardDeviation / Mean
 	}
+	
+	/**
+	 * @return the significant level alpha
+	 */
+	def SignificantLevel = alpha
+	
+	/**
+	 * @return the confident level
+	 */
+	def Confidentlevel = (1 - alpha) * 100
 }

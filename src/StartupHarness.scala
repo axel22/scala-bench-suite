@@ -33,7 +33,7 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 		process = processBuilder.start
 		process.waitFor
 
-		for (i <- 1 to RUNS) {
+		for (i <- 1 to MULTIPLIER) {
 			timeStart = Platform.currentTime
 			process = processBuilder.start
 			process.waitFor
@@ -43,6 +43,9 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 
 		statistic = new Statistic(TimeSeries)
 		constructStatistic
+		
+		result = new BenchmarkResult(TimeSeries)
+		result.store
 	}
 
 	override def constructStatistic() {

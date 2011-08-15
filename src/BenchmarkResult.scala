@@ -47,7 +47,7 @@ class BenchmarkResult {
 				}
 			}
 			catch {
-				case _ => println(line)
+				case _ => throw new Exception("In file " + fileName + ": " + line)
 			}
 		}
 		series
