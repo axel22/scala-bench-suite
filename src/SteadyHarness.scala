@@ -93,8 +93,8 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 
 	override def constructStatistic() {
 
-		val Mean = statistic.Mean()
-		val ConfidencInterval = statistic.ConfidentInterval()
+		val Mean = statistic.Mean
+		val ConfidencInterval = statistic.ConfidentInterval
 		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
 		
 		for (i <- TimeSeries) {
