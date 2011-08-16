@@ -1,11 +1,11 @@
-/**
- * Scala Benchmark Suite
+/*
+ * SteadyHarness
+ * 
+ * Version 
+ * 
+ * Created on August 9th 2011
  *
- * Copyright 2011 HCMUT - EPFL
- *
- * Created on August 09th 2011
- *
- * By ND P
+ * Created by ND P
  */
 
 import java.lang.reflect.Method
@@ -15,18 +15,31 @@ import java.net.URLClassLoader
 import scala.Math.sqrt
 import scala.compat.Platform
 
+
 /**
- * Control the runtime of startup state benchmarking.
+ * Class represent the harness controls the runtime of steady state benchmarking.
  *
  * @author ND P
  */
 class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
+	/**
+	 * The <code>Method</code> provides information about, and access to, the <code>main</code> method of the benchmark class.
+	 */
 	private var benchmarkMainMethod: Method = null
+	/**
+	 * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
+	 */
+	private var steadyThreshold: Double = 0.01
 
 	/**
-	 * Function runStartupState
-	 * Measure startup running time
+	 * Does the following:
+	 * <ul>
+	 * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
+	 * <li>Iterates the invoking of benchmark <code>main</code> method for it to reach the steady state.
+	 * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measures the performance.
+	 * <li>And stores the result running time series to file.
+	 * </ul>
 	 */
 	override def run() {
 
@@ -85,14 +98,14 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 		statistic = new Statistic(TimeSeries)
 		constructStatistic
 		
-		result = new BenchmarkResult(TimeSeries)
+		result = new BenchmarkResult(TimeSeries, CLASSNAME)
 		result.store
 	}
 
 	override def constructStatistic() {
 
 		val Mean = statistic.Mean
-		val ConfidencInterval = statistic.ConfidentInterval
+		val ConfidencInterval = statistic.ConfidenceInterval
 		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
 		
 		for (i <- TimeSeries) {

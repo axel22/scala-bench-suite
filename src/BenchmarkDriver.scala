@@ -1,16 +1,15 @@
-/**
- * Scala Benchmark Suite
- *
- * Copyright 2011 HCMUT - EPFL
- *
+/*
+ * BenchmarkDriver
+ * 
+ * Version 
+ * 
  * Created on May 25th 2011
  *
- * By ND P
+ * Created by ND P
  */
 
-
 /**
- * Control the runtime of benchmark classes to do measurements.
+ * Object controls the runtime of benchmark classes to do measurements.
  *
  * @author ND P
  */
@@ -23,11 +22,11 @@ object BenchmarkDriver {
 		try {
 			var harness = new StartupHarness(args(0), args(1) + "\\", args(2).toInt, args(3).toInt, args(4).toInt)
 
-//			harness.run
-			
+			harness.run
+
 			var reg = new Regression(List())
 			reg.regression()
-			
+
 		} catch {
 			case e: Exception => throw e
 		}

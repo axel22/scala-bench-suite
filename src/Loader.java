@@ -1,11 +1,11 @@
-/**
- * Scala Benchmark Suite
- *
- * Copyright 2011 HCMUT - EPFL
- *
+/*
+ * Loader
+ * 
+ * Version
+ * 
  * Created on May 25th 2011
- *
- * By ND P
+ * 
+ * Created by ND P
  */
 
 import java.util.ArrayList;
@@ -13,9 +13,8 @@ import java.util.List;
 
 
 /**
- * Load the BenchmarkDriver scala class.
- * Needed to generate runnable jar file.
- *
+ * Loads the BenchmarkDriver scala class. Needed to generate runnable jar file.
+ * 
  * @author ND P
  */
 public class Loader {

@@ -1,25 +1,45 @@
-/**
- * Scala Benchmark Suite
+/*
+ * Regression
+ * 
+ * Version 
+ * 
+ * Created on August 9th 2011
  *
- * Copyright 2011 HCMUT - EPFL
- *
- * Created on August 09th 2011
- *
- * By ND P
+ * Created by ND P
  */
 
 import scala.math.sqrt
 
+
+/**
+ * Class uses previous benchmarking results to detect regression.
+ * 
+ * @author ND P
+ */
 class Regression() {
 
+	/**
+	 * List of the running time series.
+	 */
 	private var SERIES: List[List[Long]] = List()
+	/**
+	 * The <code>Statistic</code> class used for computing statistic arguments.
+	 */
 	private var statistic: Statistic = null
 
+	/**
+	 * Constructs a <code>Regression</code> using the given the list of running time series.
+	 * 
+	 * @param series	the list of running time series.
+	 */
 	def this(series: List[List[Long]]) {
 		this
 		this.SERIES = series
 	}
-		
+	
+	/**
+	 * Loads results files and invokes the <code>run</code> function.
+	 */
 	def regression() {
 		var storedResult: BenchmarkResult = null
 		var line: String = null
@@ -43,6 +63,13 @@ class Regression() {
 		run()
 	}
 	
+	/**
+	 * Detects regression from a list of running time series using statistically rigorous evaluation method:
+	 * <ul>
+	 * <li>Confidence intervals for comparing 2 alternatives.
+	 * <li>ANOVA for comparing 3 or more alternatives.
+	 * </ul>
+	 */
 	def run() {
 
 		if (SERIES.length < 2) {
@@ -85,9 +112,9 @@ class Regression() {
 			println("[Confidence Interval] [" + c1 + "; " + c2 + "]")
 
 			if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) {
-				println("At confidence level " + statistic.Confidentlevel + "% there is statistic significant difference")
+				println("At confidence level " + statistic.ConfidentLevel + "% there is statistic significant difference")
 			} else {
-				println("At confidence level " + statistic.Confidentlevel + "% no statistic significant difference")
+				println("At confidence level " + statistic.ConfidentLevel + "% no statistic significant difference")
 			}
 		} else {
 			var sum: Long = 0
@@ -117,10 +144,10 @@ class Regression() {
 			println("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + statistic.inverseFDistribution(n1, n2))
 			
 			if (FValue > statistic.inverseFDistribution(n1, n2)) {
-				println("At confidence level " + statistic.Confidentlevel + "% there is statistic significant difference")
+				println("At confidence level " + statistic.ConfidentLevel + "% there is statistic significant difference")
 			}
 			else {
-				println("At confidence level " + statistic.Confidentlevel + "% no statistic significant difference")
+				println("At confidence level " + statistic.ConfidentLevel + "% no statistic significant difference")
 			}
 		}
 	}

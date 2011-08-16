@@ -1,40 +1,53 @@
-/**
- * Scala Benchmark Suite
+/*
+ * Harness
+ * 
+ * Version 
+ * 
+ * Created on August 9th 2011
  *
- * Copyright 2011 HCMUT - EPFL
- *
- * Created on August 09th 2011
- *
- * By ND P
+ * Created by ND P
  */
 
 import scala.Math.sqrt
 
+
 /**
- * Control the runtime of benchmark classes to do measurements.
+ * Abstract base class for iterating and measuring the running time of the benchmark classes.
  *
  * @author ND P
  */
 abstract class Harness {
 
+	/**
+	 * The starting time of each iterator.
+	 */
 	protected var timeStart: Long = 0
+	/**
+	 * The ending time of each iterator.
+	 */
 	protected var timeEnd: Long = 0
+	/**
+	 * The measured running time series.
+	 */
 	protected var TimeSeries: List[Long] = List()
+	/**
+	 * The <code>Statistic</code> class used for computing statistic arguments.
+	 */
 	protected var statistic: Statistic = null
+	/**
+	 * The <code>BenchmarkResult</code> class representing the benchmarking result.
+	 */
 	protected var result: BenchmarkResult = null
-	
-	val alpha = 0.05
-	val steadyThreshold = 0.01
 
 	/**
-	 * Do the warm up and measure running time of the class snippet
+	 * Does the warm up and measure running time of the benchmark classes.
 	 */
-	def run(): Unit = {
+	def run() {
 		println("Override this")
 	}
-	
+
 	/**
-	 * Calculate the result's Statistic
+	 * Calculates the result's statistic arguments.
 	 */
 	def constructStatistic() {
 		println("Override this")

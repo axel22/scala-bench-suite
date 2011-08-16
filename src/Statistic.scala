@@ -1,21 +1,32 @@
-/**
- * Scala Benchmark Suite
+/*
+ * Statistic
+ * 
+ * Version 
+ * 
+ * Created on August 9th 2011
  *
- * Copyright 2011 HCMUT - EPFL
- *
- * Created on August 09th 2011
- *
- * By ND P
+ * Created by ND P
  */
 
 import scala.math.sqrt
 
+
+/**
+ * Class stores the significant level and computes statistical arguments for a given sample.
+ */
 class Statistic(TIMESERIES: List[Long]) {
 
+	/**
+	 * The significant level.
+	 */
 	private val alpha = 0.01
-	private val steadyThreshold = 0.02
 
-	def ConfidentInterval(): List[Double] = {
+	/**
+	 * Computes the confidence interval for the given sample.
+	 * 
+	 * @return	The left and right end points of the confidence interval.
+	 */
+	def ConfidenceInterval(): List[Double] = {
 
 		var diff: Double = 0
 		val runs = TIMESERIES.length
@@ -30,10 +41,10 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * Function inverseGaussianDistribution
-	 * Compute z value of the standard normal distribution with mean 0 and variance 1
-	 * @param alpha: the significant level
-	 * @return: the z value
+	 * Computes z value of the standard normal distribution with mean 0 and variance 1.
+	 * 
+	 * @param alpha	The significant level
+	 * @return	The z value
 	 */
 	def inverseGaussianDistribution(): Double = {
 		if (alpha == 0.10) {
@@ -48,55 +59,61 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * Function inverseStudentDistribution
-	 * Compute t value of the Student distribution
-	 * @param alpha: the significant level
-	 * @param n: the degree of freedom
-	 * @return the t value
+	 * Loads the t value of the Student distribution from pre-computed table stored from file using:
+	 * <ul>
+	 * <li>A given degree of freedom
+	 * <li>The pre-defined significant level
+	 * </ul>
+	 * 
+	 * @param df	The degree of freedom
+	 * @return	The t value
 	 */
 	def inverseStudentDistribution(df: Int): Double = {
-		if (df > Utility.StudentDistTblMAXROW) {
-			throw new Exception("Maximum degree of freedom is " + Utility.StudentDistTblMAXROW)
+		if (df > Utility.STUDENT_DISTRIBUTION_TABLE_ROW_MAX) {
+			throw new Exception("Maximum degree of freedom is " + Utility.STUDENT_DISTRIBUTION_TABLE_ROW_MAX)
 		}
 		if (alpha == 0.10) {
-			Utility.readCell(Utility.StudentDistTable, Utility.StudentDistTblClmn090, df)
+			Utility.readCell(Utility.STUDENT_DISTRIBUTION_TABLE, Utility.STUDENT_DISTRIBUTION_TABLE_090, df)
 		} else if (alpha == 0.05) {
-			Utility.readCell(Utility.StudentDistTable, Utility.StudentDistTblClmn095, df)
+			Utility.readCell(Utility.STUDENT_DISTRIBUTION_TABLE, Utility.STUDENT_DISTRIBUTION_TABLE_095, df)
 		} else if (alpha == 0.01) {
-			Utility.readCell(Utility.StudentDistTable, Utility.StudentDistTblClmn099, df)
-		} else {
-			throw new Exception("Significant level are 0.10, 0.05 and 0.01 only")
-		}
-	}
-	
-	/**
-	 * Function inverseFDistribution
-	 * Compute F value of the Fisher F distribution
-	 * @param alpha: the significant level
-	 * @param n1: the first degree of freedom
-	 * @param n2: the second degree of freedom
-	 * @return the F value
-	 */
-	def inverseFDistribution(n1: Int, n2: Int): Double = {
-		if (n1 > Utility.FDistTblMAXCOLUMN) {
-			throw new Exception("Maximum first degree of freedom is " + Utility.FDistTblMAXCOLUMN)
-		}
-		if (n2 > Utility.FDistTblMAXROW) {
-			throw new Exception("Maximum second degree of freedom is " + Utility.FDistTblMAXROW)
-		}
-		if (alpha == 0.10) {
-			Utility.readCell(Utility.FDistTable090, n1, n2)
-		} else if (alpha == 0.05) {
-			Utility.readCell(Utility.FDistTable095, n1, n2)
-		} else if (alpha == 0.01) {
-			Utility.readCell(Utility.FDistTable099, n1, n2)
+			Utility.readCell(Utility.STUDENT_DISTRIBUTION_TABLE, Utility.STUDENT_DISTRIBUTION_TABLE_099, df)
 		} else {
 			throw new Exception("Significant level are 0.10, 0.05 and 0.01 only")
 		}
 	}
 
 	/**
-	 * @return the minimum running time
+	 * Loads the F value of the Fisher F distribution from pre-computed table stored from file using:
+	 * <ul>
+	 * <li>Given degrees of freedom
+	 * <li>The pre-defined significant level
+	 * </ul>
+	 * 
+	 * @param n1	The first degree of freedom
+	 * @param n2	The second degree of freedom
+	 * @return	The F value
+	 */
+	def inverseFDistribution(n1: Int, n2: Int): Double = {
+		if (n1 > Utility.F_DISTRIBUTION_TABLE_COLUMN_MAX) {
+			throw new Exception("Maximum first degree of freedom is " + Utility.F_DISTRIBUTION_TABLE_COLUMN_MAX)
+		}
+		if (n2 > Utility.F_DISTRIBUTION_TABLE_ROW_MAX) {
+			throw new Exception("Maximum second degree of freedom is " + Utility.F_DISTRIBUTION_TABLE_ROW_MAX)
+		}
+		if (alpha == 0.10) {
+			Utility.readCell(Utility.F_DISTRIBUTION_TABLE_090, n1, n2)
+		} else if (alpha == 0.05) {
+			Utility.readCell(Utility.F_DISTRIBUTION_TABLE_095, n1, n2)
+		} else if (alpha == 0.01) {
+			Utility.readCell(Utility.F_DISTRIBUTION_TABLE_099, n1, n2)
+		} else {
+			throw new Exception("Significant level are 0.10, 0.05 and 0.01 only")
+		}
+	}
+
+	/**
+	 * @return	The minimum running time
 	 */
 	def MinTime(): Long = {
 		var result = TIMESERIES.head
@@ -109,7 +126,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return the maximum running time
+	 * @return	The maximum running time
 	 */
 	def MaxTime(): Long = {
 		var result = TIMESERIES.head
@@ -122,7 +139,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return the average running time of repetitions
+	 * Computes the sample mean.
+	 * @return	The average
 	 */
 	def Mean(): Double = {
 		var sum: Double = 0
@@ -134,7 +152,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return the standard deviation of repetitions
+	 * Computes the standard deviation of a given sample.
+	 * @return	The standard deviation
 	 */
 	def StandardDeviation(): Double = {
 		var squareSum: Double = 0
@@ -147,19 +166,20 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return the coefficient of variation
+	 * Computes the coefficient of variation of a given sample.
+	 * @return	The coefficient of variation
 	 */
 	def CoV(): Double = {
 		StandardDeviation / Mean
 	}
-	
+
 	/**
-	 * @return the significant level alpha
+	 * @return	The significant level alpha
 	 */
 	def SignificantLevel = alpha
-	
+
 	/**
-	 * @return the confident level
+	 * @return	The confident level
 	 */
-	def Confidentlevel = (1 - alpha) * 100
+	def ConfidentLevel = (1 - alpha) * 100
 }
