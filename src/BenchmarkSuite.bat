@@ -1,8 +1,7 @@
 @echo off
 rem Scala Benchmark Suite
-rem Copyright 2011 HCMUT - EPFL
 rem Created on May 25th 2011
-rem By ND P
+rem Created by ND P
 
 
 goto PARSE_ARGUMENTS
