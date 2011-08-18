@@ -8,7 +8,6 @@
  * Created by ND P
  */
 
-import scala.Math.sqrt
 import scala.compat.Platform
 
 
@@ -17,7 +16,7 @@ import scala.compat.Platform
  *
  * @author ND P
  */
-class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int, MULTIPLIER: Int) extends Harness {
+class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
 	/**
 	 * The <code>ProcessBuilder</code> used to create the operating system processes for the benchmark classes.
@@ -57,20 +56,6 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 
 		result = new BenchmarkResult(Series, CLASSNAME, true)
 		result.storeByDefault
-	}
-
-	override def constructStatistic() {
-
-		val Mean = statistic.Mean()
-		val ConfidenceInterval = statistic.ConfidenceInterval()
-		val diff = (ConfidenceInterval.last - ConfidenceInterval.head) / 2
-
-		for (i <- Series) {
-			println("[Running Time] 	" + i + "ms")
-		}
-		println("[Average]	" + Mean.formatted("%.2f") + "ms")
-		println("[Confident Intervals]	[" + ConfidenceInterval.head.formatted("%.2f") + "; " + ConfidenceInterval.last.formatted("%.2f") + "]")
-		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 
 }

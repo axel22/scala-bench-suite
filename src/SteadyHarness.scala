@@ -21,7 +21,7 @@ import scala.compat.Platform
  *
  * @author ND P
  */
-class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int, MULTIPLIER: Int) extends Harness {
+class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
 	/**
 	 * The <code>Method</code> provides information about, and access to, the <code>main</code> method of the benchmark class.
@@ -62,7 +62,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 
 		}
 		statistic = new Statistic(Series)
-		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+//		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 
 		while (statistic.CoV >= steadyThreshold) {
 			Platform.collectGarbage
@@ -74,9 +74,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			end = Platform.currentTime
 
 			Series = Series.tail ++ List(end - start)
-			statistic = new Statistic(Series)
-			println("[Newest] " + Series.last)
-			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+			statistic.setSERIES(Series)
+//			println("[Newest] " + Series.last)
+//			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 		}
 
 		println("[Steady State] ")
@@ -95,25 +95,11 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 			Series ::= end - start
 		}
 
-		statistic = new Statistic(Series)
+		statistic.setSERIES(Series)
 		constructStatistic
 		
 		result = new BenchmarkResult(Series, CLASSNAME, true)
 		result.storeByDefault
-	}
-
-	override def constructStatistic() {
-
-		val Mean = statistic.Mean
-		val ConfidencInterval = statistic.ConfidenceInterval
-		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
-		
-		for (i <- Series) {
-			println("[Running Time] 	" + i + "ms")
-		}
-		println("[Average]	" + Mean.formatted("%.2f") + "ms")
-		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
-		println("[Difference] " + diff.formatted("%.2f") + "ms = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 
 }

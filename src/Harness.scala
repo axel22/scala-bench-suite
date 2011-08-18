@@ -50,7 +50,17 @@ abstract class Harness {
 	 * Calculates the result's statistic arguments.
 	 */
 	def constructStatistic() {
-		println("Override this")
+
+		val Mean = statistic.Mean
+		val ConfidencInterval = statistic.ConfidenceInterval
+		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
+		
+		for (i <- Series) {
+			println("[Sample]	" + i)
+		}
+		println("[Average]	" + Mean.formatted("%.2f"))
+		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
+		println("[Difference] " + diff.formatted("%.2f") + " = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 
 }

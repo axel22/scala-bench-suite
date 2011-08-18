@@ -14,13 +14,22 @@ import scala.math.sqrt
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
  */
-class Statistic(TIMESERIES: List[Long]) {
+class Statistic(private var SERIES: List[Long]) {
 
 	/**
 	 * The significant level.
 	 */
 	private val alpha = 0.01
 
+	/**
+	 * Sets the field <code>SERIES</code> with the new value.
+	 * 
+	 * @param newSeries	The new value series
+	 */
+	def setSERIES(newSeries: List[Long]) {
+		SERIES = newSeries
+	}
+	
 	/**
 	 * Computes the confidence interval for the given sample.
 	 * 
@@ -29,7 +38,7 @@ class Statistic(TIMESERIES: List[Long]) {
 	def ConfidenceInterval(): List[Double] = {
 
 		var diff: Double = 0
-		val runs = TIMESERIES.length
+		val runs = SERIES.length
 
 		if (runs >= 30) {
 			diff = inverseGaussianDistribution * StandardDeviation / sqrt(runs)
@@ -113,11 +122,11 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return	The minimum running time
+	 * @return	The minimum value
 	 */
-	def MinTime(): Long = {
-		var result = TIMESERIES.head
-		for (i <- TIMESERIES) {
+	def min(): Long = {
+		var result = SERIES.head
+		for (i <- SERIES) {
 			if (result > i) {
 				result = i
 			}
@@ -126,11 +135,11 @@ class Statistic(TIMESERIES: List[Long]) {
 	}
 
 	/**
-	 * @return	The maximum running time
+	 * @return	The maximum value
 	 */
-	def MaxTime(): Long = {
-		var result = TIMESERIES.head
-		for (i <- TIMESERIES) {
+	def max(): Long = {
+		var result = SERIES.head
+		for (i <- SERIES) {
 			if (result < i) {
 				result = i
 			}
@@ -144,8 +153,8 @@ class Statistic(TIMESERIES: List[Long]) {
 	 */
 	def Mean(): Double = {
 		var sum: Double = 0
-		val runs = TIMESERIES.length
-		for (i <- TIMESERIES) {
+		val runs = SERIES.length
+		for (i <- SERIES) {
 			sum += i
 		}
 		sum / runs
@@ -157,9 +166,9 @@ class Statistic(TIMESERIES: List[Long]) {
 	 */
 	def StandardDeviation(): Double = {
 		var squareSum: Double = 0
-		val runs = TIMESERIES.length
+		val runs = SERIES.length
 		val mean = Mean
-		for (i <- TIMESERIES) {
+		for (i <- SERIES) {
 			squareSum += (i - mean) * (i - mean)
 		}
 		sqrt(squareSum / (runs - 1))

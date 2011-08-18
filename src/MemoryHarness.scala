@@ -102,7 +102,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 			Series = Series.tail ++ List(end - start)
 			
-			statistic = new Statistic(Series)
+			statistic.setSERIES(Series)
 			println("[Newest] " + Series.last)
 			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 		}
@@ -136,25 +136,11 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 			Platform.collectGarbage
 		}
 
-		statistic = new Statistic(Series)
+		statistic.setSERIES(Series)
 		constructStatistic
 
 		result = new BenchmarkResult(Series, CLASSNAME, false)
 		result.storeByDefault
-	}
-
-	override def constructStatistic() {
-
-		val Mean = statistic.Mean
-		val ConfidencInterval = statistic.ConfidenceInterval
-		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
-
-		for (i <- Series) {
-			println("[Memory Consumption] 	" + i + " bytes")
-		}
-		println("[Average]	" + Mean.formatted("%.2f") + " bytes")
-		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
-		println("[Difference] " + diff.formatted("%.2f") + " bytes = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
 
 }

@@ -72,7 +72,7 @@ object Utility {
 	 * @param tableFile	The path to the file stores the desired distribution table.
 	 * @param column	The column index of the desired value.
 	 * @param row	The row index of the desired value.
-	 * @return	the read value.
+	 * @return	The read value.
 	 */
 	def readCell(tableFile: String, column: Int, row: Int): Double = {
 		try {
