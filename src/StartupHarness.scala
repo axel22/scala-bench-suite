@@ -55,8 +55,8 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 		statistic = new Statistic(Series)
 		constructStatistic
 
-		result = new BenchmarkResult(Series, CLASSNAME)
-		result.store
+		result = new BenchmarkResult(Series, CLASSNAME, true)
+		result.storeByDefault
 	}
 
 	override def constructStatistic() {

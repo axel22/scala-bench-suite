@@ -139,8 +139,8 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 		statistic = new Statistic(Series)
 		constructStatistic
 
-		result = new BenchmarkResult(Series, CLASSNAME)
-		result.store
+		result = new BenchmarkResult(Series, CLASSNAME, false)
+		result.storeByDefault
 	}
 
 	override def constructStatistic() {

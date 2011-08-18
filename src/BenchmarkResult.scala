@@ -22,122 +22,151 @@ import java.util.Date
 class BenchmarkResult {
 	
 	/**
-	 * The name of the file contains the benchmarking result
+	 * The name of the file contains the benchmarking result.
 	 */
-	private var filename: String = null
+	private var Filename: String = null
 	/**
-	 * The <code>List[Long]> represent the result running time series
+	 * The <code>List[Long]</code> represent the result running time series.
 	 */
-	private var series: List[Long] = List()
+	private var Series: List[Long] = List()
 	/**
 	 * The name of the benchmark class
 	 */
-	private var classname: String = null
+	private var Classname: String = null
+	/**
+	 * The type of benchmarking (performance or memory consumption).
+	 * <ul>
+	 * <li><code>true</code> value for performance benchmarking
+	 * <li><code>false</code> value for memory consumption benchmarking
+	 * </ul>
+	 */
+	private var BenchmarkType: Boolean = true
 	
 	/**
 	 * Constructs a <code>BenchmarkResult</code> using the given file name.
 	 * 
-	 * @param fileName	the name of the file used for loading or storing.
+	 * @param theFilename	The name of the file used for loading or storing.
 	 */
-	def this(fileName: String) {
+	def this(theFilename: String) {
 		this
-		filename = fileName
+		Filename = theFilename
 	}
 	
 	/**
-	 * Constructs a <code>BenchmarkResult</code> using the given running time series.
+	 * Constructs a <code>BenchmarkResult</code> using the given value series.
 	 * 
-	 * @param timeSeries	the result time series of a benchmarking to be stored.
+	 * @param theSeries	The result value series of a benchmarking to be stored.
 	 */
-	def this (timeSeries: List[Long]) {
+	def this (theSeries: List[Long]) {
 		this
-		series = timeSeries
+		Series = theSeries
 	}
 	
 	/**
-	 * Constructs a <code>BenchmarkResult</code> using the given class name and running time series.
+	 * Constructs a <code>BenchmarkResult</code> using the given class name and value series.
 	 * 
-	 * @param timeSeries	the result time series of a benchmarking to be stored.
-	 * @param className	the name of the benchmark class.
+	 * @param theSeries	The result value series of a benchmarking to be stored.
+	 * @param theClassname	The name of the benchmark class.
 	 */
-	def this (timeSeries: List[Long], className: String) {
-		this (timeSeries)
-		classname = className 
+	def this (theSeries: List[Long], theClassname: String) {
+		this (theSeries)
+		Classname = theClassname 
 	}
 	
 	/**
-	 * Constructs a <code>BenchmarkResult</code> using the given file name and running time series.
+	 * Constructs a <code>BenchmarkResult</code> using the given class name, value series and benchmarking type.
 	 * 
-	 * @param fileName	the name of the file used for storing.
-	 * @param timeSeries	the result time series of a benchmarking to be stored.
+	 * @param theSeries	The result value series of a benchmarking to be stored.
+	 * @param theClassname	The name of the benchmark class.
+	 * @param theBenchmarkType	The type of benchmarking.	
 	 */
-	def this(fileName: String, timeSeries: List[Long]) {
-		this(fileName)
-		series = timeSeries
+	def this(theSeries: List[Long], theClassname: String, theBenchmarkType: Boolean) {
+		this(theSeries, theClassname)
+		BenchmarkType = theBenchmarkType
 	}
 	
 	/**
-	 * Constructs a <code>BenchmarkResult</code> using the given file name, running time series and class name.
+	 * Constructs a <code>BenchmarkResult</code> using the given file name and value series.
 	 * 
-	 * @param fileName	the name of the file used for storing.
-	 * @param timeSeries	the result time series of a benchmarking to be stored.
-	 * @param className	the name of the benchmark class.
+	 * @param theFilename	The name of the file used for storing.
+	 * @param theSeries	The result value series of a benchmarking to be stored.
 	 */
-	def this(fileName: String, timeSeries: List[Long], className: String) {
-		this(timeSeries, className)
-		classname = fileName
-		
+	def this(theFilename: String, theSeries: List[Long]) {
+		this(theFilename)
+		Series = theSeries
 	}
 	
 	/**
-	 * Loads a running time series from file whose name is in the field <code>filename</code>.
-	 * @return	the result time series
+	 * Constructs a <code>BenchmarkResult</code> using the given informations.
+	 * 
+	 * @param theFilename	The name of the file used for storing.
+	 * @param theSeries	The result value series of a benchmarking to be stored.
+	 * @param theClassname	The name of the benchmark class.
+	 */
+	def this(theFilename: String, theSeries: List[Long], theClassname: String, theBenchmarkType: Boolean) {
+		this(theSeries, theClassname)
+		Filename = theFilename
+		BenchmarkType = theBenchmarkType
+	}
+	
+	/**
+	 * Loads a result value series from file whose name is in the field <code>Filename</code>.
+	 * @return	The result value series
 	 */
 	def load(): List[Long] = {
-		for (line <- fromFile(filename).getLines()) {
+		for (line <- fromFile(Filename).getLines()) {
 			try {
-				if (line startsWith "Benchmark") {
+				if (line startsWith "Date") {
 					
 				}
 				else if (line startsWith "-") {
+					
+				}
+				else if (line startsWith "Type") {
 					
 				}
 				else if (line startsWith "Main") {
 					
 				}
 				else {
-					series ::= line.toLong
+					Series ::= line.toLong
 				}
 			}
 			catch {
-				case _ => throw new Exception("In file " + filename + ": " + line)
+				case _ => throw new Exception("In file " + Filename + ": " + line)
 			}
 		}
-		series
+		Series
 	}
 	
 	/**
-	 * Stores a running time series in the field <code>series</code> in to text file whose name is in <code>filename</code> 
-	 * with additional information (date and time, main benchmark class name).
+	 * Stores a result value series in the field <code>Series</code> in to text file whose name is in <code>Filename</code> 
+	 * with additional information (date and time, main benchmark class name...).
 	 */
 	def store() {
 		
-		if (series == Nil) {
+		if (Series == Nil) {
 			println("Nothing to store")
 			return
 		}
 		
-		filename = null
+		Filename = null
 		println("Input file name to store")
 		
-		while (filename == null) {
-			filename = Console.readLine()
+		while (Filename == null) {
+			Filename = Console.readLine()
 			try {
-				val out = new FileWriter(filename)
-				out write "Benchmark: " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm").format(new Date) + "\n"
-				out write "Main Class: " + classname + "\n"
+				val out = new FileWriter(Filename)
+				out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm").format(new Date) + "\n"
+				out write "Main Class:	" + Classname + "\n"
+				if (BenchmarkType) {
+					out write "Type:		Performance\n"
+				}
+				else {
+					out write "Type:		Memory consumption\n"
+				}
 				out write "-------------------------------\n"
-				for (invidual <- series) {
+				for (invidual <- Series) {
 					out write invidual.toString + "\n"
 				}
 				out close
@@ -145,7 +174,50 @@ class BenchmarkResult {
 			catch {
 				case e => {
 					println("There is error in the file name: " + e)
-					filename = null
+					Filename = null
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Stores a result value series in the field <code>Series</code> in to text file whose name is the default name 
+	 * in the format: YYYYMMDD.hhmm.BenchmarkClass.BenchmarkType 
+	 * with additional information (date and time, main benchmark class name).
+	 */
+	def storeByDefault() {
+		if (Series == Nil) {
+			println("Nothing to store")
+			return
+		}
+		
+		while (Filename == null) {
+			if (BenchmarkType) {
+				Filename = new SimpleDateFormat("yyyyMMdd.HHmm.").format(new Date) + Classname + ".Performance" 
+			}
+			else {
+				Filename = new SimpleDateFormat("yyyyMMdd.HHmm.").format(new Date) + Classname + ".MemoryConsumption" 
+			}
+			
+			try {
+				val out = new FileWriter(Filename)
+				out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm").format(new Date) + "\n"
+				out write "Main Class:	" + Classname + "\n"
+				if (BenchmarkType) {
+					out write "Type:		Performance\n"
+				}
+				else {
+					out write "Type:		Memory consumption\n"
+				}
+				out write "-------------------------------\n"
+				for (invidual <- Series) {
+					out write invidual.toString + "\n"
+				}
+				out close
+			}
+			catch {
+				case e => {
+					Filename = null
 				}
 			}
 		}
@@ -154,6 +226,6 @@ class BenchmarkResult {
 	/**
 	 * @return	The time series property
 	 */
-	def TimeSeries = series
+	def getSeries = Series
 
 }

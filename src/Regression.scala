@@ -51,7 +51,7 @@ class Regression() {
 				try {
 					storedResult = new BenchmarkResult(line)
 					storedResult.load()
-					SERIES ::= storedResult.TimeSeries
+					SERIES ::= storedResult.getSeries
 				}
 				catch {
 					case _ => println("File name incorrect")

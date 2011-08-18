@@ -20,7 +20,7 @@ object BenchmarkDriver {
 	def main(args: Array[String]): Unit = {
 
 		try {
-			var harness = new MemoryHarness(args(0), args(1) + "\\", args(3).toInt, args(4).toInt)
+			var harness = new MemoryHarness(args(0), args(1) + "/", args(3).toInt, args(4).toInt)
 
 			harness.run
 
