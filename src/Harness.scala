@@ -19,17 +19,17 @@ import scala.Math.sqrt
 abstract class Harness {
 
 	/**
-	 * The starting time of each iterator.
+	 * The starting milestone of each iterator.
 	 */
-	protected var timeStart: Long = 0
+	protected var start: Long = 0
 	/**
-	 * The ending time of each iterator.
+	 * The ending milestone of each iterator.
 	 */
-	protected var timeEnd: Long = 0
+	protected var end: Long = 0
 	/**
-	 * The measured running time series.
+	 * The measured values series.
 	 */
-	protected var TimeSeries: List[Long] = List()
+	protected var Series: List[Long] = List()
 	/**
 	 * The <code>Statistic</code> class used for computing statistic arguments.
 	 */

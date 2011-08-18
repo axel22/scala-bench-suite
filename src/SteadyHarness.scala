@@ -30,7 +30,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 	/**
 	 * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
 	 */
-	private var steadyThreshold: Double = 0.01
+	private val steadyThreshold: Double = 0.01
 
 	/**
 	 * Does the following:
@@ -52,53 +52,53 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 		for (mul <- 1 to MULTIPLIER) {
 			Platform.collectGarbage
 			
-			timeStart = Platform.currentTime
+			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
 			}
-			timeEnd = Platform.currentTime
+			end = Platform.currentTime
 
-			TimeSeries ::= timeEnd - timeStart
+			Series ::= end - start
 
 		}
-		statistic = new Statistic(TimeSeries)
+		statistic = new Statistic(Series)
 		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 
 		while (statistic.CoV >= steadyThreshold) {
 			Platform.collectGarbage
 			
-			timeStart = Platform.currentTime
+			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
 			}
-			timeEnd = Platform.currentTime
+			end = Platform.currentTime
 
-			TimeSeries = TimeSeries.tail ++ List(timeEnd - timeStart)
-			statistic = new Statistic(TimeSeries)
-			println("[Newest] " + TimeSeries.last)
+			Series = Series.tail ++ List(end - start)
+			statistic = new Statistic(Series)
+			println("[Newest] " + Series.last)
 			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 		}
 
 		println("[Steady State] ")
 
-		TimeSeries = Nil
+		Series = Nil
 
 		for (mul <- 1 to MULTIPLIER) {
 			Platform.collectGarbage
 			
-			timeStart = Platform.currentTime
+			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
 			}
-			timeEnd = Platform.currentTime
+			end = Platform.currentTime
 
-			TimeSeries ::= timeEnd - timeStart
+			Series ::= end - start
 		}
 
-		statistic = new Statistic(TimeSeries)
+		statistic = new Statistic(Series)
 		constructStatistic
 		
-		result = new BenchmarkResult(TimeSeries, CLASSNAME)
+		result = new BenchmarkResult(Series, CLASSNAME)
 		result.store
 	}
 
@@ -108,7 +108,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: Int
 		val ConfidencInterval = statistic.ConfidenceInterval
 		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
 		
-		for (i <- TimeSeries) {
+		for (i <- Series) {
 			println("[Running Time] 	" + i + "ms")
 		}
 		println("[Average]	" + Mean.formatted("%.2f") + "ms")

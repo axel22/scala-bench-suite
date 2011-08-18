@@ -45,17 +45,17 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 		process.waitFor
 
 		for (i <- 1 to MULTIPLIER) {
-			timeStart = Platform.currentTime
+			start = Platform.currentTime
 			process = processBuilder.start
 			process.waitFor
-			timeEnd = Platform.currentTime
-			TimeSeries ::= timeEnd - timeStart
+			end = Platform.currentTime
+			Series ::= end - start
 		}
 
-		statistic = new Statistic(TimeSeries)
+		statistic = new Statistic(Series)
 		constructStatistic
 
-		result = new BenchmarkResult(TimeSeries, CLASSNAME)
+		result = new BenchmarkResult(Series, CLASSNAME)
 		result.store
 	}
 
@@ -65,7 +65,7 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, WARMUP: Int, RUNS: In
 		val ConfidenceInterval = statistic.ConfidenceInterval()
 		val diff = (ConfidenceInterval.last - ConfidenceInterval.head) / 2
 
-		for (i <- TimeSeries) {
+		for (i <- Series) {
 			println("[Running Time] 	" + i + "ms")
 		}
 		println("[Average]	" + Mean.formatted("%.2f") + "ms")
