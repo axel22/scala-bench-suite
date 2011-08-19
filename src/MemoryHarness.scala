@@ -54,93 +54,36 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 		println("[Warm up]")
 		Platform.collectGarbage
 
-		for (mul <- 1 to MULTIPLIER) {
+		clazz ::= (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+		methods ::= clazz.head.getMethod("main", classOf[Array[String]])
+		methods.head.invoke(null, { null })
 
-			start = runtime.totalMemory - runtime.freeMemory
+		cleanUp
 
-			for (i <- 1 to RUNS) {
-				clazz ::= (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-			}
-			for (i <- 1 to RUNS) {
-				methods ::= clazz.head.getMethod("main", classOf[Array[String]])
-			}
-			for (i <- 1 to RUNS) {
-				methods.head.invoke(null, { null })
-			}
+		start = runtime.totalMemory - runtime.freeMemory
 
-			end = runtime.totalMemory - runtime.freeMemory
+		methods.head.invoke(null, { null })
 
-			Series ::= end - start
+		end = runtime.totalMemory - runtime.freeMemory
 
-			clazz = Nil
-			methods = Nil
-			Platform.collectGarbage
-		}
-
-		statistic = new Statistic(Series)
-		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
-
-		while (statistic.CoV >= steadyThreshold) {
-			
-			clazz = Nil
-			methods = Nil
-			Platform.collectGarbage
-			
-			start = runtime.totalMemory - runtime.freeMemory
-
-			for (i <- 1 to RUNS) {
-				clazz ::= (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-			}
-			for (i <- 1 to RUNS) {
-				methods ::= clazz.head.getMethod("main", classOf[Array[String]])
-			}
-			for (i <- 1 to RUNS) {
-				methods.head.invoke(null, { null })
-			}
-
-			end = runtime.totalMemory - runtime.freeMemory
-
-			Series = Series.tail ++ List(end - start)
-			
-			statistic.setSERIES(Series)
-			println("[Newest] " + Series.last)
-			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
-		}
-
-		println("[Steady State] ")
-
-		Series = Nil
-
-		Platform.collectGarbage
-
-		for (mul <- 1 to MULTIPLIER) {
-
-			start = runtime.totalMemory - runtime.freeMemory
-
-			for (i <- 1 to RUNS) {
-				clazz ::= (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-			}
-			for (i <- 1 to RUNS) {
-				methods ::= clazz.head.getMethod("main", classOf[Array[String]])
-			}
-			for (i <- 1 to RUNS) {
-				methods.head.invoke(null, { null })
-			}
-
-			end = runtime.totalMemory - runtime.freeMemory
-
-			Series ::= end - start
-
-			clazz = Nil
-			methods = Nil
-			Platform.collectGarbage
-		}
-
-		statistic.setSERIES(Series)
-		constructStatistic
+		Series ::= end - start
 
 		result = new BenchmarkResult(Series, CLASSNAME, false)
 		result.storeByDefault
 	}
 
+	/**
+	 * Forces the Java gc to clean up the heap.
+	 */
+	def cleanUp() {
+		try {
+			Platform.collectGarbage
+			System.runFinalization
+			Platform.collectGarbage
+			System.runFinalization
+			Platform.collectGarbage
+		} catch {
+			case e => e.printStackTrace();
+		}
+	}
 }
