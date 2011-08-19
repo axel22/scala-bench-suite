@@ -57,11 +57,11 @@ class Statistic(private var SERIES: List[Long]) {
 	 */
 	def inverseGaussianDistribution(): Double = {
 		if (alpha == 0.10) {
-			return 1.281551566
-		} else if (alpha == 0.05) {
 			return 1.644853627
+		} else if (alpha == 0.05) {
+			return 1.959963985
 		} else if (alpha == 0.01) {
-			return 2.326347874
+			return 2.575829304
 		} else {
 			throw new Exception("Significant level are 0.10, 0.05 and 0.01 only")
 		}
