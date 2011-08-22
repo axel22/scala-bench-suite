@@ -20,12 +20,12 @@ object BenchmarkDriver {
 	def main(args: Array[String]): Unit = {
 
 		try {
-			var harness = new SteadyHarness(args(0), args(1) + "/", args(3).toInt, args(4).toInt)
+//			var harness = new MemoryHarness(args(0), args(1) + "/", args(2).toInt, args(3).toInt)
 
-//			harness.run
+//			for (i <- 1 to 10) harness.run
 
-			var reg = new Regression(List())
-			reg.regression()
+			var reg = new Regression(Nil)
+			reg.run
 
 		} catch {
 			case e: Exception => throw e

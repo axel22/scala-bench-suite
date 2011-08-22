@@ -11,6 +11,7 @@
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
+import java.lang.Thread.sleep
 
 import scala.Math.sqrt
 import scala.compat.Platform
@@ -27,13 +28,13 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	 */
 	private val runtime: Runtime = Runtime.getRuntime
 	/**
-	 * The <code>List</code> of scala class contains many of benchmark class.
+	 * The benchmark class loaded.
 	 */
-	private var clazz: List[Class[_]] = Nil
+	private var clazz: Class[_] = null
 	/**
-	 * The <code>List</code> of scala method contains many of benchmark <code>main</code> method.
+	 * The <code>main</code> method of the benchmark class.
 	 */
-	private var methods: List[Method] = Nil
+	private var method: Method = null
 	/**
 	 * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
 	 */
@@ -51,22 +52,26 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	 */
 	override def run() {
 
-		println("[Warm up]")
-		Platform.collectGarbage
+		println("[Warmup]	")
+		cleanUp
+		start = runtime.freeMemory
+		clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+		method = clazz.getMethod("main", classOf[Array[String]])
+		method.invoke(null, { null })
+		end = runtime.freeMemory
 
-		clazz ::= (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-		methods ::= clazz.head.getMethod("main", classOf[Array[String]])
-		methods.head.invoke(null, { null })
+		println(start - end)
 
 		cleanUp
+		start = runtime.freeMemory
+		clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+		method = clazz.getMethod("main", classOf[Array[String]])
+		method.invoke(null, { null })
+		end = runtime.freeMemory
 
-		start = runtime.totalMemory - runtime.freeMemory
+		println(start - end)
 
-		methods.head.invoke(null, { null })
-
-		end = runtime.totalMemory - runtime.freeMemory
-
-		Series ::= end - start
+		Series ::= start - end
 
 		result = new BenchmarkResult(Series, CLASSNAME, false)
 		result.storeByDefault
@@ -76,14 +81,12 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	 * Forces the Java gc to clean up the heap.
 	 */
 	def cleanUp() {
-		try {
-			Platform.collectGarbage
-			System.runFinalization
-			Platform.collectGarbage
-			System.runFinalization
-			Platform.collectGarbage
-		} catch {
-			case e => e.printStackTrace();
-		}
+		Platform.collectGarbage
+		System.runFinalization
+		sleep(100)
+		Platform.collectGarbage
+		System.runFinalization
+		sleep(100)
+		Platform.collectGarbage
 	}
 }
