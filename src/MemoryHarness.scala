@@ -14,7 +14,6 @@ import java.net.URLClassLoader
 import java.lang.Thread.sleep
 
 import scala.Math.sqrt
-import scala.compat.Platform
 
 /**
  * Class represent the harness controls the runtime for measuring memory consumption.
@@ -43,26 +42,62 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	/**
 	 * Does the following:
 	 * <ul>
-	 * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
-	 * <li>Iterates the loading of benchmark class.
-	 * <li>Iterates the loading of benchmark <code>main</code> method.
-	 * <li>Iterates the invoking of benchmark <code>main</code> method to measures its memory consumption.
-	 * <li>And stores the result to file.
+	 * <li>Loads the benchmark class and its <code>main</code> method from .class file using reflection.
+	 * <li>Iterates the loading of benchmark class and the invoking of <code>main</code> for memory consumption to be stable.
+	 * <li>Measures and stores the result to file.
 	 * </ul>
 	 */
 	override def run() {
 
-		println("[Warmup]	")
-		cleanUp
-		start = runtime.freeMemory
-		clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-		method = clazz.getMethod("main", classOf[Array[String]])
-		method.invoke(null, { null })
-		end = runtime.freeMemory
+		println("[Warmup]")
+		val warmmax = 30
+		var warmup = false
 
-		println(start - end)
+		for (i <- 1 to warmmax) {
+
+			cleanUp
+
+			start = runtime.freeMemory
+			clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+			method = clazz.getMethod("main", classOf[Array[String]])
+			method.invoke(null, { null })
+			end = runtime.freeMemory
+
+			Series ::= start - end
+
+			clazz = null
+			method = null
+		}
+
+		while (!warmup) {
+
+			cleanUp
+
+			start = runtime.freeMemory
+			clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+			method = clazz.getMethod("main", classOf[Array[String]])
+			method.invoke(null, { null })
+			end = runtime.freeMemory
+
+			println(start - end)
+
+			Series = start - end :: Series.take(Series.length - 1)
+
+			clazz = null
+			method = null
+
+			warmup = true
+			for (i <- Series) {
+				if (i != Series.last) {
+					warmup = false
+				}
+			}
+		}
+
+		println("[Steady State]")
 
 		cleanUp
+
 		start = runtime.freeMemory
 		clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
 		method = clazz.getMethod("main", classOf[Array[String]])
@@ -73,20 +108,8 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 		Series ::= start - end
 
-		result = new BenchmarkResult(Series, CLASSNAME, false)
-		result.storeByDefault
+		//		result = new BenchmarkResult(Series, CLASSNAME, false)
+		//		result.storeByDefault
 	}
 
-	/**
-	 * Forces the Java gc to clean up the heap.
-	 */
-	def cleanUp() {
-		Platform.collectGarbage
-		System.runFinalization
-		sleep(100)
-		Platform.collectGarbage
-		System.runFinalization
-		sleep(100)
-		Platform.collectGarbage
-	}
 }

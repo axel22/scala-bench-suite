@@ -15,7 +15,6 @@ import java.net.URLClassLoader
 import scala.Math.sqrt
 import scala.compat.Platform
 
-
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
  *
@@ -50,8 +49,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 		println("[Warm Up] ")
 
 		for (mul <- 1 to MULTIPLIER) {
-			Platform.collectGarbage
-			
+
+			cleanUp
+
 			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -62,11 +62,12 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 		}
 		statistic = new Statistic(Series)
-//		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+		//		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 
 		while (statistic.CoV >= steadyThreshold) {
-			Platform.collectGarbage
-			
+
+			cleanUp
+
 			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -75,8 +76,8 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 			Series = Series.tail ++ List(end - start)
 			statistic.setSERIES(Series)
-//			println("[Newest] " + Series.last)
-//			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+			//			println("[Newest] " + Series.last)
+			//			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 		}
 
 		println("[Steady State] ")
@@ -84,8 +85,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 		Series = Nil
 
 		for (mul <- 1 to MULTIPLIER) {
-			Platform.collectGarbage
 			
+			cleanUp
+
 			start = Platform.currentTime
 			for (i <- 0 to RUNS) {
 				benchmarkMainMethod.invoke(null, args)
@@ -97,7 +99,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 		statistic.setSERIES(Series)
 		constructStatistic
-		
+
 		result = new BenchmarkResult(Series, CLASSNAME, true)
 		result.storeByDefault
 	}

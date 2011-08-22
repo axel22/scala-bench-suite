@@ -8,6 +8,8 @@
  * Created by ND P
  */
 
+import java.lang.Thread.sleep
+import scala.compat.Platform
 import scala.Math.sqrt
 
 
@@ -61,6 +63,19 @@ abstract class Harness {
 		println("[Average]	" + Mean.formatted("%.2f"))
 		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
 		println("[Difference] " + diff.formatted("%.2f") + " = " + (diff / Mean * 100).formatted("%.2f") + "%")
+	}
+	
+	/**
+	 * Forces the Java gc to clean up the heap.
+	 */
+	def cleanUp() {
+		Platform.collectGarbage
+		System.runFinalization
+		sleep(100)
+		Platform.collectGarbage
+		System.runFinalization
+		sleep(100)
+		Platform.collectGarbage
 	}
 
 }
