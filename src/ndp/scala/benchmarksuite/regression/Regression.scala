@@ -8,8 +8,9 @@
  * Created by ND P
  */
 
-import scala.math.sqrt
+package ndp.scala.benchmarksuite.regression
 
+import ndp.scala.benchmarksuite.utility.BenchmarkResult
 
 /**
  * Class uses previous benchmarking results to detect regression.
@@ -63,10 +64,15 @@ class Regression() {
 		statistic = new Statistic(Nil)
 		statistic.setLIST(LIST)
 		
-		if (statistic.testDifference) {
-			println("At confidence level " + statistic.ConfidentLevel + "% there is statistically significant difference")
-		} else {
-			println("At confidence level " + statistic.ConfidentLevel + "% no statistically significant difference")
+		try {
+			if (statistic.testDifference) {
+				println("At confidence level " + statistic.ConfidentLevel + "% there is statistically significant difference")
+			} else {
+				println("At confidence level " + statistic.ConfidentLevel + "% no statistically significant difference")
+			}
+		}
+		catch {
+			case e => println(e.getMessage())
 		}
 	}
 

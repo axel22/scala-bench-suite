@@ -8,6 +8,8 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite.utility
+
 import scala.io.Source.fromFile
 
 /**
@@ -18,7 +20,7 @@ object Utility {
 	/**
 	 * The relative path of the resource folder of the benchmark suite.
 	 */
-	val RESOURCE_PATH = "src/resource/"
+	val RESOURCE_PATH = "resource/"
 	/**
 	 * The string spliter for cells in one row of a file storing a distribution table.
 	 */
@@ -64,11 +66,10 @@ object Utility {
 	/**
 	 * The maximum row of the Fisher F distribution table.
 	 */
-	val F_DISTRIBUTION_TABLE_ROW_MAX = 11001
-	
+	val F_DISTRIBUTION_TABLE_ROW_MAX = 11001
 	/**
 	 * Reads the value in a pre-computed distribution table stored in file with the given row and column.
-	 * 
+	 *
 	 * @param tableFile	The path to the file stores the desired distribution table.
 	 * @param column	The column index of the desired value.
 	 * @param row	The row index of the desired value.

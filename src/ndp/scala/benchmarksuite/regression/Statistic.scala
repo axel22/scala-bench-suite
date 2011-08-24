@@ -8,6 +8,8 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite.regression
+
 import scala.math.sqrt
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
@@ -208,7 +210,7 @@ class Statistic() {
 	 */
 	def testDifference(): Boolean = {
 		if (LIST.length < 2) {
-			throw new Exception("No regression")
+			throw new java.lang.Exception("Not enough result files specified. No regression.")
 		}
 		if (LIST.length == 2) {
 			testConfidenceIntervals

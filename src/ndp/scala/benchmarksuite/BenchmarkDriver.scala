@@ -8,6 +8,11 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite
+
+import ndp.scala.benchmarksuite.measurement.MemoryHarness
+import ndp.scala.benchmarksuite.regression.Regression
+
 /**
  * Object controls the runtime of benchmark classes to do measurements.
  *
@@ -24,11 +29,12 @@ object BenchmarkDriver {
 
 			harness.run
 
-//			var reg = new Regression(Nil)
-//			reg.run
+			var reg = new Regression(Nil)
+			reg.run
 
 		} catch {
-			case e: Exception => throw e
+			case e: java.lang.ClassNotFoundException => println("Class " + e.getMessage() + " not found. Please re-install the application.")
+			case f => println(f)
 		}
 	}
 

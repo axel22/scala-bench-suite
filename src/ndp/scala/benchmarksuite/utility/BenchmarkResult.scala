@@ -8,10 +8,13 @@
  * Created by ND P
  */
 
-import scala.io.Source.fromFile
+package ndp.scala.benchmarksuite.utility
+
 import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
+
+import scala.io.Source.fromFile
 
 
 /**

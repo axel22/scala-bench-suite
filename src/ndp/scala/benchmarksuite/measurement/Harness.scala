@@ -8,10 +8,14 @@
  * Created by ND P
  */
 
-import java.lang.Thread.sleep
-import scala.compat.Platform
-import scala.Math.sqrt
+package ndp.scala.benchmarksuite.measurement
 
+import java.lang.Thread.sleep
+
+import scala.compat.Platform
+
+import ndp.scala.benchmarksuite.regression.Statistic
+import ndp.scala.benchmarksuite.utility.BenchmarkResult
 
 /**
  * Abstract base class for iterating and measuring the running time of the benchmark classes.
@@ -56,7 +60,7 @@ abstract class Harness {
 		val Mean = statistic.Mean
 		val ConfidencInterval = statistic.ConfidenceInterval
 		val diff = (ConfidencInterval.last - ConfidencInterval.head) / 2
-		
+
 		for (i <- Series) {
 			println("[Sample]	" + i)
 		}
@@ -64,7 +68,7 @@ abstract class Harness {
 		println("[Confident Intervals]	[" + ConfidencInterval.head.formatted("%.2f") + "; " + ConfidencInterval.last.formatted("%.2f") + "]")
 		println("[Difference] " + diff.formatted("%.2f") + " = " + (diff / Mean * 100).formatted("%.2f") + "%")
 	}
-	
+
 	/**
 	 * Forces the Java gc to clean up the heap.
 	 */
@@ -77,5 +81,4 @@ abstract class Harness {
 		sleep(100)
 		Platform.collectGarbage
 	}
-
 }

@@ -8,8 +8,12 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite.measurement
+
 import scala.compat.Platform
 
+import ndp.scala.benchmarksuite.regression.Statistic
+import ndp.scala.benchmarksuite.utility.BenchmarkResult
 
 /**
  * Class represent the harness controls the runtime of startup state benchmarking.
@@ -23,7 +27,7 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER
 	 */
 	private var processBuilder: ProcessBuilder = null
 	/**
-	 * The <code>Process</code> used to control the runtime and obtain the information of the benchmark classes. 
+	 * The <code>Process</code> used to control the runtime and obtain the information of the benchmark classes.
 	 */
 	private var process: Process = null
 

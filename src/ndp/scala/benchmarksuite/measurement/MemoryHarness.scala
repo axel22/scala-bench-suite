@@ -8,12 +8,12 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite.measurement
+
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
-import java.lang.Thread.sleep
-
-import scala.Math.sqrt
+import ndp.scala.benchmarksuite.utility.BenchmarkResult
 
 /**
  * Class represent the harness controls the runtime for measuring memory consumption.
@@ -53,23 +53,49 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 		val warmmax = 30
 		var warmup = false
 
-		for (i <- 1 to warmmax) {
+		try {
+			for (i <- 1 to warmmax) {
 
-			cleanUp
+				cleanUp
 
-			start = runtime.freeMemory
-			clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-			method = clazz.getMethod("main", classOf[Array[String]])
-			method.invoke(null, { null })
-			end = runtime.freeMemory
+				start = runtime.freeMemory
+				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+				method = clazz.getMethod("main", classOf[Array[String]])
+				method.invoke(null, { null })
+				end = runtime.freeMemory
 
-			Series ::= start - end
+				Series ::= start - end
 
-			clazz = null
-			method = null
-		}
+				clazz = null
+				method = null
+			}
 
-		while (!warmup) {
+			while (!warmup) {
+
+				cleanUp
+
+				start = runtime.freeMemory
+				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+				method = clazz.getMethod("main", classOf[Array[String]])
+				method.invoke(null, { null })
+				end = runtime.freeMemory
+
+				println(start - end)
+
+				Series = start - end :: Series.take(Series.length - 1)
+
+				clazz = null
+				method = null
+
+				warmup = true
+				for (i <- Series) {
+					if (i != Series.last) {
+						warmup = false
+					}
+				}
+			}
+
+			println("[Steady State]")
 
 			cleanUp
 
@@ -81,35 +107,19 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
 			println(start - end)
 
-			Series = start - end :: Series.take(Series.length - 1)
+			Series ::= start - end
 
-			clazz = null
-			method = null
-
-			warmup = true
-			for (i <- Series) {
-				if (i != Series.last) {
-					warmup = false
+			result = new BenchmarkResult(Series, CLASSNAME, false)
+			result.storeByDefault
+		} catch {
+			case e: java.lang.ClassNotFoundException => {
+				if (e.getMessage equals CLASSNAME) {
+					println("Class " + e.getMessage() + " not found. Please check the class directory.")
+				} else {
+					println("Class " + e.getMessage() + " not found. Please re-install the application.")
 				}
 			}
 		}
-
-		println("[Steady State]")
-
-		cleanUp
-
-		start = runtime.freeMemory
-		clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-		method = clazz.getMethod("main", classOf[Array[String]])
-		method.invoke(null, { null })
-		end = runtime.freeMemory
-
-		println(start - end)
-
-		Series ::= start - end
-
-		//		result = new BenchmarkResult(Series, CLASSNAME, false)
-		//		result.storeByDefault
 	}
 
 }

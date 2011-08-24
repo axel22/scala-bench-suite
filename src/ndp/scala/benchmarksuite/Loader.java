@@ -8,6 +8,8 @@
  * Created by ND P
  */
 
+package ndp.scala.benchmarksuite;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +23,12 @@ public class Loader {
 
 	public static void main(String[] args) {
 		List<String> argList = new ArrayList<String>();
-		argList.add("BenchmarkDriver");
+		argList.add("-classpath");
+		argList.add("bin");
+		argList.add("ndp.scala.benchmarksuite.BenchmarkDriver");
 		for (String s : args) {
 			argList.add(s);
 		}
-		System.out.println("Running from " + System.getProperty("user.dir"));
 		scala.tools.nsc.MainGenericRunner.main(argList.toArray(new String[0]));
 	}
 }
