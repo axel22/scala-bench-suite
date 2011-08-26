@@ -78,7 +78,7 @@ scalac -d %classdir% %src% | goto RUN_BENCHMARK
 :RUN_BENCHMARK
 echo scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier%
 echo Benchmark running...
-scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier% > out.out
+scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier%
 
 :END
 echo End of benchmarking.

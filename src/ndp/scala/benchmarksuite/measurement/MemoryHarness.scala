@@ -14,6 +14,7 @@ import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Class represents the harness controls the runtime for measuring memory consumption.
@@ -22,107 +23,120 @@ import ndp.scala.benchmarksuite.utility.BenchmarkResult
  */
 class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
-	/**
-	 * The <code>Runtime</code> class used to get information from the environment in which the benchmark is running.
-	 */
-	private val runtime: Runtime = Runtime.getRuntime
-	/**
-	 * The benchmark class loaded using reflection.
-	 */
-	private var clazz: Class[_] = null
-	/**
-	 * The <code>main</code> method of the benchmark class.
-	 */
-	private var method: Method = null
-	/**
-	 * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
-	 */
-	private val steadyThreshold: Double = 0.01
+  /**
+   * The <code>Runtime</code> class used to get information from the environment in which the benchmark is running.
+   */
+  private val runtime: Runtime = Runtime.getRuntime
+  /**
+   * The benchmark class loaded using reflection.
+   */
+  private var clazz: Class[_] = null
+  /**
+   * The <code>main</code> method of the benchmark class.
+   */
+  private var method: Method = null
+  /**
+   * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
+   */
+  private val steadyThreshold: Double = 0.01
 
-	/**
-	 * Does the following:
-	 * <ul>
-	 * <li>Loads the benchmark class and its <code>main</code> method from .class file using reflection.
-	 * <li>Iterates the loading of benchmark class and the invoking of <code>main</code> for memory consumption to be stable.
-	 * <li>Measures and stores the result to file.
-	 * </ul>
-	 */
-	override def run() {
+  /**
+   * Does the following:
+   * <ul>
+   * <li>Loads the benchmark class and its <code>main</code> method from .class file using reflection.
+   * <li>Iterates the loading of benchmark class and the invoking of <code>main</code> for memory consumption to be stable.
+   * <li>Measures and stores the result to file.
+   * </ul>
+   */
+  override def run(): BenchmarkResult = {
 
-		println("[Warmup]")
-		val warmmax = 30
-		var warmup = false
+    log("[Benchmarking memory consumption]")
 
-		try {
-			for (i <- 1 to warmmax) {
+    log.debug("[Warmup]")
+    var start: Long = 0
+    var end: Long = 0
+    var series: ArrayBuffer[Long] = new ArrayBuffer
+    val warmmax = 30
+    var warmup = false
 
-				cleanUp
+    try {
+      for (i <- 1 to warmmax) {
 
-				start = runtime.freeMemory
-				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-				method = clazz.getMethod("main", classOf[Array[String]])
-				method.invoke(clazz, { null })
-				end = runtime.freeMemory
+        cleanUp
 
-				Series ::= start - end
+        start = runtime.freeMemory
+        clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+        method = clazz.getMethod("main", classOf[Array[String]])
+        method.invoke(clazz, { null })
+        end = runtime.freeMemory
 
-				clazz = null
-				method = null
-			}
+        series += start - end
 
-			while (!warmup) {
+        clazz = null
+        method = null
+      }
 
-				cleanUp
+      while (!warmup) {
 
-				start = runtime.freeMemory
-				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-				method = clazz.getMethod("main", classOf[Array[String]])
-				method.invoke(clazz, { null })
-				end = runtime.freeMemory
+        cleanUp
 
-				println(start - end)
+        start = runtime.freeMemory
+        clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+        method = clazz.getMethod("main", classOf[Array[String]])
+        method.invoke(clazz, { null })
+        end = runtime.freeMemory
 
-				Series = start - end :: Series.take(Series.length - 1)
+        println(start - end)
 
-				clazz = null
-				method = null
+        series.remove(0)
+        series += start - end
 
-				warmup = true
-				for (i <- Series) {
-					if (i != Series.last) {
-						warmup = false
-					}
-				}
-			}
+        clazz = null
+        method = null
 
-			println("[Steady State]")
+        warmup = true
+        for (i <- series) {
+          if (i != series.last) {
+            warmup = false
+          }
+        }
+      }
 
-			cleanUp
+      log.debug("[Steady State]")
 
-			start = runtime.freeMemory
-			clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
-			method = clazz.getMethod("main", classOf[Array[String]])
-			method.invoke(clazz, { null })
-			end = runtime.freeMemory
+      cleanUp
 
-			println(start - end)
+      start = runtime.freeMemory
+      clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+      method = clazz.getMethod("main", classOf[Array[String]])
+      method.invoke(clazz, { null })
+      end = runtime.freeMemory
 
-			Series ::= start - end
-			
-			constructStatistic
+      println(start - end)
 
-			result = new BenchmarkResult(Series, CLASSNAME, false)
-			result.storeByDefault
-		} catch {
-			case e: java.lang.reflect.InvocationTargetException => {
-				e.getCause match {
-					case n: java.lang.ClassNotFoundException => println("Class " + n.getMessage() + " not found. Please check the class directory.")
-					case n: java.lang.NoClassDefFoundError => println("Class " + n.getMessage() + " not found. Please check the class directory.")
-					case n => throw n
-				}
-			}
-			case i => throw i
-		}
-	}
+      series += start - end
+
+      constructStatistic(series)
+
+      result = new BenchmarkResult(series, CLASSNAME, false)
+      result.storeByDefault
+      result
+    } catch {
+      case e: java.lang.reflect.InvocationTargetException => {
+        e.getCause match {
+          case n: java.lang.ClassNotFoundException => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n: java.lang.NoClassDefFoundError => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n => throw n
+        }
+      }
+      case i => throw i
+    }
+  }
 
 }

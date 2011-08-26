@@ -14,6 +14,7 @@ import scala.math.sqrt
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 import org.apache.commons.math.distribution.FDistributionImpl
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
@@ -27,66 +28,56 @@ class Statistic() {
 	/**
 	 * The sample value series.
 	 */
-	private var SERIES: List[Long] = Nil
+	private var _series: ArrayBuffer[Long] = null
+	def series = _series
+	def series_=(series: ArrayBuffer[Long]) {
+	  _series = series
+	}
 	/**
-	 * The <code>List</code> of sample value series.
+	 * The <code>persistors</code> of sample value series.
 	 */
-	private var LIST: List[List[Long]] = Nil
+	private var _persistors: ArrayBuffer[ArrayBuffer[Long]] = null
+	def persistors = _persistors
+	def persistors_=(persistors: ArrayBuffer[ArrayBuffer[Long]]) {
+	  _persistors = persistors
+	}
 
 	/**
-	 * Constructs a <code>Statistic</code> using a given list of samples.
+	 * Constructs a <code>Statistic</code> using a given persistors of samples.
 	 * 
-	 * @param theList	The given list of samples
+	 * @param thepersistors	The given persistors of samples
 	 */
-	/*def this(theList: List[List[Long]]) {
+	/*def this(thepersistors: persistors[persistors[Long]]) {
 		this
-		LIST = theList
+		persistors = thepersistors
 	}*/
 	
 	/**
 	 * Constructs a <code>Statistic</code> using a given sample.
 	 * 
-	 * @param theSeries	The given sample
+	 * @param theseries	The given sample
 	 */
-	def this(theSeries: List[Long]) {
+	def this(theSeries: ArrayBuffer[Long]) {
 		this
-		SERIES = theSeries
+		series = theSeries
 	}
 	
-	/**
-	 * Sets the field <code>SERIES</code> with the new value.
-	 *
-	 * @param newSeries	The new value series
-	 */
-	def setSERIES(newSeries: List[Long]) {
-		SERIES = newSeries
-	}
-	
-	/**
-	 * Sets the field <code>LIST</code> with the new value.
-	 *
-	 * @param newList	The new list of samples.
-	 */
-	def setLIST(newList: List[List[Long]]) {
-		LIST = newList
-	}
-
 	/**
 	 * Computes the confidence interval for the given sample.
 	 *
 	 * @return	The left and right end points of the confidence interval.
 	 */
-	def ConfidenceInterval(): List[Double] = {
+	def ConfidenceInterval(): ArrayBuffer[Double] = {
 
 		var diff: Double = 0
 
-		if (SERIES.length >= 30) {
-			diff = inverseGaussianDistribution * StandardDeviation / sqrt(SERIES.length)
+		if (series.length >= 30) {
+			diff = inverseGaussianDistribution * standardDeviation / sqrt(series.length)
 		} else {
-			diff = inverseStudentDistribution(SERIES.length - 1) * StandardDeviation / sqrt(SERIES.length)
+			diff = inverseStudentDistribution(series.length - 1) * standardDeviation / sqrt(series.length)
 		}
 
-		List(Mean - diff, Mean + diff)
+		ArrayBuffer(mean - diff, mean + diff)
 	}
 
 	/**
@@ -110,7 +101,7 @@ class Statistic() {
 	 * @return	The t value
 	 */
 	private def inverseStudentDistribution(df: Int): Double = {
-		new TDistributionImpl(SERIES.length - 1).inverseCumulativeProbability(1 - alpha / 2)
+		new TDistributionImpl(series.length - 1).inverseCumulativeProbability(1 - alpha / 2)
 	}
 
 	/**
@@ -132,8 +123,8 @@ class Statistic() {
 	 * @return	The minimum value
 	 */
 	def min(): Long = {
-		var result = SERIES.head
-		for (i <- SERIES) {
+		var result = series.head
+		for (i <- series) {
 			if (result > i) {
 				result = i
 			}
@@ -145,8 +136,8 @@ class Statistic() {
 	 * @return	The maximum value
 	 */
 	def max(): Long = {
-		var result = SERIES.head
-		for (i <- SERIES) {
+		var result = series.head
+		for (i <- series) {
 			if (result < i) {
 				result = i
 			}
@@ -158,10 +149,10 @@ class Statistic() {
 	 * Computes the sample mean.
 	 * @return	The average
 	 */
-	def Mean(): Double = {
+	def mean(): Double = {
 		var sum: Double = 0
-		val runs = SERIES.length
-		for (i <- SERIES) {
+		val runs = series.length
+		for (i <- series) {
 			sum += i
 		}
 		sum / runs
@@ -171,11 +162,10 @@ class Statistic() {
 	 * Computes the standard deviation of a given sample.
 	 * @return	The standard deviation
 	 */
-	def StandardDeviation(): Double = {
+	def standardDeviation(): Double = {
 		var squareSum: Double = 0
-		val runs = SERIES.length
-		val mean = Mean
-		for (i <- SERIES) {
+		val runs = series.length
+		for (i <- series) {
 			squareSum += (i - mean) * (i - mean)
 		}
 		sqrt(squareSum / (runs - 1))
@@ -186,7 +176,7 @@ class Statistic() {
 	 * @return	The coefficient of variation
 	 */
 	def CoV(): Double = {
-		StandardDeviation / Mean
+		standardDeviation / mean
 	}
 
 	/**
@@ -209,10 +199,10 @@ class Statistic() {
 	 * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
 	 */
 	def testDifference(): Boolean = {
-		if (LIST.length < 2) {
+		if (persistors.length < 2) {
 			throw new java.lang.Exception("Not enough result files specified. No regression.")
 		}
-		if (LIST.length == 2) {
+		if (persistors.length == 2) {
 			testConfidenceIntervals
 		} else {
 			testANOVA
@@ -225,35 +215,35 @@ class Statistic() {
 	 * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
 	 */
 	private def testConfidenceIntervals(): Boolean = {
-		setSERIES(LIST.head)
+		series = persistors(0)
 
-		val mean1 = Mean
-		val s1 = StandardDeviation
-		val n1 = SERIES.length
+		val mean1 = mean
+		val s1 = standardDeviation
+		val n1 = series.length
 
-		setSERIES(LIST.last)
+		series = persistors(1)
 
-		val mean2 = Mean
-		val s2 = StandardDeviation
-		val n2 = SERIES.length
+		val mean2 = mean
+		val s2 = standardDeviation
+		val n2 = series.length
 
-		val mean = mean1 - mean2
+		val diff = mean1 - mean2
 		val s = sqrt(s1 * s1 / n1 + s2 * s2 / n2)
 
 		var c1: Double = 0
 		var c2: Double = 0
 
 		if ((n1 >= 30) && (n2 >= 30)) {
-			c1 = mean - inverseGaussianDistribution * s
-			c2 = mean + inverseGaussianDistribution * s
+			c1 = diff - inverseGaussianDistribution * s
+			c2 = diff + inverseGaussianDistribution * s
 		}
 		else {
 			val ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) / ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
-			c1 = mean - inverseStudentDistribution(ndf) * s
-			c2 = mean + inverseStudentDistribution(ndf) * s
+			c1 = diff - inverseStudentDistribution(ndf) * s
+			c2 = diff + inverseStudentDistribution(ndf) * s
 		}
 		
-		println("[Mean] " + mean + "\t[Standard Deviation] " + s)
+		println("[Difference] " + diff + "\t[Standard Deviation] " + s)
 		println("[Confidence Interval] [" + c1 + "; " + c2 + "]")
 
 		if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) {
@@ -271,28 +261,28 @@ class Statistic() {
 	 */
 	private def testANOVA(): Boolean = {
 		var sum: Long = 0
-		for (alternative <- LIST) {
+		for (alternative <- persistors) {
 			for (invidual <- alternative) {
 				sum += invidual
 			}
 		}
-		val overall = sum / (LIST.length * LIST.head.length)
+		val overall = sum / (persistors.length * persistors.head.length)
 
 		var SSA: Double = 0
 		var SSE: Double = 0
-		for (alternative <- LIST) {
-			setSERIES(alternative)
-			val alternativeMean = Mean
+		for (alternative <- persistors) {
+			series = alternative
+			val alternativeMean = mean
 			SSA += (alternativeMean - overall) * (alternativeMean - overall)
 
 			for (invidual <- alternative) {
 				SSE += (invidual - alternativeMean) * (invidual - alternativeMean)
 			}
 		}
-		SSA *= SERIES.length
+		SSA *= series.length
 		
-		val n1 = LIST.length - 1
-		val n2 = LIST.length * SERIES.length - LIST.length
+		val n1 = persistors.length - 1
+		val n2 = persistors.length * series.length - persistors.length
 		val FValue: Double = SSA * n2 / SSE / n1
 		println("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 		

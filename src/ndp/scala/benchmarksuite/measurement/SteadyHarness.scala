@@ -13,11 +13,10 @@ package ndp.scala.benchmarksuite.measurement
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
-
 import scala.compat.Platform
-
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
@@ -26,95 +25,109 @@ import ndp.scala.benchmarksuite.utility.BenchmarkResult
  */
 class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
-	/**
-	 * The <code>Method</code> provides information about, and access to, the <code>main</code> method of the benchmark class.
-	 */
-	private var benchmarkMainMethod: Method = null
-	/**
-	 * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
-	 */
-	private val steadyThreshold: Double = 0.01
+  private var benchmarkMainMethod: Method = null
+  /**
+   * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
+   */
+  private val steadyThreshold: Double = 0.02
 
-	/**
-	 * Does the following:
-	 * <ul>
-	 * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
-	 * <li>Iterates the invoking of benchmark <code>main</code> method for it to reach the steady state.
-	 * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measure performance.
-	 * <li>And stores the result running time series to file.
-	 * </ul>
-	 */
-	override def run() {
+  /**
+   * Does the following:
+   * <ul>
+   * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
+   * <li>Iterates the invoking of benchmark <code>main</code> method for it to reach the steady state.
+   * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measure performance.
+   * <li>And stores the result running time series to file.
+   * </ul>
+   */
+  override def run(): BenchmarkResult = {
 
-		val args = { null }
-		try {
-			benchmarkMainMethod = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME).getMethod("main", classOf[Array[String]])
+    log("[Benchmarking steady state]")
 
-			println("[Warm Up] ")
+    var benchmarkMainMethod: Method = null
+    var start: Long = 0
+    var end: Long = 0
+    var statistic: Statistic = new Statistic(new ArrayBuffer)
 
-			for (mul <- 1 to MULTIPLIER) {
+    val args = { null }
 
-				cleanUp
+    try {
+      val clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+      benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
-				start = Platform.currentTime
-				for (i <- 0 to RUNS) {
-					benchmarkMainMethod.invoke(null, args)
-				}
-				end = Platform.currentTime
+      log.debug("[Warm Up] ")
 
-				Series ::= end - start
+      for (mul <- 1 to MULTIPLIER) {
 
-			}
-			statistic = new Statistic(Series)
-			//		println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+        cleanUp
 
-			while (statistic.CoV >= steadyThreshold) {
+        start = Platform.currentTime
+        for (i <- 0 to RUNS) {
+          benchmarkMainMethod.invoke(clazz, args)
+        }
+        end = Platform.currentTime
 
-				cleanUp
+        statistic.series += end - start
 
-				start = Platform.currentTime
-				for (i <- 0 to RUNS) {
-					benchmarkMainMethod.invoke(null, args)
-				}
-				end = Platform.currentTime
+      }
+      log.verbose("[Standard Deviation] " + statistic.standardDeviation + "	[Sample Mean] " + statistic.mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
 
-				Series = Series.tail ++ List(end - start)
-				statistic.setSERIES(Series)
-				//			println("[Newest] " + Series.last)
-				//			println("[Standard Deviation] " + statistic.StandardDeviation + "	[Sample Mean] " + statistic.Mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
-			}
+      while (statistic.CoV >= steadyThreshold) {
 
-			println("[Steady State] ")
+        cleanUp
 
-			Series = Nil
+        start = Platform.currentTime
+        for (i <- 0 to RUNS) {
+          benchmarkMainMethod.invoke(null, args)
+        }
+        end = Platform.currentTime
 
-			for (mul <- 1 to MULTIPLIER) {
+        statistic.series.remove(0)
+        statistic.series += end - start
 
-				cleanUp
+        log.debug("[Newest] " + statistic.series.last)
 
-				start = Platform.currentTime
-				for (i <- 0 to RUNS) {
-					benchmarkMainMethod.invoke(null, args)
-				}
-				end = Platform.currentTime
+        log.verbose("[Standard Deviation] " + statistic.standardDeviation + "	[Sample Mean] " + statistic.mean.formatted("%.2f") + "	[CoV] " + statistic.CoV)
+      }
 
-				Series ::= end - start
-			}
+      log.debug("[Steady State] ")
 
-			constructStatistic
+      statistic.series = new ArrayBuffer
 
-			result = new BenchmarkResult(Series, CLASSNAME, true)
-			result.storeByDefault
-		} catch {
-			case e: java.lang.reflect.InvocationTargetException => {
-				e.getCause match {
-					case n: java.lang.ClassNotFoundException => println("Class " + n.getMessage() + " not found. Please check the class directory.")
-					case n: java.lang.NoClassDefFoundError => println("Class " + n.getMessage() + " not found. Please check the class directory.")
-					case n => throw n
-				}
-			}
-			case i => throw i
-		}
-	}
+      for (mul <- 1 to MULTIPLIER) {
+
+        cleanUp
+
+        start = Platform.currentTime
+        for (i <- 0 to RUNS) {
+          benchmarkMainMethod.invoke(null, args)
+        }
+        end = Platform.currentTime
+
+        statistic.series += end - start
+      }
+
+      constructStatistic(statistic.series)
+
+      result = new BenchmarkResult(statistic.series, CLASSNAME, true)
+      result.storeByDefault
+      result
+    } catch {
+      case e: java.lang.reflect.InvocationTargetException => {
+        e.getCause match {
+          case n: java.lang.ClassNotFoundException => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n: java.lang.NoClassDefFoundError => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n => throw n
+        }
+      }
+      case i => throw i
+    }
+  }
 
 }

@@ -11,6 +11,7 @@
 package ndp.scala.benchmarksuite.measurement
 
 import scala.compat.Platform
+import scala.collection.mutable.ArrayBuffer
 
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
@@ -23,15 +24,6 @@ import ndp.scala.benchmarksuite.utility.BenchmarkResult
 class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
 
 	/**
-	 * The <code>ProcessBuilder</code> used to create the operating system processes for the benchmark classes.
-	 */
-	private var processBuilder: ProcessBuilder = null
-	/**
-	 * The <code>Process</code> used to control the runtime and obtain the information of the benchmark classes.
-	 */
-	private var process: Process = null
-
-	/**
 	 * Does the following:
 	 * <ul>
 	 * <li>Creates the operating system process for the benchmark classes to run.
@@ -39,12 +31,17 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER
 	 * <li>And stores the result running time series to file.
 	 * </ul>
 	 */
-	override def run() {
+	override def run(): BenchmarkResult = {
+		
+		log("[Benchmarking startup state]")
 
-		processBuilder = new ProcessBuilder("scala.bat", "-classpath", CLASSPATH, CLASSNAME)
+		val processBuilder = new ProcessBuilder("scala.bat", "-classpath", CLASSPATH, CLASSNAME)
 
+		var start: Long = 0
+		var end: Long = 0
+		var series: ArrayBuffer[Long] = new ArrayBuffer
 		// Ignore the first launch due to system status changing
-		process = processBuilder.start
+		var process = processBuilder.start
 		process.waitFor
 
 		for (i <- 1 to MULTIPLIER) {
@@ -52,13 +49,14 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER
 			process = processBuilder.start
 			process.waitFor
 			end = Platform.currentTime
-			Series ::= end - start
+			series += end - start
 		}
 
-		constructStatistic
+		constructStatistic(series)
 
-		result = new BenchmarkResult(Series, CLASSNAME, true)
+		result = new BenchmarkResult(series, CLASSNAME, true)
 		result.storeByDefault
+		result
 	}
 
 }
