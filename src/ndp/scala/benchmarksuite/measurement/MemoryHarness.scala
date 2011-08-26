@@ -16,7 +16,7 @@ import java.net.URLClassLoader
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
 
 /**
- * Class represent the harness controls the runtime for measuring memory consumption.
+ * Class represents the harness controls the runtime for measuring memory consumption.
  *
  * @author ND P
  */
@@ -27,7 +27,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	 */
 	private val runtime: Runtime = Runtime.getRuntime
 	/**
-	 * The benchmark class loaded.
+	 * The benchmark class loaded using reflection.
 	 */
 	private var clazz: Class[_] = null
 	/**
@@ -61,7 +61,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 				start = runtime.freeMemory
 				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
 				method = clazz.getMethod("main", classOf[Array[String]])
-				method.invoke(null, { null })
+				method.invoke(clazz, { null })
 				end = runtime.freeMemory
 
 				Series ::= start - end
@@ -77,7 +77,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 				start = runtime.freeMemory
 				clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
 				method = clazz.getMethod("main", classOf[Array[String]])
-				method.invoke(null, { null })
+				method.invoke(clazz, { null })
 				end = runtime.freeMemory
 
 				println(start - end)
@@ -102,23 +102,26 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 			start = runtime.freeMemory
 			clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
 			method = clazz.getMethod("main", classOf[Array[String]])
-			method.invoke(null, { null })
+			method.invoke(clazz, { null })
 			end = runtime.freeMemory
 
 			println(start - end)
 
 			Series ::= start - end
+			
+			constructStatistic
 
 			result = new BenchmarkResult(Series, CLASSNAME, false)
 			result.storeByDefault
 		} catch {
-			case e: java.lang.ClassNotFoundException => {
-				if (e.getMessage equals CLASSNAME) {
-					println("Class " + e.getMessage() + " not found. Please check the class directory.")
-				} else {
-					println("Class " + e.getMessage() + " not found. Please re-install the application.")
+			case e: java.lang.reflect.InvocationTargetException => {
+				e.getCause match {
+					case n: java.lang.ClassNotFoundException => println("Class " + n.getMessage() + " not found. Please check the class directory.")
+					case n: java.lang.NoClassDefFoundError => println("Class " + n.getMessage() + " not found. Please check the class directory.")
+					case n => throw n
 				}
 			}
+			case i => throw i
 		}
 	}
 

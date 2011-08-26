@@ -35,7 +35,7 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER
 	 * Does the following:
 	 * <ul>
 	 * <li>Creates the operating system process for the benchmark classes to run.
-	 * <li>Iterates the invoking of new JVM instance loading the benchmark classes to measures the performance.
+	 * <li>Iterates the invoking of new JVM instance loading the benchmark classes to measure performance.
 	 * <li>And stores the result running time series to file.
 	 * </ul>
 	 */
@@ -55,7 +55,6 @@ class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER
 			Series ::= end - start
 		}
 
-		statistic = new Statistic(Series)
 		constructStatistic
 
 		result = new BenchmarkResult(Series, CLASSNAME, true)

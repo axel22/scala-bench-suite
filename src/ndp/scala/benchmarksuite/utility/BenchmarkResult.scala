@@ -18,7 +18,7 @@ import scala.io.Source.fromFile
 
 
 /**
- * Class represents the result of benchmarking. Allow user to store or load a list of running time from file.
+ * Class represents the result of benchmarking. Allows user to store or load a list of values from file.
  *
  * @author ND P
  */
@@ -29,7 +29,7 @@ class BenchmarkResult {
 	 */
 	private var Filename: String = null
 	/**
-	 * The <code>List[Long]</code> represent the result running time series.
+	 * The <code>List[Long]</code> represent the result value series.
 	 */
 	private var Series: List[Long] = List()
 	/**

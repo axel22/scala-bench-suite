@@ -20,18 +20,18 @@ import ndp.scala.benchmarksuite.utility.BenchmarkResult
 class Regression() {
 
 	/**
-	 * List of the running time series.
+	 * List of the value series.
 	 */
-	private var LIST: List[List[Long]] = List()
+	private var LIST: List[List[Long]] = Nil
 	/**
-	 * The <code>Statistic</code> class used for computing statistic arguments.
+	 * The <code>Statistic</code> class used for computing statistic metrics.
 	 */
 	private var statistic: Statistic = null
 
 	/**
 	 * Constructs a <code>Regression</code> using the given the list of value series.
 	 * 
-	 * @param series	the list of running time series.
+	 * @param series	The list of value series.
 	 */
 	def this(theList: List[List[Long]]) {
 		this
@@ -39,7 +39,7 @@ class Regression() {
 	}
 	
 	/**
-	 * Loads results files and invokes the <code>run</code> function.
+	 * Loads benchmark histories from files and uses <code>Statistic</code> class to detect regression.
 	 */
 	def run() {
 		var storedResult: BenchmarkResult = null

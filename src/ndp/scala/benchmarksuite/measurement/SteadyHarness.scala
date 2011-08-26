@@ -40,7 +40,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 	 * <ul>
 	 * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
 	 * <li>Iterates the invoking of benchmark <code>main</code> method for it to reach the steady state.
-	 * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measures the performance.
+	 * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measure performance.
 	 * <li>And stores the result running time series to file.
 	 * </ul>
 	 */
@@ -101,14 +101,19 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 				Series ::= end - start
 			}
 
-			statistic.setSERIES(Series)
 			constructStatistic
 
 			result = new BenchmarkResult(Series, CLASSNAME, true)
 			result.storeByDefault
 		} catch {
-			case e: java.lang.ClassNotFoundException => println("Class " + e.getMessage() + " not found. Please check the class directory.")
-			case f => throw f
+			case e: java.lang.reflect.InvocationTargetException => {
+				e.getCause match {
+					case n: java.lang.ClassNotFoundException => println("Class " + n.getMessage() + " not found. Please check the class directory.")
+					case n: java.lang.NoClassDefFoundError => println("Class " + n.getMessage() + " not found. Please check the class directory.")
+					case n => throw n
+				}
+			}
+			case i => throw i
 		}
 	}
 
