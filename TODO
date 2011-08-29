@@ -12,10 +12,26 @@ Add Logger abstraction
 Change the encoding to UTF-8
 Generate the files that contain old results into a subdir `tmp`, not a top-level directory
 Remove the `bin` directory from the repository
-Add other stuff from your notes here
+Study the code in CompileManager.scala for compiling phase
+Add detail comment to the main function
+Factory the class loader
+Add formatted reporting to Regression
 
 
 DONE:
 -----
 
+Format the code
+Change the style - no capital names, meaningful variable names
+Indent the code - 2 spaces instead of a TAB
+
+
+Add Config phase and Config objects
+
+Add Logger abstraction
+Change the encoding to UTF-8
+Generate the files that contain old results into a subdir `tmp`, not a top-level directory
+
+
+Add detail comment to the main function
 

@@ -14,8 +14,8 @@ import java.io.FileWriter
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import scala.io.Source.fromFile
 import scala.collection.mutable.ArrayBuffer
+import scala.io.Source.fromFile
 
 /**
  * Class represents the result of benchmarking. Allows user to store or load a list of values from file.

@@ -13,32 +13,19 @@ package ndp.scala.benchmarksuite.measurement
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+
 import scala.collection.mutable.ArrayBuffer
+
+import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.utility.Config
+import ndp.scala.benchmarksuite.utility.Log
 
 /**
  * Class represents the harness controls the runtime for measuring memory consumption.
  *
  * @author ND P
  */
-class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
-
-  /**
-   * The <code>Runtime</code> class used to get information from the environment in which the benchmark is running.
-   */
-  private val runtime: Runtime = Runtime.getRuntime
-  /**
-   * The benchmark class loaded using reflection.
-   */
-  private var clazz: Class[_] = null
-  /**
-   * The <code>main</code> method of the benchmark class.
-   */
-  private var method: Method = null
-  /**
-   * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
-   */
-  private val steadyThreshold: Double = 0.01
+class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
 
   /**
    * Does the following:
@@ -50,14 +37,22 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
    */
   override def run(): BenchmarkResult = {
 
-    log("[Benchmarking memory consumption]")
+    val runtime: Runtime = Runtime.getRuntime
+    val steadyThreshold = 0.01
+    var clazz: Class[_] = null
+    var method: Method = null
 
-    log.debug("[Warmup]")
     var start: Long = 0
     var end: Long = 0
     var series: ArrayBuffer[Long] = new ArrayBuffer
+    var result: BenchmarkResult = null
+
     val warmmax = 30
     var warmup = false
+
+    log("[Benchmarking memory consumption]")
+
+    log debug "[Warmup]"
 
     try {
       for (i <- 1 to warmmax) {
@@ -65,7 +60,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
         cleanUp
 
         start = runtime.freeMemory
-        clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         end = runtime.freeMemory
@@ -81,7 +76,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
         cleanUp
 
         start = runtime.freeMemory
-        clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         end = runtime.freeMemory
@@ -107,7 +102,7 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
       cleanUp
 
       start = runtime.freeMemory
-      clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+      clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
       method = clazz.getMethod("main", classOf[Array[String]])
       method.invoke(clazz, { null })
       end = runtime.freeMemory
@@ -116,9 +111,9 @@ class MemoryHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
       series += start - end
 
-      constructStatistic(series)
+      constructStatistic(log, series)
 
-      result = new BenchmarkResult(series, CLASSNAME, false)
+      result = new BenchmarkResult(series, config.CLASSNAME, false)
       result.storeByDefault
       result
     } catch {

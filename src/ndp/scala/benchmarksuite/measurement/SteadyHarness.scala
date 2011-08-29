@@ -13,23 +13,21 @@ package ndp.scala.benchmarksuite.measurement
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
+
+import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
+
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
-import scala.collection.mutable.ArrayBuffer
+import ndp.scala.benchmarksuite.utility.Config
+import ndp.scala.benchmarksuite.utility.Log
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
  *
  * @author ND P
  */
-class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
-
-  private var benchmarkMainMethod: Method = null
-  /**
-   * The thredshold used to determine whether the given <code>main</code> method has reached the steady state.
-   */
-  private val steadyThreshold: Double = 0.02
+class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
 
   /**
    * Does the following:
@@ -44,7 +42,10 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
     log("[Benchmarking steady state]")
 
+    val steadyThreshold: Double = 0.02
     var benchmarkMainMethod: Method = null
+    var result: BenchmarkResult = null
+
     var start: Long = 0
     var end: Long = 0
     var statistic: Statistic = new Statistic(new ArrayBuffer)
@@ -52,17 +53,17 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
     val args = { null }
 
     try {
-      val clazz = (new URLClassLoader(Array(new URL("file:" + CLASSPATH)))).loadClass(CLASSNAME)
+      val clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
       benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
       log.debug("[Warm Up] ")
 
-      for (mul <- 1 to MULTIPLIER) {
+      for (mul <- 1 to config.MULTIPLIER) {
 
         cleanUp
 
         start = Platform.currentTime
-        for (i <- 0 to RUNS) {
+        for (i <- 0 to config.RUNS) {
           benchmarkMainMethod.invoke(clazz, args)
         }
         end = Platform.currentTime
@@ -77,7 +78,7 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
         cleanUp
 
         start = Platform.currentTime
-        for (i <- 0 to RUNS) {
+        for (i <- 0 to config.RUNS) {
           benchmarkMainMethod.invoke(null, args)
         }
         end = Platform.currentTime
@@ -94,12 +95,12 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
 
       statistic.series = new ArrayBuffer
 
-      for (mul <- 1 to MULTIPLIER) {
+      for (mul <- 1 to config.MULTIPLIER) {
 
         cleanUp
 
         start = Platform.currentTime
-        for (i <- 0 to RUNS) {
+        for (i <- 0 to config.RUNS) {
           benchmarkMainMethod.invoke(null, args)
         }
         end = Platform.currentTime
@@ -107,9 +108,9 @@ class SteadyHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER:
         statistic.series += end - start
       }
 
-      constructStatistic(statistic.series)
+      constructStatistic(log, statistic.series)
 
-      result = new BenchmarkResult(statistic.series, CLASSNAME, true)
+      result = new BenchmarkResult(statistic.series, config.CLASSNAME, true)
       result.storeByDefault
       result
     } catch {

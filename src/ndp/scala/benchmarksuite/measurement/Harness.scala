@@ -11,18 +11,15 @@
 package ndp.scala.benchmarksuite.measurement
 
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.utility.Config
+import ndp.scala.benchmarksuite.utility.Log
 
 /**
  * Abstract base class for iterating and measuring the running time of the benchmark classes.
  *
  * @author ND P
  */
-abstract class Harness {
-
-  /**
-   * The <code>BenchmarkResult</code> class representing the benchmarking result.
-   */
-  protected var result: BenchmarkResult = null
+abstract class Harness(log: Log, config: Config) {
 
   /**
    * Does the warm up and measure metric of the benchmark classes.

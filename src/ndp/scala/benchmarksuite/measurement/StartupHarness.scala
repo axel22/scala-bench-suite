@@ -12,51 +12,54 @@ package ndp.scala.benchmarksuite.measurement
 
 import scala.compat.Platform
 import scala.collection.mutable.ArrayBuffer
-
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.utility.Config
+import ndp.scala.benchmarksuite.utility.Log
 
 /**
  * Class represent the harness controls the runtime of startup state benchmarking.
  *
  * @author ND P
  */
-class StartupHarness(CLASSNAME: String, CLASSPATH: String, RUNS: Int, MULTIPLIER: Int) extends Harness {
+class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
 
-	/**
-	 * Does the following:
-	 * <ul>
-	 * <li>Creates the operating system process for the benchmark classes to run.
-	 * <li>Iterates the invoking of new JVM instance loading the benchmark classes to measure performance.
-	 * <li>And stores the result running time series to file.
-	 * </ul>
-	 */
-	override def run(): BenchmarkResult = {
-		
-		log("[Benchmarking startup state]")
+  /**
+   * Does the following:
+   * <ul>
+   * <li>Creates the operating system process for the benchmark classes to run.
+   * <li>Iterates the invoking of new JVM instance loading the benchmark classes to measure performance.
+   * <li>And stores the result running time series to file.
+   * </ul>
+   */
+  override def run(): BenchmarkResult = {
 
-		val processBuilder = new ProcessBuilder("scala.bat", "-classpath", CLASSPATH, CLASSNAME)
+    log("[Benchmarking startup state]")
 
-		var start: Long = 0
-		var end: Long = 0
-		var series: ArrayBuffer[Long] = new ArrayBuffer
-		// Ignore the first launch due to system status changing
-		var process = processBuilder.start
-		process.waitFor
+    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.CLASSPATH, config.CLASSNAME)
 
-		for (i <- 1 to MULTIPLIER) {
-			start = Platform.currentTime
-			process = processBuilder.start
-			process.waitFor
-			end = Platform.currentTime
-			series += end - start
-		}
+    var start: Long = 0
+    var end: Long = 0
+    var series: ArrayBuffer[Long] = new ArrayBuffer
+    var result: BenchmarkResult = null
+    
+    // Ignore the first launch due to system status changing
+    var process = processBuilder.start
+    process.waitFor
 
-		constructStatistic(series)
+    for (i <- 1 to config.MULTIPLIER) {
+      start = Platform.currentTime
+      process = processBuilder.start
+      process.waitFor
+      end = Platform.currentTime
+      series += end - start
+    }
 
-		result = new BenchmarkResult(series, CLASSNAME, true)
-		result.storeByDefault
-		result
-	}
+    constructStatistic(log, series)
+
+    result = new BenchmarkResult(series, config.CLASSNAME, true)
+    result.storeByDefault
+    result
+  }
 
 }
