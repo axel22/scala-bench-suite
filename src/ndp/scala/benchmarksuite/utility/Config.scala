@@ -7,7 +7,7 @@ class Config(
   _FILE_SEPARATOR: String,
   _RUNS: Int,
   _MULTIPLIER: Int,
-  _PREVIOUS_RESULT: String,
+  _PERSISTOR_LOC: String,
   _BENCHMARK_TYPE: BenchmarkType.Value,
   _COMPILE: Boolean) {
 
@@ -17,7 +17,7 @@ class Config(
   def FILE_SEPARATOR = _FILE_SEPARATOR
   def RUNS = _RUNS
   def MULTIPLIER = _MULTIPLIER
-  def PREVIOUS_RESULT = _PREVIOUS_RESULT
+  def PERSISTOR_LOC = _PERSISTOR_LOC
   def BENCHMARK_TYPE = _BENCHMARK_TYPE
   def COMPILE = _COMPILE
 
@@ -29,7 +29,7 @@ class Config(
       "\n\tFileSeparator:		" + FILE_SEPARATOR +
       "\n\tRuns:			" + RUNS +
       "\n\tMultiplier:		" + MULTIPLIER +
-      "\n\tPrevious result:	" + PREVIOUS_RESULT +
+      "\n\tPrevious result:	" + PERSISTOR_LOC +
       "\n\tBenchmarkType:		" + BENCHMARK_TYPE +
       "\n\tCompile:		" + COMPILE +
       "\n"

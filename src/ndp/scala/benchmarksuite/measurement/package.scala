@@ -5,8 +5,10 @@ import java.lang.Thread.sleep
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
 
+import ndp.scala.benchmarksuite.regression.Persistor
 import ndp.scala.benchmarksuite.regression.Statistic
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
+import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Constant
 import ndp.scala.benchmarksuite.utility.Log
 import ndp.scala.benchmarksuite.utility.Report
@@ -29,20 +31,22 @@ package object measurement {
 
   /**
    * Calculates the result's statistic metrics.
+   * 
+   * @param series	The result of benchmarking
    */
-  def constructStatistic(log: Log, series: ArrayBuffer[Long]) {
+  def constructStatistic(log: Log, config: Config, series: BenchmarkResult) {
 
-    val statistic = new Statistic(series)
+//    val statistic = new Statistic(log, config)
 
-    val mean = statistic.mean
-    val ConfidenceInterval = statistic.ConfidenceInterval
-    val diff = (ConfidenceInterval.last - ConfidenceInterval.head) / 2
+    val mean = Statistic mean series
+    val confidenceInterval = Statistic confidenceInterval series
+    val diff = (confidenceInterval.last - confidenceInterval.head) / 2
 
     for (i <- series) {
       log debug ("[Measured]	" + i)
     }
     log("[Average]	" + mean.formatted("%.2f"))
-    log("[Confident Interval]	[" + ConfidenceInterval.head.formatted("%.2f") + "; " + ConfidenceInterval.last.formatted("%.2f") + "]")
+    log("[Confident Interval]	[" + confidenceInterval.head.formatted("%.2f") + "; " + confidenceInterval.last.formatted("%.2f") + "]")
     log("[Difference] " + diff.formatted("%.2f") + " = " + (diff / mean * 100).formatted("%.2f") + "%")
   }
 
@@ -59,36 +63,24 @@ package object measurement {
   /**
    * Loads benchmark histories from files and uses <code>Statistic</code> class to detect regression.
    */
-  def detectRegression(log: Log) {
+  def detectRegression(log: Log, config: Config, result: BenchmarkResult) {
     var storedResult: BenchmarkResult = null
     var line: String = null
-    val statistic = new Statistic
-    var persistors: ArrayBuffer[ArrayBuffer[Long]] = new ArrayBuffer[ArrayBuffer[Long]]
+//    val statistic = new Statistic(log, config)
 
-    log("Input previous result file, double-enter to stop")
-    do {
-      line = Console.readLine()
-      if (!(line equals "")) {
-        try {
-          storedResult = new BenchmarkResult(line)
-          storedResult.load
-          persistors += storedResult.series
-        } catch {
-          case _ => log("File name incorrect")
-        }
-      }
-    } while (!(line equals ""))
-
-    statistic.persistors = persistors
+    val persistor = new Persistor(log, config)
+    persistor += result
+    persistor.load
 
     try {
-      if (statistic testDifference) {
-        report(log, Constant.FAILED)
+      if (Statistic testDifference persistor) {
+        report(log, config, Constant.FAILED)
       } else {
-        report(log, Constant.PASS)
+        report(log, config, Constant.PASS)
       }
     } catch {
-      case e => log.debug(e toString)
+//      case e => log debug e.toString
+      case e => throw e
     }
   }
 

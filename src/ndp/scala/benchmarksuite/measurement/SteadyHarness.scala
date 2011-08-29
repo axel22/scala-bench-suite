@@ -13,14 +13,13 @@ package ndp.scala.benchmarksuite.measurement
 import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
-
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
-
 import ndp.scala.benchmarksuite.regression.Statistic
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.regression.Persistor
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
@@ -44,11 +43,11 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
 
     val steadyThreshold: Double = 0.02
     var benchmarkMainMethod: Method = null
-    var result: BenchmarkResult = null
+    var result: BenchmarkResult = new BenchmarkResult
 
     var start: Long = 0
     var end: Long = 0
-    var statistic: Statistic = new Statistic(new ArrayBuffer)
+    //    var statistic: Statistic = new Statistic(log, config)
 
     val args = { null }
 
@@ -56,7 +55,7 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
       val clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
       benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
-      log.debug("[Warm Up] ")
+      log verbose "[Warm Up] "
 
       for (mul <- 1 to config.MULTIPLIER) {
 
@@ -68,12 +67,14 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
         }
         end = Platform.currentTime
 
-        statistic.series += end - start
+        result += end - start
 
       }
-      log.verbose("[Standard Deviation] " + statistic.standardDeviation + "	[Sample Mean] " + statistic.mean.formatted("%.2f") + "	[CoV] " + statistic.CoV);
+      log debug "[Standard Deviation] " + (Statistic standardDeviation result) +
+        "	[Sample Mean] " + (Statistic mean result).formatted("%.2f") +
+        "	[CoV] " + (Statistic CoV result)
 
-      while (statistic.CoV >= steadyThreshold) {
+      while ((Statistic CoV result) >= steadyThreshold) {
 
         cleanUp
 
@@ -83,17 +84,19 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
         }
         end = Platform.currentTime
 
-        statistic.series.remove(0)
-        statistic.series += end - start
+        result remove 0
+        result += end - start
 
-        log.debug("[Newest] " + statistic.series.last)
+        log debug "[Newest] " + result.last
 
-        log.verbose("[Standard Deviation] " + statistic.standardDeviation + "	[Sample Mean] " + statistic.mean.formatted("%.2f") + "	[CoV] " + statistic.CoV)
+        log debug "[Standard Deviation] " + (Statistic standardDeviation result) +
+          "	[Sample Mean] " + (Statistic mean result).formatted("%.2f") + "	[CoV] " +
+          (Statistic CoV result)
       }
 
-      log.debug("[Steady State] ")
+      log verbose "[Steady State] "
 
-      statistic.series = new ArrayBuffer
+      result = new BenchmarkResult
 
       for (mul <- 1 to config.MULTIPLIER) {
 
@@ -105,13 +108,15 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
         }
         end = Platform.currentTime
 
-        statistic.series += end - start
+        result += end - start
       }
 
-      constructStatistic(log, statistic.series)
+      constructStatistic(log, config, result)
+      
+      log verbose "[End constructing statistical metric]"
 
-      result = new BenchmarkResult(statistic.series, config.CLASSNAME, true)
-      result.storeByDefault
+      detectRegression(log, config, result)
+      (new Persistor(log, config) += result).store
       result
     } catch {
       case e: java.lang.reflect.InvocationTargetException => {

@@ -10,10 +10,11 @@
 
 package ndp.scala.benchmarksuite.measurement
 
-import scala.compat.Platform
 import scala.collection.mutable.ArrayBuffer
-import ndp.scala.benchmarksuite.regression.Statistic
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import scala.compat.Platform
+
+import ndp.scala.benchmarksuite.regression.Persistor
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 
@@ -40,9 +41,8 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
 
     var start: Long = 0
     var end: Long = 0
-    var series: ArrayBuffer[Long] = new ArrayBuffer
-    var result: BenchmarkResult = null
-    
+    var result: BenchmarkResult = new BenchmarkResult
+
     // Ignore the first launch due to system status changing
     var process = processBuilder.start
     process.waitFor
@@ -52,13 +52,16 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
       process = processBuilder.start
       process.waitFor
       end = Platform.currentTime
-      series += end - start
+      result += end - start
     }
 
-    constructStatistic(log, series)
+    constructStatistic(log, config, result)
 
-    result = new BenchmarkResult(series, config.CLASSNAME, true)
-    result.storeByDefault
+    log verbose "[End constructing statistical metric]"
+
+    detectRegression(log, config, result)
+
+    (new Persistor(log, config) += result).store
     result
   }
 

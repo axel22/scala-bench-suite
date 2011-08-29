@@ -10,22 +10,25 @@
 
 package ndp.scala.benchmarksuite.regression
 
+import scala.collection.mutable.ArrayBuffer
 import scala.math.sqrt
+
+import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
-import org.apache.commons.math.distribution.FDistributionImpl
-import scala.collection.mutable.ArrayBuffer
+
+import ndp.scala.benchmarksuite.utility.Log
 
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
  */
-class Statistic() {
+object Statistic {
 
   /**
    * The significant level.
    */
   private var alpha = 0.01
-  /**
+  /*/**
    * The sample value series.
    */
   private var _series: ArrayBuffer[Long] = null
@@ -34,50 +37,55 @@ class Statistic() {
     _series = series
   }
   /**
-   * The <code>persistors</code> of sample value series.
+   * The array of benchmark result.
    */
-  private var _persistors: ArrayBuffer[ArrayBuffer[Long]] = null
-  def persistors = _persistors
-  def persistors_=(persistors: ArrayBuffer[ArrayBuffer[Long]]) {
-    _persistors = persistors
+  private var _persistor: Persistor = null
+  def persistor = _persistor
+  def persistor_=(persistor: Persistor) {
+    _persistor = persistor
   }
 
   /**
-   * Constructs a <code>Statistic</code> using a given persistors of samples.
+   * Constructs a <code>Statistic</code> using a given array of benchmark result.
    *
-   * @param thepersistors	The given persistors of samples
+   * @param log	The logger
+   * @param config
+   * @param thepersistors	The given array of benchmark result
    */
-  /*def this(thepersistors: persistors[persistors[Long]]) {
-		this
-		persistors = thepersistors
-	}*/
+  def this(log: Log, config: Config, thePersistor: Persistor) {
+    this(log, config)
+    persistor = thePersistor
+  }
 
   /**
    * Constructs a <code>Statistic</code> using a given sample.
    *
+   * @param log	The logger
+   * @param config
    * @param theseries	The given sample
    */
-  def this(theSeries: ArrayBuffer[Long]) {
-    this
+  def this(log: Log, config: Config, theSeries: BenchmarkResult) {
+    this(log, config)
     series = theSeries
-  }
+  }*/
 
   /**
    * Computes the confidence interval for the given sample.
    *
+   * @param series	The result of benchmarking
    * @return	The left and right end points of the confidence interval.
    */
-  def ConfidenceInterval(): ArrayBuffer[Double] = {
+  def confidenceInterval(series: BenchmarkResult): ArrayBuffer[Double] = {
 
     var diff: Double = 0
 
     if (series.length >= 30) {
-      diff = inverseGaussianDistribution * standardDeviation / sqrt(series.length)
+      diff = inverseGaussianDistribution * standardDeviation(series) / sqrt(series.length)
     } else {
-      diff = inverseStudentDistribution(series.length - 1) * standardDeviation / sqrt(series.length)
+      diff = inverseStudentDistribution(series.length - 1) * standardDeviation(series) / sqrt(series.length)
     }
 
-    ArrayBuffer(mean - diff, mean + diff)
+    ArrayBuffer(mean(series) - diff, mean(series) + diff)
   }
 
   /**
@@ -101,7 +109,7 @@ class Statistic() {
    * @return	The t value
    */
   private def inverseStudentDistribution(df: Int): Double = {
-    new TDistributionImpl(series.length - 1).inverseCumulativeProbability(1 - alpha / 2)
+    new TDistributionImpl(df).inverseCumulativeProbability(1 - alpha / 2)
   }
 
   /**
@@ -120,9 +128,10 @@ class Statistic() {
   }
 
   /**
+   * @param series	The result of benchmarking
    * @return	The minimum value
    */
-  def min(): Long = {
+  def min(series: BenchmarkResult): Long = {
     var result = series.head
     for (i <- series) {
       if (result > i) {
@@ -133,9 +142,10 @@ class Statistic() {
   }
 
   /**
+   * @param series	The result of benchmarking
    * @return	The maximum value
    */
-  def max(): Long = {
+  def max(series: BenchmarkResult): Long = {
     var result = series.head
     for (i <- series) {
       if (result < i) {
@@ -147,9 +157,11 @@ class Statistic() {
 
   /**
    * Computes the sample mean.
+   *
+   * @param series	The result of benchmarking
    * @return	The average
    */
-  def mean(): Double = {
+  def mean(series: BenchmarkResult): Double = {
     var sum: Double = 0
     val runs = series.length
     for (i <- series) {
@@ -160,11 +172,14 @@ class Statistic() {
 
   /**
    * Computes the standard deviation of a given sample.
+   *
+   * @param series	The result of benchmarking
    * @return	The standard deviation
    */
-  def standardDeviation(): Double = {
+  def standardDeviation(series: BenchmarkResult): Double = {
     var squareSum: Double = 0
     val runs = series.length
+    val mean: Double = this.mean(series)
     for (i <- series) {
       squareSum += (i - mean) * (i - mean)
     }
@@ -173,21 +188,23 @@ class Statistic() {
 
   /**
    * Computes the coefficient of variation of a given sample.
+   *
+   * @param series	The result of benchmarking
    * @return	The coefficient of variation
    */
-  def CoV(): Double = {
-    standardDeviation / mean
+  def CoV(series: BenchmarkResult): Double = {
+    standardDeviation(series) / mean(series)
   }
 
   /**
    * @return	The significant level alpha
    */
-  def SignificantLevel = alpha
+  def significantLevel = alpha
 
   /**
    * @return	The confident level
    */
-  def ConfidentLevel = (1 - alpha) * 100
+  def confidentLevel = (1 - alpha) * 100
 
   /**
    * Statistically rigorously compares means of samples using statistically rigorous evaluation method:
@@ -196,35 +213,37 @@ class Statistic() {
    * <li>ANOVA for comparing 3 or more alternatives.
    * </ul>
    *
+   * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  def testDifference(): Boolean = {
-    if (persistors.length < 2) {
+  def testDifference(persistor: Persistor): Boolean = {
+    if (persistor.length < 2) {
       throw new java.lang.Exception("Not enough result files specified. No regression.")
     }
-    if (persistors.length == 2) {
-      testConfidenceIntervals
+    if (persistor.length == 2) {
+      testConfidenceIntervals(persistor)
     } else {
-      testANOVA
+      testANOVA(persistor)
     }
   }
 
   /**
    * Statistically rigorously compares means of two samples using confidence intervals.
    *
+   * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  private def testConfidenceIntervals(): Boolean = {
-    series = persistors(0)
+  private def testConfidenceIntervals(persistor: Persistor): Boolean = {
+    var series = persistor(0)
 
-    val mean1 = mean
-    val s1 = standardDeviation
+    val mean1 = mean(series)
+    val s1 = standardDeviation(series)
     val n1 = series.length
 
-    series = persistors(1)
+    series = persistor(1)
 
-    val mean2 = mean
-    val s2 = standardDeviation
+    val mean2 = mean(series)
+    val s2 = standardDeviation(series)
     val n2 = series.length
 
     val diff = mean1 - mean2
@@ -242,9 +261,6 @@ class Statistic() {
       c2 = diff + inverseStudentDistribution(ndf) * s
     }
 
-    println("[Difference] " + diff + "\t[Standard Deviation] " + s)
-    println("[Confidence Interval] [" + c1 + "; " + c2 + "]")
-
     if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) {
       true
     } else {
@@ -255,34 +271,40 @@ class Statistic() {
   /**
    * Statistically rigorously compares means of three or more samples using ANOVA.
    *
+   * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  private def testANOVA(): Boolean = {
+  private def testANOVA(persistor: Persistor): Boolean = {
     var sum: Long = 0
-    for (alternative <- persistors) {
+    val log = new Log
+    
+    for (alternative <- persistor) {
       for (invidual <- alternative) {
         sum += invidual
       }
     }
-    val overall = sum / (persistors.length * persistors.head.length)
+    
+    val overall: Double = sum / (persistor.length * persistor.head.length)
+    
+    log debug "[Overall] " + overall
 
     var SSA: Double = 0
     var SSE: Double = 0
-    for (alternative <- persistors) {
-      series = alternative
-      val alternativeMean = mean
+    for (alternative <- persistor) {
+      val alternativeMean = mean(alternative)
+      log debug "[Alternative mean]	" + alternativeMean
       SSA += (alternativeMean - overall) * (alternativeMean - overall)
 
       for (invidual <- alternative) {
         SSE += (invidual - alternativeMean) * (invidual - alternativeMean)
       }
     }
-    SSA *= series.length
+    SSA *= persistor.head.length
 
-    val n1 = persistors.length - 1
-    val n2 = persistors.length * series.length - persistors.length
+    val n1 = persistor.length - 1
+    val n2 = persistor.length * persistor.head.length - persistor.length
     val FValue: Double = SSA * n2 / SSE / n1
-    println("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+    log debug ("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
     if (FValue > inverseFDistribution(n1, n2)) {
       true

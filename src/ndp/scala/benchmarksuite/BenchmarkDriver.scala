@@ -11,12 +11,13 @@
 package ndp.scala.benchmarksuite
 
 import java.io.File
-
 import ndp.scala.benchmarksuite.measurement.Harness
 import ndp.scala.benchmarksuite.measurement.MemoryHarness
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.measurement.StartupHarness
+import ndp.scala.benchmarksuite.measurement.SteadyHarness
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -52,14 +53,16 @@ object BenchmarkDriver {
 
       //	scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier%
 
-      var harness: Harness = new MemoryHarness(log, config)
+      var harness: Harness = null
+      
+      if (config.BENCHMARK_TYPE == BenchmarkType.Memory) {
+        harness = new MemoryHarness(log, config)
+      } else if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
+        harness = new StartupHarness(log, config)
+      } else {
+        harness = new SteadyHarness(log, config)
+      }
       harness.run
-
-      //      harness = new StartupHarness(args(0), args(1) + "/", args(2).toInt, args(3).toInt)
-      //      harness.run
-
-      //      harness = new SteadyHarness(args(0), args(1) + "/", args(2).toInt, args(3).toInt)
-      //      harness.run
 
     } catch {
       case e: java.lang.ClassNotFoundException => {
@@ -160,13 +163,13 @@ object BenchmarkDriver {
       multiplier = 1
     }
     if (classdir equals "") {
-      classdir = srcpath + separator + "build"
+      classdir = srcpath /*+ separator + "build"*/
     }
     log.debug("[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile)
 
     new File(srcpath) mkdir
 
-    new Config(src, classname, classdir, separator, runs, multiplier, "", BenchmarkType.Memory, false)
+    new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory/", BenchmarkType.Memory, false)
   }
 
   def printUsage(log: Log) {

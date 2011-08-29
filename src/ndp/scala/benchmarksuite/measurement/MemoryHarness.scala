@@ -14,9 +14,8 @@ import java.lang.reflect.Method
 import java.net.URL
 import java.net.URLClassLoader
 
-import scala.collection.mutable.ArrayBuffer
-
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.regression.Persistor
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 
@@ -44,15 +43,16 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
 
     var start: Long = 0
     var end: Long = 0
-    var series: ArrayBuffer[Long] = new ArrayBuffer
-    var result: BenchmarkResult = null
+    var result: BenchmarkResult = new BenchmarkResult
 
-    val warmmax = 30
+    val warmmax = 10
     var warmup = false
 
     log("[Benchmarking memory consumption]")
 
-    log debug "[Warmup]"
+    log verbose "[Warmup]"
+
+    log debug config.toString
 
     try {
       for (i <- 1 to warmmax) {
@@ -60,12 +60,14 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
         cleanUp
 
         start = runtime.freeMemory
-        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         end = runtime.freeMemory
 
-        series += start - end
+        result += start - end
+
+        log verbose "[Measured]	" + result.last
 
         clazz = null
         method = null
@@ -76,45 +78,51 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
         cleanUp
 
         start = runtime.freeMemory
-        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         end = runtime.freeMemory
 
-        println(start - end)
+        log verbose "[Measured]	" + result.last
 
-        series.remove(0)
-        series += start - end
+        result remove 0
+        result += start - end
+
+        log debug "[Result]	" + result.toString
 
         clazz = null
         method = null
 
         warmup = true
-        for (i <- series) {
-          if (i != series.last) {
+        for (i <- result) {
+          if (i != result.last) {
             warmup = false
           }
         }
       }
 
-      log.debug("[Steady State]")
+      log verbose "[Steady State]"
 
       cleanUp
 
       start = runtime.freeMemory
-      clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH)))).loadClass(config.CLASSNAME)
+      clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
       method = clazz.getMethod("main", classOf[Array[String]])
       method.invoke(clazz, { null })
       end = runtime.freeMemory
 
-      println(start - end)
+      log verbose "[Measured]	" + (start - end)
 
-      series += start - end
+      result += start - end
 
-      constructStatistic(log, series)
+      constructStatistic(log, config, result)
+      
+      log verbose "[End constructing statistical metric]"
 
-      result = new BenchmarkResult(series, config.CLASSNAME, false)
-      result.storeByDefault
+      detectRegression(log, config, result)
+      
+      (new Persistor(log, config) += result).store
+
       result
     } catch {
       case e: java.lang.reflect.InvocationTargetException => {

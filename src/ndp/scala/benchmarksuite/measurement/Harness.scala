@@ -10,7 +10,7 @@
 
 package ndp.scala.benchmarksuite.measurement
 
-import ndp.scala.benchmarksuite.utility.BenchmarkResult
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 
