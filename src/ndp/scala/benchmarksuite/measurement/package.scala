@@ -2,12 +2,12 @@ package ndp.scala.benchmarksuite
 
 import java.lang.Thread.sleep
 
-import scala.collection.mutable.ArrayBuffer
+import scala.annotation.implicitNotFound
 import scala.compat.Platform
 
+import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.regression.Persistor
 import ndp.scala.benchmarksuite.regression.Statistic
-import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Constant
 import ndp.scala.benchmarksuite.utility.Log
@@ -16,27 +16,54 @@ import ndp.scala.benchmarksuite.utility.Report
 package object measurement {
 
   /**
-   * The regression report.
-   */
-  val report = new Report
-
-  /**
    * Loads benchmark class from .class files.
    *
    * @param
    */
-  def runBenchmark() {
+  def runBenchmark(log: Log, config: Config, checkWarm: (BenchmarkResult) => Boolean, measure: => Long): BenchmarkResult = {
 
+    log verbose "[Warmup]"
+
+    var result = new BenchmarkResult
+    var warm = false
+
+    for (mul <- 1 to config.MULTIPLIER) {
+      cleanUp
+      result += measure
+      log verbose "[Measured]	" + result.last
+    }
+
+    warm = checkWarm(result)
+
+    while (!warm) {
+      cleanUp
+
+      log verbose "[Measured]	" + result.last
+
+      result remove 0
+      result += measure
+      warm = checkWarm(result)
+    }
+
+    log verbose "[Steady State]"
+
+    constructStatistic(log, config, result)
+
+    log verbose "[End constructing statistical metric]"
+
+    detectRegression(log, config, result)
+
+    (new Persistor(log, config) += result).store
+
+    result
   }
 
   /**
    * Calculates the result's statistic metrics.
-   * 
+   *
    * @param series	The result of benchmarking
    */
   def constructStatistic(log: Log, config: Config, series: BenchmarkResult) {
-
-//    val statistic = new Statistic(log, config)
 
     val mean = Statistic mean series
     val confidenceInterval = Statistic confidenceInterval series
@@ -64,9 +91,11 @@ package object measurement {
    * Loads benchmark histories from files and uses <code>Statistic</code> class to detect regression.
    */
   def detectRegression(log: Log, config: Config, result: BenchmarkResult) {
+
+    val report = new Report
     var storedResult: BenchmarkResult = null
     var line: String = null
-//    val statistic = new Statistic(log, config)
+    //    val statistic = new Statistic(log, config)
 
     val persistor = new Persistor(log, config)
     persistor += result
@@ -79,7 +108,7 @@ package object measurement {
         report(log, config, Constant.PASS)
       }
     } catch {
-//      case e => log debug e.toString
+      //      case e => log debug e.toString
       case e => throw e
     }
   }

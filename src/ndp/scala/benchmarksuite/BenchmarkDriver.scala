@@ -54,7 +54,7 @@ object BenchmarkDriver {
       //	scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier%
 
       var harness: Harness = null
-      
+
       if (config.BENCHMARK_TYPE == BenchmarkType.Memory) {
         harness = new MemoryHarness(log, config)
       } else if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
@@ -65,6 +65,19 @@ object BenchmarkDriver {
       harness.run
 
     } catch {
+      case e: java.lang.reflect.InvocationTargetException => {
+        e.getCause match {
+          case n: java.lang.ClassNotFoundException => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n: java.lang.NoClassDefFoundError => {
+            log("Class " + n.getMessage() + " not found. Please check the class directory.")
+            null
+          }
+          case n => throw n
+        }
+      }
       case e: java.lang.ClassNotFoundException => {
         log.debug("Class " + e.getMessage + " not found.")
       }
@@ -169,7 +182,7 @@ object BenchmarkDriver {
 
     new File(srcpath) mkdir
 
-    new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory/", BenchmarkType.Memory, false)
+    new Config(src, classname, classdir, separator, runs, multiplier, "output/Steady/", BenchmarkType.Steady, false)
   }
 
   def printUsage(log: Log) {

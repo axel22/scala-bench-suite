@@ -34,5 +34,5 @@ Generate the files that contain old results into a subdir `tmp`, not a top-level
 Remove the `bin` directory from the repository
 
 Add detail comment to the main function
-
+Factory the class loader
 Add formatted reporting to Regression
