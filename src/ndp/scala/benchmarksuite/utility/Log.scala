@@ -7,23 +7,23 @@ class Log {
   }
 
   def info(message: String) {
-    println(message)
+    println("[Info]\t\t" + message)
   }
 
   def debug(message: String) {
-    println(message)
+    println("[Debug]\t\t" + message)
   }
 
   def error(message: String) {
-    println(message)
+    println("[Error]\t\t" + message)
   }
 
   def verbose(message: String) {
-    println(message)
+    println("[Verbose]\t" + message)
   }
 
   def yell(message: String) {
-    println(message)
+    println("[Console]\t" + message)
   }
 
 }

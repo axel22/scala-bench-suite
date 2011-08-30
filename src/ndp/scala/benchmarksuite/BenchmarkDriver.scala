@@ -11,13 +11,17 @@
 package ndp.scala.benchmarksuite
 
 import java.io.File
+
+import scala.tools.nsc.Global
+import scala.tools.nsc.Settings
+
 import ndp.scala.benchmarksuite.measurement.Harness
 import ndp.scala.benchmarksuite.measurement.MemoryHarness
+import ndp.scala.benchmarksuite.measurement.StartupHarness
+import ndp.scala.benchmarksuite.measurement.SteadyHarness
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
-import ndp.scala.benchmarksuite.measurement.StartupHarness
-import ndp.scala.benchmarksuite.measurement.SteadyHarness
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -45,14 +49,14 @@ object BenchmarkDriver {
 
     try {
       if (config.COMPILE) {
-        log.verbose("scalac -d " + config.CLASSPATH + " " + config.SRC)
-        log.verbose("Compiling...")
+        log.verbose("[Compile]")
         // TODO Compile
+        var settings = new Settings(log.error)
+        settings.outputDirs.add(config.CLASSPATH, config.CLASSPATH)
+        val compiler = new Global(settings)
+        val run = new compiler.Run
+        run compile List(config.SRC, config.CLASSPATH + config.FILE_SEPARATOR + "GetSet.scala")
       }
-      //	scalac -d %classdir% %src% | goto RUN_BENCHMARK
-
-      //	scala BenchmarkDriver.jar %classname% %classdir% %warmup% %runs% %multiplier%
-
       var harness: Harness = null
 
       if (config.BENCHMARK_TYPE == BenchmarkType.Memory) {
@@ -182,7 +186,7 @@ object BenchmarkDriver {
 
     new File(srcpath) mkdir
 
-    new Config(src, classname, classdir, separator, runs, multiplier, "output/Steady/", BenchmarkType.Steady, false)
+    new Config(src, classname, classdir, separator, runs, multiplier, "output/", BenchmarkType.Startup, true)
   }
 
   def printUsage(log: Log) {

@@ -41,29 +41,30 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
     var clazz: Class[_] = null
     var method: Method = null
 
-    def measure: Long = {
-      val start = runtime.freeMemory
-      clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
-      method = clazz.getMethod("main", classOf[Array[String]])
-      method.invoke(clazz, { null })
-      val end = runtime.freeMemory
-
-      clazz = null
-      method = null
-
-      start - end
-    }
-
-    def checkWarm(result: BenchmarkResult): Boolean = {
-      for (i <- result) {
-        if (i != result.last) {
-          return false
+    runBenchmark(
+      log,
+      config,
+      (result: BenchmarkResult) => {
+        for (i <- result) {
+          if (i != result.last) {
+            false
+          }
         }
-      }
-      true
-    }
+        true
+      },
+      {
+        val start = runtime.freeMemory
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
+        method = clazz.getMethod("main", classOf[Array[String]])
+        method.invoke(clazz, { null })
+        val end = runtime.freeMemory
 
-    runBenchmark(log, config, checkWarm, measure)
+        clazz = null
+        method = null
+
+        start - end
+      }
+    )
   }
 
 }

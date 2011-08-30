@@ -38,7 +38,6 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
     log("[Benchmarking startup state]")
 
     val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.CLASSPATH, config.CLASSNAME)
-
     var start: Long = 0
     var end: Long = 0
     var result: BenchmarkResult = new BenchmarkResult
@@ -47,22 +46,18 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
     var process = processBuilder.start
     process.waitFor
 
-    for (i <- 1 to config.MULTIPLIER) {
-      start = Platform.currentTime
-      process = processBuilder.start
-      process.waitFor
-      end = Platform.currentTime
-      result += end - start
-    }
-
-    constructStatistic(log, config, result)
-
-    log verbose "[End constructing statistical metric]"
-
-    detectRegression(log, config, result)
-
-    (new Persistor(log, config) += result).store
-    result
+    runBenchmark(
+      log,
+      config,
+      _ => true,
+      {
+        start = Platform.currentTime
+        process = processBuilder.start
+        process.waitFor
+        end = Platform.currentTime
+        end - start
+      }
+    )
   }
 
 }

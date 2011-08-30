@@ -47,18 +47,19 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
     val clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
     benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
-    def measure: Long = {
-      val start = Platform.currentTime
-      for (i <- 0 to config.RUNS) {
-        benchmarkMainMethod.invoke(clazz, args)
+    runBenchmark(
+      log,
+      config,
+      (result: BenchmarkResult) => (Statistic CoV result) < steadyThreshold,
+      {
+        val start = Platform.currentTime
+        for (i <- 0 to config.RUNS) {
+          benchmarkMainMethod.invoke(clazz, args)
+        }
+        val end = Platform.currentTime
+        end - start
       }
-      val end = Platform.currentTime
-      end - start
-    }
-
-    def checkWarm(result: BenchmarkResult): Boolean = (Statistic CoV result) < steadyThreshold
-
-    runBenchmark(log, config, checkWarm, measure)
+    )
   }
 
 }
