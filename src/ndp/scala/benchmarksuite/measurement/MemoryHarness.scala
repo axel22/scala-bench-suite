@@ -45,12 +45,11 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
       log,
       config,
       (result: BenchmarkResult) => {
-        for (i <- result) {
-          if (i != result.last) {
-            false
-          }
+        var i: Int = 1
+        while ((i < result.length) && (result(i) == result.head)) {
+          i += 1
         }
-        true
+        if (i == result.length) true else false
       },
       {
         val start = runtime.freeMemory

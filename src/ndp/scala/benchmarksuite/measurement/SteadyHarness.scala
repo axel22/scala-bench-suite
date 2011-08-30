@@ -42,10 +42,9 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
     log("[Benchmarking steady state]")
 
     val steadyThreshold: Double = 0.02
-    var benchmarkMainMethod: Method = null
     val args = { null }
     val clazz = (new URLClassLoader(Array(new URL("file:" + config.CLASSPATH + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
-    benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
+    val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
     runBenchmark(
       log,

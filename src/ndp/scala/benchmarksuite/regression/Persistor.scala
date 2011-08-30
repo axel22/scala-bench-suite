@@ -102,7 +102,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
 
         val file = new File(filename)
         
-        log verbose file.getAbsolutePath()
+//        log verbose file.getAbsolutePath()
         
         if (file exists) {
           log verbose file.getAbsolutePath()
@@ -110,7 +110,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
           filename = null
         } else {
           
-          log verbose file.getAbsolutePath()
+//          log verbose file.getAbsolutePath()
           
           try {
             val out = new FileWriter(filename)

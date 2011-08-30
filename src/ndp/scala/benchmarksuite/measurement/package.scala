@@ -47,7 +47,7 @@ package object measurement {
 
     constructStatistic(log, config, result)
 
-    log verbose "[End constructing statistical metric]"
+    log verbose "[End constructing statistical metrics]"
 
     detectRegression(log, config, result)
 
@@ -109,7 +109,7 @@ package object measurement {
           means += Statistic mean i
         }
         log debug means.toString
-        report(log, config, Constant.FAILED, means)
+        report(log, config, Constant.FAILED, Report dueToRegression means)
       } else {
         report(log, config, Constant.PASS, null)
       }

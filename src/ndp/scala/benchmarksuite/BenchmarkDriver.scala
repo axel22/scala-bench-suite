@@ -11,10 +11,8 @@
 package ndp.scala.benchmarksuite
 
 import java.io.File
-
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
-
 import ndp.scala.benchmarksuite.measurement.Harness
 import ndp.scala.benchmarksuite.measurement.MemoryHarness
 import ndp.scala.benchmarksuite.measurement.StartupHarness
@@ -22,6 +20,8 @@ import ndp.scala.benchmarksuite.measurement.SteadyHarness
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.utility.Report
+import ndp.scala.benchmarksuite.utility.Constant
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -44,19 +44,26 @@ object BenchmarkDriver {
   def main(args: Array[String]): Unit = {
 
     val log = new Log
-    val config: Config = BenchmarkDriver parse (log, args)
+    val config: Config = parse(log, args)
+
     log debug config.toString
 
     try {
       if (config.COMPILE) {
-        log.verbose("[Compile]")
-        // TODO Compile
-        var settings = new Settings(log.error)
-        settings.outputDirs.add(config.CLASSPATH, config.CLASSPATH)
-        val compiler = new Global(settings)
-        val run = new compiler.Run
-        run compile List(config.SRC, config.CLASSPATH + config.FILE_SEPARATOR + "GetSet.scala")
+        log verbose "[Compile]"
+        val settings = new Settings(log.error)
+        val (ok, errArgs) = settings.processArguments(List("-d", config.CLASSPATH, config.SRC), true)
+        if (ok) {
+          val compiler = new Global(settings)
+          (new compiler.Run) compile List(config.SRC)
+        } else {
+          log error errArgs.toString
+          System exit 1
+        }
       }
+
+      log verbose "[Measure]"
+
       var harness: Harness = null
 
       if (config.BENCHMARK_TYPE == BenchmarkType.Memory) {
@@ -69,23 +76,16 @@ object BenchmarkDriver {
       harness.run
 
     } catch {
-      case e: java.lang.reflect.InvocationTargetException => {
-        e.getCause match {
-          case n: java.lang.ClassNotFoundException => {
-            log("Class " + n.getMessage() + " not found. Please check the class directory.")
-            null
-          }
-          case n: java.lang.NoClassDefFoundError => {
-            log("Class " + n.getMessage() + " not found. Please check the class directory.")
-            null
-          }
-          case n => throw n
-        }
+      /*case e: java.lang.reflect.InvocationTargetException => e.getCause match {
+        case n: java.lang.ClassNotFoundException => log error "Class " + n.getMessage() + " not found."
+        case n: java.lang.NoClassDefFoundError => log error "Class " + n.getMessage() + " not found."
+        case n => report(log, config, Constant.FAILED, Report dueToException n)
       }
-      case e: java.lang.ClassNotFoundException => {
-        log.debug("Class " + e.getMessage + " not found.")
+      case e: java.lang.ClassNotFoundException => log debug "Class " + e.getMessage + " not found."*/
+      case f: Exception => {
+        val report = new Report
+        report(log, config, Constant.FAILED, Report dueToException f)
       }
-      case f => throw f
     }
   }
 
@@ -186,7 +186,7 @@ object BenchmarkDriver {
 
     new File(srcpath) mkdir
 
-    new Config(src, classname, classdir, separator, runs, multiplier, "output/", BenchmarkType.Startup, true)
+    new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory", BenchmarkType.Memory, true)
   }
 
   def printUsage(log: Log) {
