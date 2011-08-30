@@ -33,7 +33,7 @@ class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
    * <ul>
    * <li>Loads the benchmark <code>main</code> method from .class file using reflection.
    * <li>Iterates the invoking of benchmark <code>main</code> method for it to reach the steady state.
-   * <li>Iterates the invoking of benchmark <code>main</code> method in its steady state to measure performance.
+   * <li>Measure performance.
    * <li>And stores the result running time series to file.
    * </ul>
    */

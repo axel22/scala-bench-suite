@@ -37,8 +37,6 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
 
     log("[Benchmarking memory consumption]")
 
-    log debug config.toString
-
     val runtime: Runtime = Runtime.getRuntime
     var clazz: Class[_] = null
     var method: Method = null

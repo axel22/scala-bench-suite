@@ -33,8 +33,8 @@ object BenchmarkDriver {
    * <li>Parse input parameters
    * <li>Compile the sources of the benchmarks if necessary
    * <li>Run all the benchmarks with the specified parameters
-   * <li>Load the previous results if necessary
-   * <li>Run comparisons to previous results if necessary
+   * <li>Load the previous results
+   * <li>Run comparisons to previous results
    * </ul>
    */
   def main(args: Array[String]): Unit = {
@@ -178,7 +178,7 @@ object BenchmarkDriver {
     if (classdir equals "") {
       classdir = srcpath /*+ separator + "build"*/
     }
-    log.debug("[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile)
+    log debug "[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile
 
     new File(srcpath) mkdir
 
