@@ -38,11 +38,11 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
 
     for (file <- files) {
       try {
-        
+
         log verbose "[Read file]	" + file.getAbsolutePath()
-        
+
         storedResult = new BenchmarkResult
-        
+
         for (line <- fromFile(file getAbsolutePath) getLines) {
           try {
             if (line startsWith "Date") {
@@ -63,12 +63,12 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
             }
           }
         }
-        
+
         log debug "[Read]	" + storedResult.toString
-        
+
         this += storedResult
       } catch {
-        case e => log(e.toString)
+        case e => log debug e.toString
       }
     }
     this
@@ -88,9 +88,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
     var filename: String = null
 
     for (result <- this) {
-      
+
       log verbose result.toString
-      
+
       while (filename == null) {
         if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
           filename = "output/Startup/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.CLASSNAME + ".StartupState"
@@ -101,17 +101,15 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
         }
 
         val file = new File(filename)
-        
-//        log verbose file.getAbsolutePath()
-        
+
+        log verbose "Trying to store to " + file.getAbsolutePath
+
         if (file exists) {
-          log verbose file.getAbsolutePath()
+          log verbose "File " + file.getName + " already exists"
           sleep(1000)
           filename = null
         } else {
-          
-//          log verbose file.getAbsolutePath()
-          
+
           try {
             val out = new FileWriter(filename)
             out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date) + "\n"
@@ -131,7 +129,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
           } catch {
             case e => {
               filename = null
-              log(e.toString())
+              log debug e.toString
             }
           }
         }

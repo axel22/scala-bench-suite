@@ -3,7 +3,7 @@ package ndp.scala.benchmarksuite.utility
 class Config(
   _SRC: String,
   _CLASSNAME: String,
-  _CLASSPATH: String,
+  _BENCHMARK_DIR: String,
   _FILE_SEPARATOR: String,
   _RUNS: Int,
   _MULTIPLIER: Int,
@@ -13,7 +13,7 @@ class Config(
 
   def SRC = _SRC
   def CLASSNAME: String = _CLASSNAME
-  def CLASSPATH = _CLASSPATH
+  def BENCHMARK_DIR = _BENCHMARK_DIR
   def FILE_SEPARATOR = _FILE_SEPARATOR
   def RUNS = _RUNS
   def MULTIPLIER = _MULTIPLIER
@@ -23,15 +23,15 @@ class Config(
 
   override def toString(): String = {
     "Config:" +
-      "\n\tSource:			" + SRC +
-      "\n\tClassname:		" + CLASSNAME +
-      "\n\tClasspath:		" + CLASSPATH +
-      "\n\tFileSeparator:		" + FILE_SEPARATOR +
-      "\n\tRuns:			" + RUNS +
-      "\n\tMultiplier:		" + MULTIPLIER +
-      "\n\tPrevious result:	" + PERSISTOR_LOC +
-      "\n\tBenchmarkType:		" + BENCHMARK_TYPE +
-      "\n\tCompile:		" + COMPILE +
+      "\n\t\tSource:			" + SRC +
+      "\n\t\tClassname:		" + CLASSNAME +
+      "\n\t\tClasspath:		" + BENCHMARK_DIR +
+      "\n\t\tFileSeparator:		" + FILE_SEPARATOR +
+      "\n\t\tRuns:			" + RUNS +
+      "\n\t\tMultiplier:		" + MULTIPLIER +
+      "\n\t\tPrevious result:	" + PERSISTOR_LOC +
+      "\n\t\tBenchmarkType:		" + BENCHMARK_TYPE +
+      "\n\t\tCompile:		" + COMPILE +
       "\n"
   }
 }

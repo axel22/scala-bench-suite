@@ -101,21 +101,16 @@ package object measurement {
     persistor += result
     persistor.load
 
-    try {
-      if (Statistic testDifference persistor) {
-        val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
-        log debug persistor.toString
-        for (i <- persistor) {
-          means += Statistic mean i
-        }
-        log debug means.toString
-        report(log, config, Constant.FAILED, Report dueToRegression means)
-      } else {
-        report(log, config, Constant.PASS, null)
+    if (Statistic testDifference persistor) {
+      val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
+      log debug persistor.toString
+      for (i <- persistor) {
+        means += Statistic mean i
       }
-    } catch {
-      //      case e => log debug e.toString
-      case e => throw e
+      log debug means.toString
+      report(log, config, Constant.FAILED, Report dueToRegression means)
+    } else {
+      report(log, config, Constant.PASS, null)
     }
   }
 

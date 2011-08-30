@@ -52,12 +52,12 @@ object BenchmarkDriver {
       if (config.COMPILE) {
         log verbose "[Compile]"
         val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(List("-d", config.CLASSPATH, config.SRC), true)
+        val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_DIR, config.SRC), true)
         if (ok) {
           val compiler = new Global(settings)
           (new compiler.Run) compile List(config.SRC)
         } else {
-          log error errArgs.toString
+          printUsage(log)
           System exit 1
         }
       }

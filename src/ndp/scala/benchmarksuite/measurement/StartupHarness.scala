@@ -37,7 +37,7 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
 
     log("[Benchmarking startup state]")
 
-    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.CLASSPATH, config.CLASSNAME)
+    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.BENCHMARK_DIR, config.CLASSNAME)
     var result: BenchmarkResult = new BenchmarkResult
 
     // Ignore the first launch due to system status changing

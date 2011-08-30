@@ -277,15 +277,15 @@ object Statistic {
   private def testANOVA(persistor: Persistor): Boolean = {
     var sum: Long = 0
     val log = new Log
-    
+
     for (alternative <- persistor) {
       for (invidual <- alternative) {
         sum += invidual
       }
     }
-    
+
     val overall: Double = sum / (persistor.length * persistor.head.length)
-    
+
     log debug "[Overall] " + overall
 
     var SSA: Double = 0
@@ -306,11 +306,7 @@ object Statistic {
     val FValue: Double = SSA * n2 / SSE / n1
     log debug ("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
-    if (FValue > inverseFDistribution(n1, n2)) {
-      true
-    } else {
-      false
-    }
+    if (FValue > inverseFDistribution(n1, n2)) true else false
   }
 
 }
