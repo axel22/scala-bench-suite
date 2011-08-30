@@ -9,7 +9,8 @@ class Config(
   _MULTIPLIER: Int,
   _PERSISTOR_LOC: String,
   _BENCHMARK_TYPE: BenchmarkType.Value,
-  _COMPILE: Boolean) {
+  _COMPILE: Boolean,
+  _LOG_LEVEL: LogLevel.Value) {
 
   def SRC = _SRC
   def CLASSNAME: String = _CLASSNAME
@@ -20,6 +21,7 @@ class Config(
   def PERSISTOR_LOC = _PERSISTOR_LOC
   def BENCHMARK_TYPE = _BENCHMARK_TYPE
   def COMPILE = _COMPILE
+  def LOG_LEVEL = _LOG_LEVEL
 
   override def toString(): String = {
     "Config:" +
@@ -38,5 +40,10 @@ class Config(
 
 object BenchmarkType extends Enumeration {
   type BenchmarType = Value
-  val Startup, Steady, Memory = Value
+  val STARTUP, STEADY, MEMORY = Value
+}
+
+object LogLevel extends Enumeration {
+  type LogLevel = Value
+  val INFO, DEBUG, VERBOSE = Value
 }

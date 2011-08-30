@@ -1,15 +1,18 @@
 package ndp.scala.benchmarksuite
 
 import java.lang.Thread.sleep
+
+import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
+
 import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.regression.Persistor
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Constant
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.utility.LogLevel
 import ndp.scala.benchmarksuite.utility.Report
-import scala.collection.mutable.ArrayBuffer
 
 package object measurement {
 
@@ -23,7 +26,9 @@ package object measurement {
    */
   def runBenchmark(log: Log, config: Config, checkWarm: (BenchmarkResult) => Boolean, measure: => Long): BenchmarkResult = {
 
-    log verbose "[Warmup]"
+    if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+      log verbose "[Warmup]"
+    }
 
     var result = new BenchmarkResult
 
@@ -31,27 +36,37 @@ package object measurement {
       cleanUp
       result += measure
 
-      log verbose "[Measured]	" + result.last
+      if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+        log verbose "[Measured]	" + result.last
+      }
     }
 
     while (!checkWarm(result)) {
       cleanUp
 
-      log verbose "[Measured]	" + result.last
+      if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+        log verbose "[Measured]	" + result.last
+      }
 
       result remove 0
       result += measure
     }
 
-    log verbose "[End measurement]"
+    if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+      log verbose "[End measurement]"
+    }
 
     constructStatistic(log, config, result)
 
-    log verbose "[End constructing statistical metrics]"
+    if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+      log verbose "[End constructing statistical metrics]"
+    }
 
     detectRegression(log, config, result)
 
-    log verbose "[End detecting regression]"
+    if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+      log verbose "[End detecting regression]"
+    }
 
     (new Persistor(log, config) += result).store
 
@@ -103,11 +118,15 @@ package object measurement {
 
     if (Statistic testDifference persistor) {
       val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
-      log debug persistor.toString
+      if (config.LOG_LEVEL == LogLevel.DEBUG) {
+        log debug persistor.toString
+      }
       for (i <- persistor) {
         means += Statistic mean i
       }
-      log debug means.toString
+      if (config.LOG_LEVEL == LogLevel.DEBUG) {
+        log debug means.toString
+      }
       report(log, config, Constant.FAILED, Report dueToRegression means)
     } else {
       report(log, config, Constant.PASS, null)

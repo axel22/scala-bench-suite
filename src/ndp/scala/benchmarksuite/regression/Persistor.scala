@@ -13,6 +13,7 @@ import scala.io.Source.fromFile
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.utility.LogLevel
 
 class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
 
@@ -24,7 +25,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
     var storedResult: BenchmarkResult = null
     val dir = new File(config.PERSISTOR_LOC)
 
-    log debug ("Persistor directory: " + dir.getAbsolutePath)
+    if (config.LOG_LEVEL == LogLevel.DEBUG) {
+      log debug ("Persistor directory: " + dir.getAbsolutePath)
+    }
 
     if (!dir.isDirectory || !dir.canRead) {
       throw new Exception("Cannot find previous result")
@@ -39,7 +42,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
     for (file <- files) {
       try {
 
-        log verbose "[Read file]	" + file.getAbsolutePath()
+        if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+          log verbose "[Read file]	" + file.getAbsolutePath()
+        }
 
         storedResult = new BenchmarkResult
 
@@ -64,11 +69,19 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
           }
         }
 
-        log debug "[Read]	" + storedResult.toString
+        if (config.LOG_LEVEL == LogLevel.DEBUG) {
+          log debug "[Read]	" + storedResult.toString
+        }
 
         this += storedResult
       } catch {
-        case e => log debug e.toString
+        case e => {
+          if (config.LOG_LEVEL == LogLevel.DEBUG) {
+            log debug e.toString
+          } else {
+            throw e
+          }
+        }
       }
     }
     this
@@ -92,9 +105,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
       log verbose result.toString
 
       while (filename == null) {
-        if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
+        if (config.BENCHMARK_TYPE == BenchmarkType.STARTUP) {
           filename = "output/Startup/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.CLASSNAME + ".StartupState"
-        } else if (config.BENCHMARK_TYPE == BenchmarkType.Steady) {
+        } else if (config.BENCHMARK_TYPE == BenchmarkType.STEADY) {
           filename = "output/Steady/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.CLASSNAME + ".SteadyState"
         } else {
           filename = "output/Memory/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.CLASSNAME + ".MemoryConsumption"
@@ -114,9 +127,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
             val out = new FileWriter(filename)
             out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date) + "\n"
             out write "Main Class:	" + config.CLASSNAME + "\n"
-            if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
+            if (config.BENCHMARK_TYPE == BenchmarkType.STARTUP) {
               out write "Type:		Startup State Performance\n"
-            } else if (config.BENCHMARK_TYPE == BenchmarkType.Steady) {
+            } else if (config.BENCHMARK_TYPE == BenchmarkType.STEADY) {
               out write "Type:		Steady State Performance\n"
             } else {
               out write "Type:		Memory Consumption\n"

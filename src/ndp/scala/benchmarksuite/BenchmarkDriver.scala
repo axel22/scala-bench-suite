@@ -22,6 +22,7 @@ import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 import ndp.scala.benchmarksuite.utility.Report
 import ndp.scala.benchmarksuite.utility.Constant
+import ndp.scala.benchmarksuite.utility.LogLevel
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -50,7 +51,9 @@ object BenchmarkDriver {
 
     try {
       if (config.COMPILE) {
-        log verbose "[Compile]"
+        if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+          log verbose "[Compile]"
+        }
         val settings = new Settings(log.error)
         val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_DIR, config.SRC), true)
         if (ok) {
@@ -62,13 +65,15 @@ object BenchmarkDriver {
         }
       }
 
-      log verbose "[Measure]"
+      if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+        log verbose "[Measure]"
+      }
 
       var harness: Harness = null
 
-      if (config.BENCHMARK_TYPE == BenchmarkType.Memory) {
+      if (config.BENCHMARK_TYPE == BenchmarkType.MEMORY) {
         harness = new MemoryHarness(log, config)
-      } else if (config.BENCHMARK_TYPE == BenchmarkType.Startup) {
+      } else if (config.BENCHMARK_TYPE == BenchmarkType.STARTUP) {
         harness = new StartupHarness(log, config)
       } else {
         harness = new SteadyHarness(log, config)
@@ -100,6 +105,7 @@ object BenchmarkDriver {
     val separator = /*System.getProperty("file.separator")*/ "/"
     val extensionSeparator = "."
     var compile = true
+    var logLevel = LogLevel.INFO
 
     var i = 0
     try {
@@ -107,7 +113,7 @@ object BenchmarkDriver {
         log debug args(i)
         log debug args(i + 1)
         args(i) match {
-          case "-src" => {
+          case "--src" => {
             classname = args(i + 1) substring ((args(i + 1) lastIndexOf separator) + 1, args(i + 1) lastIndexOf extensionSeparator)
             src = args(i + 1)
             log debug ("src " + src)
@@ -115,11 +121,11 @@ object BenchmarkDriver {
             log debug ("srcpath " + srcpath)
             i += 1
           }
-          case "-help" => {
+          case "--help" => {
             printUsage(log)
             System exit 0
           }
-          case "-warmup" => {
+          case "--warmup" => {
             try {
               warmup = args(i + 1).toInt
               i += 1
@@ -130,7 +136,7 @@ object BenchmarkDriver {
               }
             }
           }
-          case "-runs" => {
+          case "--runs" => {
             try {
               runs = args(i + 1).toInt
               i += 1
@@ -141,7 +147,7 @@ object BenchmarkDriver {
               }
             }
           }
-          case "-multiplier" => {
+          case "--multiplier" => {
             try {
               multiplier = args(i + 1).toInt
               i += 1
@@ -152,12 +158,20 @@ object BenchmarkDriver {
               }
             }
           }
-          case "-classpath" => {
+          case "--classpath" => {
             classdir = args(i + 1)
             i += 1
           }
-          case "-noncompile" => {
+          case "--noncompile" => {
             compile = false
+          }
+          case "--log" => {
+            args(i +1) match {
+              case "debug" => logLevel = LogLevel.INFO
+              case "verbose" => logLevel = LogLevel.VERBOSE
+              case _ => logLevel = LogLevel.INFO
+            }
+            i += 1
           }
           case _ => {
             log debug ("Value of argument " + args(i - 1) + ": " + args(i))
@@ -182,11 +196,11 @@ object BenchmarkDriver {
     if (classdir equals "") {
       classdir = srcpath /*+ separator + "build"*/
     }
-    log debug "[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile
+//    log debug "[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile
 
     new File(srcpath) mkdir
 
-    new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory", BenchmarkType.Memory, true)
+    new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory", BenchmarkType.MEMORY, true, logLevel)
   }
 
   def printUsage(log: Log) {
