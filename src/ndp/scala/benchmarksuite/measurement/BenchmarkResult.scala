@@ -8,7 +8,8 @@
  * Created by ND P
  */
 
-package ndp.scala.benchmarksuite.regression
+package ndp.scala.benchmarksuite
+package measurement
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -78,5 +79,4 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     classname = theClassname
     benchmarkType = theBenchmarkType
   }*/
-
-}
+}

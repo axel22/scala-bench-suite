@@ -1,4 +1,5 @@
-package ndp.scala.benchmarksuite.utility
+package ndp.scala.benchmarksuite
+package utility
 
 class Log {
 

@@ -8,13 +8,13 @@
  * Created by ND P
  */
 
-package ndp.scala.benchmarksuite.measurement
+package ndp.scala.benchmarksuite
+package measurement
 
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
 
 import ndp.scala.benchmarksuite.regression.Persistor
-import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 
@@ -37,7 +37,7 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
 
     log("[Benchmarking startup state]")
 
-    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.BENCHMARK_DIR, config.CLASSNAME)
+    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.BENCHMARK_DIR.path, config.CLASSNAME)
     var result: BenchmarkResult = new BenchmarkResult
 
     // Ignore the first launch due to system status changing

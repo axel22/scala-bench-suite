@@ -10,19 +10,23 @@
 
 package ndp.scala.benchmarksuite
 
-import java.io.File
+import java.io.{ File => JFile }
+
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.File
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
+
 import ndp.scala.benchmarksuite.measurement.Harness
 import ndp.scala.benchmarksuite.measurement.MemoryHarness
 import ndp.scala.benchmarksuite.measurement.StartupHarness
 import ndp.scala.benchmarksuite.measurement.SteadyHarness
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
-import ndp.scala.benchmarksuite.utility.Log
-import ndp.scala.benchmarksuite.utility.Report
 import ndp.scala.benchmarksuite.utility.Constant
+import ndp.scala.benchmarksuite.utility.Log
 import ndp.scala.benchmarksuite.utility.LogLevel
+import ndp.scala.benchmarksuite.utility.Report
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -47,18 +51,21 @@ object BenchmarkDriver {
     val log = new Log
     val config: Config = parse(log, args)
 
-    log debug config.toString
+    if (config.LOG_LEVEL == LogLevel.DEBUG) {
+      log debug config.toString
+    }
 
     try {
       if (config.COMPILE) {
         if (config.LOG_LEVEL == LogLevel.VERBOSE) {
           log verbose "[Compile]"
         }
+
         val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_DIR, config.SRC), true)
+        val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_DIR.path, config.SRC.path), true)
         if (ok) {
           val compiler = new Global(settings)
-          (new compiler.Run) compile List(config.SRC)
+          (new compiler.Run) compile List(config.SRC.path)
         } else {
           printUsage(log)
           System exit 1
@@ -99,27 +106,35 @@ object BenchmarkDriver {
     var warmup = 0
     var runs = 0
     var classname = ""
-    var src = ""
-    var srcpath = ""
-    var classdir = ""
+    var src: File = null
+    var srcdir: Directory = null
+    var classdir: Directory = null
     val separator = /*System.getProperty("file.separator")*/ "/"
     val extensionSeparator = "."
     var compile = true
     var logLevel = LogLevel.INFO
 
-    var i = 0
-    try {
-      while (i < args.length - 1) {
-        log debug args(i)
-        log debug args(i + 1)
-        args(i) match {
+    def loop(args: List[String]) {
+
+      args match {
+        case opt :: rest => {
+          if (opt startsWith "--") {
+            argVal(args.head, args.tail)
+          } else {
+            printUsage(log)
+            System exit 1
+          }
+        }
+        case Nil => ()
+      }
+
+      def argVal(opt: String, rest: List[String]) {
+        opt match {
           case "--src" => {
-            classname = args(i + 1) substring ((args(i + 1) lastIndexOf separator) + 1, args(i + 1) lastIndexOf extensionSeparator)
-            src = args(i + 1)
-            log debug ("src " + src)
-            srcpath = args(i + 1) substring (0, args(i + 1) lastIndexOf separator)
-            log debug ("srcpath " + srcpath)
-            i += 1
+            classname = rest.head substring ((rest.head lastIndexOf separator) + 1, rest.head lastIndexOf extensionSeparator)
+            src = new File(new JFile(rest.head))
+            srcdir = new Directory(new JFile(rest.head substring (0, rest.head lastIndexOf separator)))
+            loop(rest.tail)
           }
           case "--help" => {
             printUsage(log)
@@ -127,19 +142,19 @@ object BenchmarkDriver {
           }
           case "--warmup" => {
             try {
-              warmup = args(i + 1).toInt
-              i += 1
+              warmup = rest.head.toInt
+              loop(rest.tail)
             } catch {
               case _ => {
                 printUsage(log)
-                System exit 0
+                System exit 1
               }
             }
           }
           case "--runs" => {
             try {
-              runs = args(i + 1).toInt
-              i += 1
+              runs = rest.head.toInt
+              loop(rest.tail)
             } catch {
               case _ => {
                 printUsage(log)
@@ -149,56 +164,53 @@ object BenchmarkDriver {
           }
           case "--multiplier" => {
             try {
-              multiplier = args(i + 1).toInt
-              i += 1
+              multiplier = rest.head.toInt
+              loop(rest.tail)
             } catch {
-              case _ => {
+              case e => {
+                log debug e.toString()
                 printUsage(log)
                 System exit 1
               }
             }
           }
-          case "--classpath" => {
-            classdir = args(i + 1)
-            i += 1
+          case "--classdir" => {
+            classdir = new Directory(new JFile(rest.head))
+            loop(rest.tail)
           }
           case "--noncompile" => {
             compile = false
+            loop(rest)
           }
           case "--log" => {
-            args(i +1) match {
+            rest.head match {
               case "debug" => logLevel = LogLevel.INFO
               case "verbose" => logLevel = LogLevel.VERBOSE
               case _ => logLevel = LogLevel.INFO
             }
-            i += 1
+            loop(rest.tail)
           }
           case _ => {
-            log debug ("Value of argument " + args(i - 1) + ": " + args(i))
+            log error "Options: " + opt
+            printUsage(log)
+            System exit 1
           }
         }
-        i += 1
-      }
-    } catch {
-      case e: Exception => {
-        log debug e.toString
-        printUsage(log)
-        System exit 1
       }
     }
-    if ((src equals "") || (runs == 0)) {
+
+    loop(args.toList)
+
+    if ((src == null) || (runs == 0)) {
       printUsage(log)
       System exit 1
     }
     if (multiplier == 0) {
       multiplier = 1
     }
-    if (classdir equals "") {
-      classdir = srcpath /*+ separator + "build"*/
+    if (classdir == null) {
+      classdir = new Directory(new JFile(srcdir.path + separator + "build")) createDirectory ()
     }
-//    log debug "[Arguments] " + classname + " " + classdir + " " + warmup + " " + runs + " " + multiplier + " " + compile
-
-    new File(srcpath) mkdir
 
     new Config(src, classname, classdir, separator, runs, multiplier, "output/Memory", BenchmarkType.MEMORY, true, logLevel)
   }

@@ -8,7 +8,8 @@
  * Created by ND P
  */
 
-package ndp.scala.benchmarksuite.regression
+package ndp.scala.benchmarksuite
+package regression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.math.sqrt
@@ -17,6 +18,7 @@ import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 
+import ndp.scala.benchmarksuite.measurement.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Log
 
 /**
@@ -286,13 +288,10 @@ object Statistic {
 
     val overall: Double = sum / (persistor.length * persistor.head.length)
 
-    log debug "[Overall] " + overall
-
     var SSA: Double = 0
     var SSE: Double = 0
     for (alternative <- persistor) {
       val alternativeMean = mean(alternative)
-      log debug "[Alternative mean]	" + alternativeMean
       SSA += (alternativeMean - overall) * (alternativeMean - overall)
 
       for (invidual <- alternative) {

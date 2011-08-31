@@ -1,6 +1,9 @@
-package ndp.scala.benchmarksuite.utility
+package ndp.scala.benchmarksuite
+package utility
+
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import scala.collection.mutable.ArrayBuffer
 
 class Report {

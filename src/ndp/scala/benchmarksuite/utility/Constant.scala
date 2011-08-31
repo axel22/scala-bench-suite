@@ -8,7 +8,8 @@
  * Created by ND P
  */
 
-package ndp.scala.benchmarksuite.utility
+package ndp.scala.benchmarksuite
+package utility
 
 import scala.io.Source.fromFile
 
@@ -16,7 +17,7 @@ import scala.io.Source.fromFile
  * Utilities for benchmarking.
  */
 object Constant {
-  
+
   /**
    * Result of regression.
    */

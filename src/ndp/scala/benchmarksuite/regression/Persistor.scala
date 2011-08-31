@@ -1,4 +1,5 @@
-package ndp.scala.benchmarksuite.regression
+package ndp.scala.benchmarksuite
+package regression
 
 import java.io.File
 import java.io.FileFilter
@@ -10,6 +11,7 @@ import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source.fromFile
 
+import ndp.scala.benchmarksuite.measurement.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
@@ -115,10 +117,16 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
 
         val file = new File(filename)
 
-        log verbose "Trying to store to " + file.getAbsolutePath
+        if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+          log verbose "Trying to store to " + file.getAbsolutePath
+        }
 
         if (file exists) {
-          log verbose "File " + file.getName + " already exists"
+
+          if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+            log verbose "File " + file.getName + " already exists"
+          }
+
           sleep(1000)
           filename = null
         } else {
@@ -147,7 +155,9 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
           }
         }
       }
-      log verbose "Stored to " + new File(filename).getAbsolutePath
+      if (config.LOG_LEVEL == LogLevel.VERBOSE) {
+        log verbose "Stored to " + new File(filename).getAbsolutePath
+      }
     }
   }
 

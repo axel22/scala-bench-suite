@@ -5,7 +5,6 @@ import java.lang.Thread.sleep
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
 
-import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.regression.Persistor
 import ndp.scala.benchmarksuite.regression.Statistic
 import ndp.scala.benchmarksuite.utility.Config
@@ -78,14 +77,16 @@ package object measurement {
    *
    * @param series	The result of benchmarking
    */
-  def constructStatistic(log: Log, config: Config, series: BenchmarkResult) {
+  def constructStatistic(log: Log, config: Config, result: BenchmarkResult) {
 
-    val mean = Statistic mean series
-    val confidenceInterval = Statistic confidenceInterval series
+    val mean = Statistic mean result
+    val confidenceInterval = Statistic confidenceInterval result
     val diff = (confidenceInterval.last - confidenceInterval.head) / 2
 
-    for (i <- series) {
-      log debug ("[Measured]	" + i)
+    for (i <- result) {
+      if (config.LOG_LEVEL == LogLevel.DEBUG) {
+        log debug ("[Measured]	" + i)
+      }
     }
     log("[Average]	" + mean.formatted("%.2f"))
     log("[Confident Interval]	[" + confidenceInterval.head.formatted("%.2f") + "; " + (confidenceInterval.last formatted "%.2f") + "]")

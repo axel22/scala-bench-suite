@@ -1,9 +1,13 @@
-package ndp.scala.benchmarksuite.utility
+package ndp.scala.benchmarksuite
+package utility
+
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.File
 
 class Config(
-  _SRC: String,
+  _SRC: File,
   _CLASSNAME: String,
-  _BENCHMARK_DIR: String,
+  _BENCHMARK_DIR: Directory,
   _FILE_SEPARATOR: String,
   _RUNS: Int,
   _MULTIPLIER: Int,
@@ -27,7 +31,7 @@ class Config(
     "Config:" +
       "\n\t\tSource:			" + SRC +
       "\n\t\tClassname:		" + CLASSNAME +
-      "\n\t\tClasspath:		" + BENCHMARK_DIR +
+      "\n\t\tClassdir:		" + BENCHMARK_DIR.path +
       "\n\t\tFileSeparator:		" + FILE_SEPARATOR +
       "\n\t\tRuns:			" + RUNS +
       "\n\t\tMultiplier:		" + MULTIPLIER +

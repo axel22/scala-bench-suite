@@ -8,9 +8,9 @@
  * Created by ND P
  */
 
-package ndp.scala.benchmarksuite.measurement
+package ndp.scala.benchmarksuite
+package measurement
 
-import ndp.scala.benchmarksuite.regression.BenchmarkResult
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 
