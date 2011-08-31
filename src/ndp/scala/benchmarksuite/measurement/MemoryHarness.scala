@@ -53,7 +53,7 @@ class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
       },
       {
         val start = runtime.freeMemory
-        clazz = (new URLClassLoader(Array(new URL("file:" + config.BENCHMARK_DIR + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
+        clazz = (new URLClassLoader(Array(new URL("file:" + config.BENCHMARK_BUILD.path + config.FILE_SEPARATOR)))).loadClass(config.CLASSNAME)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         val end = runtime.freeMemory

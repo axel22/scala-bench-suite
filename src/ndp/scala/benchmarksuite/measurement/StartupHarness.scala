@@ -13,10 +13,10 @@ package measurement
 
 import scala.collection.mutable.ArrayBuffer
 import scala.compat.Platform
-
 import ndp.scala.benchmarksuite.regression.Persistor
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
+import ndp.scala.benchmarksuite.utility.LogLevel
 
 /**
  * Class represent the harness controls the runtime of startup state benchmarking.
@@ -37,7 +37,21 @@ class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
 
     log("[Benchmarking startup state]")
 
-    val processBuilder = new ProcessBuilder("scala.bat", "-classpath", config.BENCHMARK_DIR.path, config.CLASSNAME)
+    val processBuilder = new ProcessBuilder(
+      config.JAVACMD,
+      "-cp",
+      config.SCALA_LIB,
+      config.JAVAPROP,
+      "scala.tools.nsc.MainGenericRunner",
+      "-classpath",
+      config.BENCHMARK_BUILD.path,
+      config.CLASSNAME
+    )
+    
+    if (config.LOG_LEVEL == LogLevel.DEBUG) {
+      log debug processBuilder.command.toString
+    }
+    
     var result: BenchmarkResult = new BenchmarkResult
 
     // Ignore the first launch due to system status changing

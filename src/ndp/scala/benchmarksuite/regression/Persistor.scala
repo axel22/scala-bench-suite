@@ -25,7 +25,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
   def load(): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = new File(config.PERSISTOR_LOC)
+    val dir = new File(config.PERSISTOR_LOC.path)
 
     if (config.LOG_LEVEL == LogLevel.DEBUG) {
       log debug ("Persistor directory: " + dir.getAbsolutePath)
