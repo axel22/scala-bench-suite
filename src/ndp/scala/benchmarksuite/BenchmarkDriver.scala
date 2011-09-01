@@ -45,7 +45,7 @@ object BenchmarkDriver {
   def main(args: Array[String]): Unit = {
 
     val log = new Log
-    val config: Config = ArgumentParser parse (args, log, printUsage)
+    val config: Config = ArgumentParser parse args
 
     if (config.LOG_LEVEL == LogLevel.DEBUG) {
       log debug config.toString
@@ -58,12 +58,12 @@ object BenchmarkDriver {
         }
 
         val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(List("-deprecation", "-d", config.BENCHMARK_BUILD.path, config.SRCPATH.path), true)
+        val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_BUILD.path, config.SRCPATH.path), true)
         if (ok) {
           val compiler = new Global(settings)
           (new compiler.Run) compile List(config.SRCPATH.path)
         } else {
-          printUsage(log)
+          errArgs map (err => log error err)
           System exit 1
         }
       }
@@ -95,16 +95,6 @@ object BenchmarkDriver {
         report(log, config, Constant.FAILED, Report dueToException f)
       }
     }
-  }
-
-  def printUsage(log: Log) {
-    log yell "Usage: BenchmarkSuite --srcpath <scala source file> --runs <runs> [Options] <MainClassName>"
-    log yell "	Options: [--multiplier <multiplier>] [--noncompile] [--classdir <classdir>] [--help]"
-    log yell "	The benchmark runs <runs> times, forcing a garbage collection between runs."
-    log yell "	The optional -multiplier causes the benchmark to be repeated <multiplier> times, each time for <runs> executions."
-    log yell "	The optional -noncompile causes the benchmark not to be recompiled."
-    log yell "	The optional -classdir causes the generated class files to be placed at <classdir>"
-    log yell "	The optional -help prints this usage."
   }
 
 }

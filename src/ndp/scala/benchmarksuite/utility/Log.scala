@@ -8,23 +8,23 @@ class Log {
   }
 
   def info(message: String) {
-    println("[Info]\t\t" + message)
+    println("[Info]     " + message)
   }
 
   def debug(message: String) {
-    println("[Debug]\t\t" + message)
+    println("[Debug]    " + message)
   }
 
   def error(message: String) {
-    println("[Error]\t\t" + message)
+    println("[Error]    " + message)
   }
 
   def verbose(message: String) {
-    println("[Verbose]\t" + message)
+    println("[Verbose]  " + message)
   }
 
   def yell(message: String) {
-    println("[Console]\t" + message)
+    println("[Console]  " + message)
   }
 
 }

@@ -9,16 +9,14 @@
  */
 package ndp.scala.benchmarksuite
 
-import java.io.{ File => JFile }
-
-import scala.annotation.implicitNotFound
+import java.io.{File => JFile}
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
-import ndp.scala.benchmarksuite.utility.Log
 import ndp.scala.benchmarksuite.utility.LogLevel
+import ndp.scala.benchmarksuite.utility.UI
+import scala.tools.nsc.io.Path
 
 /**
  * Parser for the suite's arguments.
@@ -30,10 +28,11 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String], log: Log, printUsage: Log => Unit): Config = {
-    var benchmarkDir: Directory = null
+  def parse(args: Array[String]): Config = {
+    var benchmarkdir: Directory = null
     var srcpath: File = null
     var classname = ""
+    var classpath = ""
     var benchmarkBuild: Directory = null
     var scalahome: Directory = null
     var javahome: Directory = null
@@ -62,8 +61,8 @@ object ArgumentParser {
             parseBinary(opt, rest.head)
             loop(rest.tail)
           } else if ((opt startsWith "--") || (rest.length > 0)) {
-            log error "Options: " + opt
-            printUsage(log)
+            UI error "Options: " + opt
+            UI.printUsage
             System exit 1
           } else {
             classname = opt
@@ -75,19 +74,24 @@ object ArgumentParser {
       def parseBinary(opt: String, arg: String) {
         opt match {
           case Parameter.OPT_BENCHMARK_DIR => {
-            benchmarkDir = new Directory(new JFile(arg))
-            benchmarkBuild = new Directory(new JFile(args + separator + "build"))
+            benchmarkdir = new Directory(new JFile(arg))
+            benchmarkBuild = new Directory(new JFile(arg + separator + "build"))
             try {
-              benchmarkDir createDirectory ()
+              benchmarkdir createDirectory ()
+              benchmarkBuild createDirectory ()
             } catch {
               case _ => {
-                log error "Cannot create directory: " + benchmarkDir.path
+                UI error "Cannot create directory: " + benchmarkdir.path
+                UI.printUsage
                 System exit 1
               }
             }
           }
-          case Parameter.OPT_SRC_PATH => {
+          case Parameter.OPT_SRCPATH => {
             srcpath = new File(new JFile(arg))
+          }
+          case Parameter.OPT_CLASSPATH => {
+            classpath = arg
           }
           case Parameter.OPT_SCALA_HOME => {
             scalahome = new Directory(new JFile(arg))
@@ -103,8 +107,8 @@ object ArgumentParser {
               runs = arg.toInt
             } catch {
               case _ => {
-                log error Parameter.OPT_RUNS + " " + arg
-                printUsage(log)
+                UI error Parameter.OPT_RUNS + " " + arg
+                UI.printUsage
                 System exit 1
               }
             }
@@ -114,8 +118,8 @@ object ArgumentParser {
               multiplier = arg.toInt
             } catch {
               case _ => {
-                log error Parameter.OPT_MULTIPLIER + " " + arg
-                printUsage(log)
+                UI error Parameter.OPT_MULTIPLIER + " " + arg
+                UI.printUsage
                 System exit 1
               }
             }
@@ -126,8 +130,8 @@ object ArgumentParser {
               case "verbose" => logLevel = LogLevel.VERBOSE
               case "info" => logLevel = LogLevel.INFO
               case _ => {
-                log error Parameter.OPT_MULTIPLIER + " " + arg
-                printUsage(log)
+                UI error Parameter.OPT_MULTIPLIER + " " + arg
+                UI.printUsage
                 System exit 1
               }
             }
@@ -138,7 +142,7 @@ object ArgumentParser {
       def parseUnary(opt: String) {
         opt match {
           case Parameter.OPT_HELP => {
-            printUsage(log)
+            UI.printUsage
             System exit 0
           }
           case Parameter.OPT_SHOWLOG => {
@@ -153,16 +157,26 @@ object ArgumentParser {
 
     loop(args.toList)
 
+    if (benchmarkdir == null) {
+      UI.printUsage
+      System exit 1
+    }
     if ((classname equals "") || (srcpath == null) || (scalahome == null) || (runs == 0)) {
-      printUsage(log)
+      UI.printUsage
       System exit 1
     }
     if (multiplier == 0) {
       multiplier = 1
     }
+    if (javahome == null) {
+      javahome = new Directory(new JFile(System getProperty "java.home"))
+    }
+    if (persistor == null) {
+      persistor = (Path(benchmarkdir.path) / "persistor").createDirectory()
+    }
 
     new Config(
-      benchmarkDir,
+      benchmarkdir,
       srcpath,
       classname,
       benchmarkBuild,
@@ -172,7 +186,7 @@ object ArgumentParser {
       runs,
       multiplier,
       persistor,
-      BenchmarkType.STARTUP,
+      BenchmarkType.MEMORY,
       compile,
       logLevel,
       showlog
@@ -186,27 +200,29 @@ object ArgumentParser {
 object Parameter {
 
   val OPT_NONCOMPILE = "--noncompile"
-  val OPT_SHOWLOG = "--showlog"
+  val OPT_SHOWLOG = "--show-log"
   val OPT_HELP = "--help"
 
-  val OPT_BENCHMARK_DIR = "--benchmarkdir"
-  val OPT_SRC_PATH = "--srcpath"
-  val OPT_SCALA_HOME = "--scalahome"
-  val OPT_JAVA_HOME = "--javahome"
+  val OPT_BENCHMARK_DIR = "--benchmark-dir"
+  val OPT_SRCPATH = "--srcpath"
+  val OPT_CLASSPATH = "--classpath"
+  val OPT_SCALA_HOME = "--scala-home"
+  val OPT_JAVA_HOME = "--java-home"
   val OPT_RUNS = "--runs"
   val OPT_MULTIPLIER = "--multiplier"
-  val OPT_LOG_LEVEL = "--loglevel"
+  val OPT_LOG_LEVEL = "--log-level"
   val OPT_PERSISTOR = "--persistor"
 
-  def isBinary(opt: String): Boolean = {
+  def isUnary(opt: String): Boolean = {
     (opt equals OPT_NONCOMPILE) ||
       (opt equals OPT_SHOWLOG) ||
       (opt equals OPT_HELP)
   }
 
-  def isUnary(opt: String): Boolean = {
+  def isBinary(opt: String): Boolean = {
     (opt equals OPT_BENCHMARK_DIR) ||
-      (opt equals OPT_SRC_PATH) ||
+      (opt equals OPT_SRCPATH) ||
+      (opt equals OPT_CLASSPATH) ||
       (opt equals OPT_SCALA_HOME) ||
       (opt equals OPT_JAVA_HOME) ||
       (opt equals OPT_RUNS) ||
