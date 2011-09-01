@@ -85,12 +85,12 @@ package object measurement {
 
     for (i <- result) {
       if (config.LOG_LEVEL == LogLevel.DEBUG) {
-        log debug ("[Measured]	" + i)
+        log debug "[Measured]	" + i
       }
     }
-    log("[Average]	" + mean.formatted("%.2f"))
-    log("[Confident Interval]	[" + confidenceInterval.head.formatted("%.2f") + "; " + (confidenceInterval.last formatted "%.2f") + "]")
-    log("[Difference] " + diff.formatted("%.2f") + " = " + (diff / mean * 100).formatted("%.2f") + "%")
+    log info "[Average]	" + mean.formatted("%.2f")
+    log info "[Confident Interval]	[" + confidenceInterval.head.formatted("%.2f") + "; " + (confidenceInterval.last formatted "%.2f") + "]"
+    log info "[Difference] " + diff.formatted("%.2f") + " = " + (diff / mean * 100).formatted("%.2f") + "%"
   }
 
   /**

@@ -1,30 +1,38 @@
 package ndp.scala.benchmarksuite
 package utility
 
-class Log {
+class Log(config: Config) {
 
   def apply(message: String) {
-    info(message)
+    Console println message
   }
 
   def info(message: String) {
-    println("[Info]     " + message)
+    this("[Info]     " + message)
+    if (config.SHOW_LOG) {
+      UI("[Info]     " + message)
+    }
   }
 
   def debug(message: String) {
-    println("[Debug]    " + message)
+    this("[Debug]    " + message)
+    if (config.SHOW_LOG) {
+      UI("[Debug]    " + message)
+    }
   }
 
   def error(message: String) {
-    println("[Error]    " + message)
+    this("[Error]    " + message)
+    if (config.SHOW_LOG) {
+      UI("[Error]    " + message)
+    }
   }
 
   def verbose(message: String) {
-    println("[Verbose]  " + message)
-  }
-
-  def yell(message: String) {
-    println("[Console]  " + message)
+    this("[Verbose]  " + message)
+    if (config.SHOW_LOG) {
+      UI("[Verbose]  " + message)
+    }
   }
 
 }

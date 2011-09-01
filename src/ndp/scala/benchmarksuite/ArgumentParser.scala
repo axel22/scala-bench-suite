@@ -186,7 +186,7 @@ object ArgumentParser {
       runs,
       multiplier,
       persistor,
-      BenchmarkType.MEMORY,
+      BenchmarkType.STARTUP,
       compile,
       logLevel,
       showlog

@@ -44,8 +44,8 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = {
 
-    val log = new Log
     val config: Config = ArgumentParser parse args
+    val log = new Log(config)
 
     if (config.LOG_LEVEL == LogLevel.DEBUG) {
       log debug config.toString

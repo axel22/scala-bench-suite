@@ -16,6 +16,8 @@ package utility
  */
 object UI {
 
+  def apply(x: Any) = Console println x
+  
   def print(x: Any) = Console println x
 
   def error(x: Any) = Console println "[Error] " + x
