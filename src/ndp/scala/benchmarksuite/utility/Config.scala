@@ -8,6 +8,7 @@ class Config(
   _BENCHMARK_DIR: Directory,
   _SRCPATH: File,
   _CLASSNAME: String,
+  _BENCHMARK_BUILD: Directory,
   _SCALA_HOME: Directory,
   _JAVA_HOME: Directory,
   _FILE_SEPARATOR: String,
@@ -22,6 +23,7 @@ class Config(
   val SRCPATH = _SRCPATH
   val CLASSNAME: String = _CLASSNAME
   val BENCHMARK_DIR = _BENCHMARK_DIR
+  val BENCHMARK_BUILD = _BENCHMARK_BUILD
   val SCALA_HOME = _SCALA_HOME
   val JAVA_HOME = _JAVA_HOME
   val FILE_SEPARATOR = _FILE_SEPARATOR

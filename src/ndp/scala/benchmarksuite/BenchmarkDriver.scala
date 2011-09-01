@@ -58,10 +58,10 @@ object BenchmarkDriver {
         }
 
         val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(List("-deprecation", "-d", config.BENCHMARK_BUILD.path, config.SRC.path), true)
+        val (ok, errArgs) = settings.processArguments(List("-deprecation", "-d", config.BENCHMARK_BUILD.path, config.SRCPATH.path), true)
         if (ok) {
           val compiler = new Global(settings)
-          (new compiler.Run) compile List(config.SRC.path)
+          (new compiler.Run) compile List(config.SRCPATH.path)
         } else {
           printUsage(log)
           System exit 1

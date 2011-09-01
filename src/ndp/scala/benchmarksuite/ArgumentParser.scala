@@ -27,13 +27,14 @@ object ArgumentParser {
 
   /**
    * Parses the arguments from command line.
-   * 
+   *
    * @return	The `Config` object conresponding for the parsed values
    */
   def parse(args: Array[String], log: Log, printUsage: Log => Unit): Config = {
     var benchmarkDir: Directory = null
     var srcpath: File = null
     var classname = ""
+    var benchmarkBuild: Directory = null
     var scalahome: Directory = null
     var javahome: Directory = null
 
@@ -75,6 +76,7 @@ object ArgumentParser {
         opt match {
           case Parameter.OPT_BENCHMARK_DIR => {
             benchmarkDir = new Directory(new JFile(arg))
+            benchmarkBuild = new Directory(new JFile(args + separator + "build"))
             try {
               benchmarkDir createDirectory ()
             } catch {
@@ -163,6 +165,7 @@ object ArgumentParser {
       benchmarkDir,
       srcpath,
       classname,
+      benchmarkBuild,
       scalahome,
       javahome,
       separator,
