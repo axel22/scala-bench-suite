@@ -1,5 +1,5 @@
 /*
- * ArgumentParser
+ * ParameterParser
  * 
  * Version
  * 
@@ -10,40 +10,55 @@
 package ndp.scala.benchmarksuite
 
 import java.io.{ File => JFile }
+
+import scala.annotation.implicitNotFound
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-import scala.tools.nsc.io.Path
+
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.Log
 import ndp.scala.benchmarksuite.utility.LogLevel
-import scala.collection.mutable.ArrayBuffer
 
+/**
+ * Parser for the suite's arguments.
+ */
 object ArgumentParser {
 
+  /**
+   * Parses the arguments from command line.
+   * 
+   * @return	The `Config` object conresponding for the parsed values
+   */
   def parse(args: Array[String], log: Log, printUsage: Log => Unit): Config = {
-    var multiplier = 0
-    var runs = 0
-    var classname = ""
-    var srcpath: File = null
     var benchmarkDir: Directory = null
-    var persistor: Directory = null
+    var srcpath: File = null
+    var classname = ""
     var scalahome: Directory = null
     var javahome: Directory = null
-    val separator = /*System.getProperty("file.separator")*/ "/"
-    val extensionSeparator = "."
+
+    var persistor: Directory = null
+    val separator = System getProperty "file.separator"
+
+    var multiplier = 0
+    var runs = 0
+
     var compile = true
     var logLevel = LogLevel.INFO
     var showlog = false
 
+    /**
+     * Loop through a `List[String]` containing the arguments.
+     * Gets the first argument and recursive loop through the rest.
+     */
     def loop(args: List[String]) {
       args match {
         case opt :: rest => {
-          if (Argument isUnary opt) {
-            getUnary(opt)
+          if (Parameter isUnary opt) {
+            parseUnary(opt)
             loop(rest)
-          } else if (Argument isBinary opt) {
-            getBinary(opt, rest.head)
+          } else if (Parameter isBinary opt) {
+            parseBinary(opt, rest.head)
             loop(rest.tail)
           } else if ((opt startsWith "--") || (rest.length > 0)) {
             log error "Options: " + opt
@@ -56,63 +71,60 @@ object ArgumentParser {
         case Nil => ()
       }
 
-      def getBinary(opt: String, arg: String) {
+      def parseBinary(opt: String, arg: String) {
         opt match {
-          case Argument.OPT_BENCHMARK_DIR => {
+          case Parameter.OPT_BENCHMARK_DIR => {
             benchmarkDir = new Directory(new JFile(arg))
-            //TODDO check
-          }
-          case Argument.OPT_SRC_PATH => {
-            srcpath = new File(new JFile(arg))
-          }
-          case Argument.OPT_SCALA_HOME => {
-            scalahome = new Directory(new JFile(arg))
-            //TODO check
-          }
-          case Argument.OPT_JAVA_HOME => {
-            javahome = new Directory(new JFile(arg))
-            //TODO check
-          }
-          case Argument.OPT_PERSISTOR => {
             try {
-              persistor = new Directory(new JFile(arg))
-              //TODO check
+              benchmarkDir createDirectory ()
             } catch {
               case _ => {
-                printUsage(log)
+                log error "Cannot create directory: " + benchmarkDir.path
                 System exit 1
               }
             }
           }
-          case Argument.OPT_RUNS => {
+          case Parameter.OPT_SRC_PATH => {
+            srcpath = new File(new JFile(arg))
+          }
+          case Parameter.OPT_SCALA_HOME => {
+            scalahome = new Directory(new JFile(arg))
+          }
+          case Parameter.OPT_JAVA_HOME => {
+            javahome = new Directory(new JFile(arg))
+          }
+          case Parameter.OPT_PERSISTOR => {
+            persistor = new Directory(new JFile(arg))
+          }
+          case Parameter.OPT_RUNS => {
             try {
               runs = arg.toInt
             } catch {
               case _ => {
-                log error Argument.OPT_RUNS + " " + arg
+                log error Parameter.OPT_RUNS + " " + arg
                 printUsage(log)
                 System exit 1
               }
             }
           }
-          case Argument.OPT_MULTIPLIER => {
+          case Parameter.OPT_MULTIPLIER => {
             try {
               multiplier = arg.toInt
             } catch {
               case _ => {
-                log error Argument.OPT_MULTIPLIER + " " + arg
+                log error Parameter.OPT_MULTIPLIER + " " + arg
                 printUsage(log)
                 System exit 1
               }
             }
           }
-          case Argument.OPT_LOG_LEVEL => {
+          case Parameter.OPT_LOG_LEVEL => {
             arg match {
               case "debug" => logLevel = LogLevel.DEBUG
               case "verbose" => logLevel = LogLevel.VERBOSE
               case "info" => logLevel = LogLevel.INFO
               case _ => {
-                log error Argument.OPT_MULTIPLIER + " " + arg
+                log error Parameter.OPT_MULTIPLIER + " " + arg
                 printUsage(log)
                 System exit 1
               }
@@ -121,16 +133,16 @@ object ArgumentParser {
         }
       }
 
-      def getUnary(opt: String) {
+      def parseUnary(opt: String) {
         opt match {
-          case Argument.OPT_HELP => {
+          case Parameter.OPT_HELP => {
             printUsage(log)
             System exit 0
           }
-          case Argument.OPT_SHOWLOG => {
+          case Parameter.OPT_SHOWLOG => {
             showlog = true
           }
-          case Argument.OPT_NONCOMPILE => {
+          case Parameter.OPT_NONCOMPILE => {
             compile = false
           }
         }
@@ -165,7 +177,10 @@ object ArgumentParser {
   }
 }
 
-class Argument private[benchmarksuite] {
+/**
+ * Holds string contants for parameters.
+ */
+object Parameter {
 
   val OPT_NONCOMPILE = "--noncompile"
   val OPT_SHOWLOG = "--showlog"
@@ -185,6 +200,7 @@ class Argument private[benchmarksuite] {
       (opt equals OPT_SHOWLOG) ||
       (opt equals OPT_HELP)
   }
+
   def isUnary(opt: String): Boolean = {
     (opt equals OPT_BENCHMARK_DIR) ||
       (opt equals OPT_SRC_PATH) ||
@@ -197,5 +213,3 @@ class Argument private[benchmarksuite] {
   }
 
 }
-
-object Argument extends Argument

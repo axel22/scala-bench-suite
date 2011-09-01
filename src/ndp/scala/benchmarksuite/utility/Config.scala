@@ -5,7 +5,7 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 
 class Config(
-    _BENCHMARK_DIR: Directory,
+  _BENCHMARK_DIR: Directory,
   _SRCPATH: File,
   _CLASSNAME: String,
   _SCALA_HOME: Directory,
@@ -32,14 +32,14 @@ class Config(
   val COMPILE = _COMPILE
   val LOG_LEVEL = _LOG_LEVEL
   lazy val JAVACMD = JAVA_HOME + FILE_SEPARATOR + "bin" + FILE_SEPARATOR + "java"
-  val JAVAPROP = "-Dscala.home=" + _SCALA_HOME
-  val SCALA_LIB: String = {
+  lazy val JAVAPROP = "-Dscala.home=" + _SCALA_HOME
+  lazy val SCALA_LIB: String = {
     var lib: List[String] = List()
     val libpath = (SCALA_HOME / "lib").createDirectory()
     for (file <- libpath.files) {
       lib ::= file.path
     }
-    lib mkString ";"
+    lib mkString (System getProperty "path.separator")
   }
 
   override def toString(): String = {
