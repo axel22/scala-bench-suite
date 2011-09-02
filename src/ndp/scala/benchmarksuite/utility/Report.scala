@@ -35,6 +35,8 @@ object Report {
       }
   }
 
-  def dueToException(e: Exception): String = e.toString()
+  def dueToException(e: Exception): String = {
+    e.getStackTraceString
+  }
 
 }

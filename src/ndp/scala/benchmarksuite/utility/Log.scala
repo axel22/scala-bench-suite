@@ -3,6 +3,26 @@ package utility
 
 class Log(config: Config) {
 
+  def this() {
+    this(new Config(
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      0,
+      0,
+      null,
+      null,
+      true,
+      LogLevel.VERBOSE,
+      true
+    ))
+  }
+
   def apply(message: String) {
     Console println message
   }
@@ -35,4 +55,9 @@ class Log(config: Config) {
     }
   }
 
+}
+
+object LogLevel extends Enumeration {
+  type LogLevel = Value
+  val INFO, DEBUG, VERBOSE = Value
 }

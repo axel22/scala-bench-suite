@@ -9,14 +9,16 @@
  */
 package ndp.scala.benchmarksuite
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
+
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
+import scala.tools.nsc.io.Path
+
 import ndp.scala.benchmarksuite.utility.BenchmarkType
 import ndp.scala.benchmarksuite.utility.Config
 import ndp.scala.benchmarksuite.utility.LogLevel
 import ndp.scala.benchmarksuite.utility.UI
-import scala.tools.nsc.io.Path
 
 /**
  * Parser for the suite's arguments.
@@ -24,11 +26,58 @@ import scala.tools.nsc.io.Path
 object ArgumentParser {
 
   /**
+   * Holds string contants for parameters.
+   */
+  private object Parameter {
+
+    val OPT_NONCOMPILE = "--noncompile"
+    val OPT_SHOWLOG = "--show-log"
+    val OPT_HELP = "--help"
+
+    val OPT_BENCHMARK_DIR = "--benchmark-dir"
+    val OPT_SRCPATH = "--srcpath"
+    val OPT_CLASSPATH = "--classpath"
+    val OPT_SCALA_HOME = "--scala-home"
+    val OPT_JAVA_HOME = "--java-home"
+    val OPT_RUNS = "--runs"
+    val OPT_MULTIPLIER = "--multiplier"
+    val OPT_LOG_LEVEL = "--log-level"
+    val OPT_PERSISTOR = "--persistor"
+
+    val UNARY = List(OPT_NONCOMPILE, OPT_SHOWLOG, OPT_HELP)
+    val BINARY = List(
+      OPT_BENCHMARK_DIR, OPT_SRCPATH, OPT_CLASSPATH, OPT_SCALA_HOME,
+      OPT_JAVA_HOME, OPT_RUNS, OPT_MULTIPLIER, OPT_LOG_LEVEL, OPT_PERSISTOR)
+
+    def isUnary(opt: String): Boolean = {
+      (opt equals OPT_NONCOMPILE) ||
+        (opt equals OPT_SHOWLOG) ||
+        (opt equals OPT_HELP)
+    }
+
+    def isBinary(opt: String): Boolean = {
+      (opt equals OPT_BENCHMARK_DIR) ||
+        (opt equals OPT_SRCPATH) ||
+        (opt equals OPT_CLASSPATH) ||
+        (opt equals OPT_SCALA_HOME) ||
+        (opt equals OPT_JAVA_HOME) ||
+        (opt equals OPT_RUNS) ||
+        (opt equals OPT_MULTIPLIER) ||
+        (opt equals OPT_LOG_LEVEL) ||
+        (opt equals OPT_PERSISTOR)
+    }
+
+  }
+
+  /**
    * Parses the arguments from command line.
    *
    * @return	The `Config` object conresponding for the parsed values
    */
   def parse(args: Array[String]): Config = {
+
+    val separator = System getProperty "file.separator"
+
     var benchmarkdir: Directory = null
     var srcpath: File = null
     var classname = ""
@@ -36,9 +85,7 @@ object ArgumentParser {
     var benchmarkBuild: Directory = null
     var scalahome: Directory = null
     var javahome: Directory = null
-
     var persistor: Directory = null
-    val separator = System getProperty "file.separator"
 
     var multiplier = 0
     var runs = 0
@@ -74,8 +121,8 @@ object ArgumentParser {
       def parseBinary(opt: String, arg: String) {
         opt match {
           case Parameter.OPT_BENCHMARK_DIR => {
-            benchmarkdir = new Directory(new JFile(arg))
-            benchmarkBuild = new Directory(new JFile(arg + separator + "build"))
+            benchmarkdir = new Directory(new JFile(stripQuotes(arg)))
+            benchmarkBuild = new Directory(new JFile(stripQuotes(arg) + separator + "build"))
             try {
               benchmarkdir createDirectory ()
               benchmarkBuild createDirectory ()
@@ -88,19 +135,19 @@ object ArgumentParser {
             }
           }
           case Parameter.OPT_SRCPATH => {
-            srcpath = new File(new JFile(arg))
+            srcpath = new File(new JFile(stripQuotes(arg)))
           }
           case Parameter.OPT_CLASSPATH => {
             classpath = arg
           }
           case Parameter.OPT_SCALA_HOME => {
-            scalahome = new Directory(new JFile(arg))
+            scalahome = new Directory(new JFile(stripQuotes(arg)))
           }
           case Parameter.OPT_JAVA_HOME => {
-            javahome = new Directory(new JFile(arg))
+            javahome = new Directory(new JFile(stripQuotes(arg)))
           }
           case Parameter.OPT_PERSISTOR => {
-            persistor = new Directory(new JFile(arg))
+            persistor = new Directory(new JFile(stripQuotes(arg)))
           }
           case Parameter.OPT_RUNS => {
             try {
@@ -153,6 +200,8 @@ object ArgumentParser {
           }
         }
       }
+
+      def stripQuotes(s: String) = if (List('"', '\'') exists { c: Char => (s.length > 0 && c == s.head && c == s.last) }) s.tail.init else s
     }
 
     loop(args.toList)
@@ -182,6 +231,7 @@ object ArgumentParser {
       benchmarkBuild,
       scalahome,
       javahome,
+      classpath,
       separator,
       runs,
       multiplier,
@@ -192,43 +242,4 @@ object ArgumentParser {
       showlog
     )
   }
-}
-
-/**
- * Holds string contants for parameters.
- */
-object Parameter {
-
-  val OPT_NONCOMPILE = "--noncompile"
-  val OPT_SHOWLOG = "--show-log"
-  val OPT_HELP = "--help"
-
-  val OPT_BENCHMARK_DIR = "--benchmark-dir"
-  val OPT_SRCPATH = "--srcpath"
-  val OPT_CLASSPATH = "--classpath"
-  val OPT_SCALA_HOME = "--scala-home"
-  val OPT_JAVA_HOME = "--java-home"
-  val OPT_RUNS = "--runs"
-  val OPT_MULTIPLIER = "--multiplier"
-  val OPT_LOG_LEVEL = "--log-level"
-  val OPT_PERSISTOR = "--persistor"
-
-  def isUnary(opt: String): Boolean = {
-    (opt equals OPT_NONCOMPILE) ||
-      (opt equals OPT_SHOWLOG) ||
-      (opt equals OPT_HELP)
-  }
-
-  def isBinary(opt: String): Boolean = {
-    (opt equals OPT_BENCHMARK_DIR) ||
-      (opt equals OPT_SRCPATH) ||
-      (opt equals OPT_CLASSPATH) ||
-      (opt equals OPT_SCALA_HOME) ||
-      (opt equals OPT_JAVA_HOME) ||
-      (opt equals OPT_RUNS) ||
-      (opt equals OPT_MULTIPLIER) ||
-      (opt equals OPT_LOG_LEVEL) ||
-      (opt equals OPT_PERSISTOR)
-  }
-
 }

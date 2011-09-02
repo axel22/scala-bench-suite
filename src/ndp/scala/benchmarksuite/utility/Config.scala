@@ -11,6 +11,7 @@ class Config(
   _BENCHMARK_BUILD: Directory,
   _SCALA_HOME: Directory,
   _JAVA_HOME: Directory,
+  _CLASSPATH: String,
   _FILE_SEPARATOR: String,
   _RUNS: Int,
   _MULTIPLIER: Int,
@@ -26,6 +27,7 @@ class Config(
   val BENCHMARK_BUILD = _BENCHMARK_BUILD
   val SCALA_HOME = _SCALA_HOME
   val JAVA_HOME = _JAVA_HOME
+  val CLASSPATH = _CLASSPATH
   val FILE_SEPARATOR = _FILE_SEPARATOR
   val RUNS = _RUNS
   val MULTIPLIER = _MULTIPLIER
@@ -70,9 +72,4 @@ class Config(
 object BenchmarkType extends Enumeration {
   type BenchmarType = Value
   val STARTUP, STEADY, MEMORY = Value
-}
-
-object LogLevel extends Enumeration {
-  type LogLevel = Value
-  val INFO, DEBUG, VERBOSE = Value
 }

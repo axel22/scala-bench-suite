@@ -23,7 +23,7 @@ package object measurement {
    * @param	checkWarm	The function checking whether the benchmark has reached steady state
    * @param measure	The thunk to calculate the desired metric
    */
-  def runBenchmark(log: Log, config: Config, checkWarm: (BenchmarkResult) => Boolean, measure: => Long): BenchmarkResult = {
+  def runBenchmark(log: Log, config: Config, checkWarm: BenchmarkResult => Boolean, measure: => Long): BenchmarkResult = {
 
     if (config.LOG_LEVEL == LogLevel.VERBOSE) {
       log verbose "[Warmup]"

@@ -58,7 +58,13 @@ object BenchmarkDriver {
         }
 
         val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(List("-d", config.BENCHMARK_BUILD.path, config.SRCPATH.path), true)
+        val (ok, errArgs) = settings.processArguments(
+          List(
+            "-classpath", config.CLASSPATH,
+            "-d", config.BENCHMARK_BUILD.path,
+            config.SRCPATH.path),
+          true)
+          
         if (ok) {
           val compiler = new Global(settings)
           (new compiler.Run) compile List(config.SRCPATH.path)
@@ -84,15 +90,25 @@ object BenchmarkDriver {
       harness.run
 
     } catch {
-      /*case e: java.lang.reflect.InvocationTargetException => e.getCause match {
-        case n: java.lang.ClassNotFoundException => log error "Class " + n.getMessage() + " not found."
+      /*case e: java.lang.reflect.InvocationTargetException => {
+        e.getCause match {
+        case n: java.lang.ClassNotFoundException => {
+          log error "Class " + n.getMessage() + " not found."
+        }
         case n: java.lang.NoClassDefFoundError => log error "Class " + n.getMessage() + " not found."
-        case n => report(log, config, Constant.FAILED, Report dueToException n)
+        case n => log error n.toString
+        }
       }
-      case e: java.lang.ClassNotFoundException => log debug "Class " + e.getMessage + " not found."*/
+      case e: java.lang.ClassNotFoundException => {
+        log debug "Class " + e.getMessage + " not found."
+      }
       case f: Exception => {
         val report = new Report
         report(log, config, Constant.FAILED, Report dueToException f)
+      }*/
+      case e: Exception => {
+        val report = new Report
+        report(log, config, Constant.FAILED, Report dueToException e)
       }
     }
   }
