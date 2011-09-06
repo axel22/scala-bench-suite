@@ -25,7 +25,7 @@ import ndp.scala.tools.sbs.util.Log
  *
  * @author ND P
  */
-class BenchmarkResult(log: Log, config: Config) extends ArrayBuffer[Long] {
+class BenchmarkResult extends ArrayBuffer[Long] {
 
   /**
    *

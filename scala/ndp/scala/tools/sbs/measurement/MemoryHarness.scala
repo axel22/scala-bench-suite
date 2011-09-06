@@ -21,7 +21,7 @@ import ndp.scala.tools.sbs.util.Log
  *
  * @author ND P
  */
-object MemoryHarness extends Harness {
+object MemoryHarness {
 
   /**
    * Does the following:
@@ -34,14 +34,19 @@ object MemoryHarness extends Harness {
   def main(args: Array[String]): Unit = {
 
     try {
-      val argList = args(0) split " "
+      val confArgs = args(0) split " "
+      val logArgs = args(1) split " "
 
-      for (c <- argList) {
+      for (c <- confArgs) {
         println(c)
       }
-      val config = new Config(argList)
+      for (l <- logArgs) {
+        println(l)
+      }
+      
+      config = new Config(confArgs)
 
-      val log = new Log(config)
+      log = new Log(logArgs)
 
       log("[Benchmarking memory consumption]")
 
@@ -50,8 +55,6 @@ object MemoryHarness extends Harness {
       var method: Method = null
 
       val result = runBenchmark(
-        log,
-        config,
         (result: BenchmarkResult) => {
           var i: Int = 1
           while ((i < result.length) && (result(i) == result.head)) {
@@ -61,7 +64,7 @@ object MemoryHarness extends Harness {
         },
         {
           val start = runtime.freeMemory
-          clazz = Class forName config.CLASSNAME
+          clazz = Class forName config.classname
           method = clazz.getMethod("main", classOf[Array[String]])
           method.invoke(clazz, { null })
           val end = runtime.freeMemory

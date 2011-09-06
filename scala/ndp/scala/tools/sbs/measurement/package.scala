@@ -26,13 +26,13 @@ package object measurement {
    * @param	checkWarm	The function checking whether the benchmark has reached steady state
    * @param measure	The thunk to calculate the desired metric
    */
-  def runBenchmark(log: Log, config: Config, checkWarm: BenchmarkResult => Boolean, measure: => Long): BenchmarkResult = {
+  def runBenchmark(checkWarm: BenchmarkResult => Boolean, measure: => Long): BenchmarkResult = {
 
     log verbose "[Warmup]"
 
-    var result = new BenchmarkResult(log, config)
+    var result = new BenchmarkResult
 
-    for (mul <- 1 to config.MULTIPLIER) {
+    for (mul <- 1 to config.multiplier) {
       cleanUp
       result += measure
 
@@ -65,15 +65,15 @@ package object measurement {
   def constructStatistic(log: Log, config: Config, result: BenchmarkResult) {
 
     val mean = Statistic mean result
-    val confidenceInterval = Statistic confidenceInterval result
-    val diff = (confidenceInterval.last - confidenceInterval.head) / 2
+    val (left, right) = Statistic confidenceInterval result
+    val diff = (right - left) / 2
 
     for (i <- result) {
       log debug "[Measured]	" + i
     }
-    log info "[Average]	" + mean.formatted("%.2f")
-    log info "[Confident Interval]	[" + confidenceInterval.head.formatted("%.2f") + "; " + (confidenceInterval.last formatted "%.2f") + "]"
-    log info "[Difference] " + diff.formatted("%.2f") + " = " + (diff / mean * 100).formatted("%.2f") + "%"
+    log info "[Average]	" + (mean formatted "%.2f")
+    log info "[Confident Interval]	[" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]"
+    log info "[Difference] " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%"
   }
 
   /**

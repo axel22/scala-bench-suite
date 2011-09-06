@@ -20,7 +20,7 @@ import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 
-class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
+class Persistor extends ArrayBuffer[BenchmarkResult] {
 
   /**
    * Loads previous benchmark result from local directory.
@@ -28,7 +28,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
   def load(): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = new File(config.PERSISTOR_LOC.path)
+    val dir = new File(config.persistorLocation.path)
 
     log debug ("Persistor directory: " + dir.getAbsolutePath)
 
@@ -47,7 +47,7 @@ class Persistor(log: Log, config: Config) extends ArrayBuffer[BenchmarkResult] {
 
         log verbose "[Read file]	" + file.getAbsolutePath
 
-        storedResult = new BenchmarkResult(log, config)
+        storedResult = new BenchmarkResult
         storedResult.load(file)
 
         log debug "[Read]	" + storedResult.toString

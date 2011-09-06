@@ -30,46 +30,6 @@ object Statistic {
    * The significant level.
    */
   private var alpha = 0.01
-  /*/**
-   * The sample value series.
-   */
-  private var _series: ArrayBuffer[Long] = null
-  def series = _series
-  def series_=(series: ArrayBuffer[Long]) {
-    _series = series
-  }
-  /**
-   * The array of benchmark result.
-   */
-  private var _persistor: Persistor = null
-  def persistor = _persistor
-  def persistor_=(persistor: Persistor) {
-    _persistor = persistor
-  }
-
-  /**
-   * Constructs a <code>Statistic</code> using a given array of benchmark result.
-   *
-   * @param log	The logger
-   * @param config
-   * @param thepersistors	The given array of benchmark result
-   */
-  def this(log: Log, config: Config, thePersistor: Persistor) {
-    this(log, config)
-    persistor = thePersistor
-  }
-
-  /**
-   * Constructs a <code>Statistic</code> using a given sample.
-   *
-   * @param log	The logger
-   * @param config
-   * @param theseries	The given sample
-   */
-  def this(log: Log, config: Config, theSeries: BenchmarkResult) {
-    this(log, config)
-    series = theSeries
-  }*/
 
   /**
    * Computes the confidence interval for the given sample.
@@ -77,7 +37,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The left and right end points of the confidence interval.
    */
-  def confidenceInterval(series: BenchmarkResult): ArrayBuffer[Double] = {
+  def confidenceInterval(series: BenchmarkResult): (Double, Double) = {
 
     var diff: Double = 0
 
@@ -87,7 +47,7 @@ object Statistic {
       diff = inverseStudentDistribution(series.length - 1) * standardDeviation(series) / sqrt(series.length)
     }
 
-    ArrayBuffer(mean(series) - diff, mean(series) + diff)
+    (mean(series) - diff, mean(series) + diff)
   }
 
   /**
@@ -303,7 +263,7 @@ object Statistic {
     val n2 = persistor.length * persistor.head.length - persistor.length
     val FValue: Double = SSA * n2 / SSE / n1
     
-    BenchmarkDriver.log debug ("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+    log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
     if (FValue > inverseFDistribution(n1, n2)) true else false
   }

@@ -11,12 +11,26 @@
 package ndp.scala.tools.sbs
 package util
 
+import java.io.{ File => JFile }
+
 import scala.tools.nsc.io.File
 
-class Log(config: Config) {
+import LogLevel.LogLevel
 
-  lazy val file = config.LOG_FILE
-  lazy val level = config.LOG_LEVEL
+class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
+
+  def this(args: Array[String]) {
+    this(
+      new File(new JFile(args(Constant.INDEX_LOG_FILE))),
+      if (args(Constant.INDEX_LOG_LEVEL) equals "debug") {
+        LogLevel.DEBUG
+      } else if (args(Constant.INDEX_LOG_LEVEL) equals "verbose") {
+        LogLevel.VERBOSE
+      } else {
+        LogLevel.INFO
+      },
+      args(Constant.INDEX_SHOW_LOG).toBoolean)
+  }
 
   def apply(message: String) {
     Console println message
@@ -24,15 +38,15 @@ class Log(config: Config) {
 
   def info(message: String) {
     this("[Info]     " + message)
-    if (config.SHOW_LOG) {
+    if (logShow) {
       UI("[Info]     " + message)
     }
   }
 
   def debug(message: String) {
-    if (level == LogLevel.DEBUG) {
+    if (logLevel == LogLevel.DEBUG) {
       this("[Debug]    " + message)
-      if (config.SHOW_LOG) {
+      if (logShow) {
         UI("[Debug]    " + message)
       }
     }
@@ -40,18 +54,26 @@ class Log(config: Config) {
 
   def error(message: String) {
     this("[Error]    " + message)
-    if (config.SHOW_LOG) {
+    if (logShow) {
       UI("[Error]    " + message)
     }
   }
 
   def verbose(message: String) {
-    if (level == LogLevel.VERBOSE) {
+    if (logLevel == LogLevel.VERBOSE) {
       this("[Verbose]  " + message)
-      if (config.SHOW_LOG) {
+      if (logShow) {
         UI("[Verbose]  " + message)
       }
     }
+  }
+
+  def toArgument(): String = {
+    var arr = new Array[String](Constant.MAX_ARGUMENT_LOG)
+    arr(Constant.INDEX_LOG_FILE) = logFile.path
+    arr(Constant.INDEX_LOG_LEVEL) = logLevel.toString
+    arr(Constant.INDEX_SHOW_LOG) = logShow.toString
+    arr mkString " "
   }
 
 }

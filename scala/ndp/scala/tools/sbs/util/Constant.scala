@@ -11,8 +11,6 @@
 package ndp.scala.tools.sbs
 package util
 
-import scala.io.Source.fromFile
-
 /**
  * Utilities for benchmarking.
  */
@@ -27,8 +25,7 @@ object Constant {
    */
   val FAILED = false
 
-  val MARX_ARGUMENT = 16
-  
+  val MAX_ARGUMENT_CONFIG = 13
   val INDEX_CLASSNAME = 0
   val INDEX_SRCPATH = 1
   val INDEX_BENCHMARK_DIR = 2
@@ -42,8 +39,10 @@ object Constant {
   val INDEX_FILE_SEPARATOR = 10
   val INDEX_PERSISTOR_LOC = 11
   val INDEX_COMPILE = 12
-  val INDEX_LOG_FILE = 13
-  val INDEX_LOG_LEVEL = 14
-  val INDEX_SHOW_LOG = 15
+
+  val MAX_ARGUMENT_LOG = 3
+  val INDEX_LOG_FILE = 0
+  val INDEX_LOG_LEVEL = 1
+  val INDEX_SHOW_LOG = 2
 
 }

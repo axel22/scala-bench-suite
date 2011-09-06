@@ -21,9 +21,9 @@ class Report {
   def apply(log: Log, config: Config, result: Boolean, due: String) {
     val date = new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm:ss").format(new Date)
     if (result) {
-      log("[Test: " + date + "\tMain class: " + config.CLASSNAME + "]\t----------------------------------\t[  OK  ]")
+      log("[Test: " + date + "\tMain class: " + config.classname + "]\t----------------------------------\t[  OK  ]")
     } else {
-      log("[Test: " + date + "\tMain class: " + config.CLASSNAME + "]\t----------------------------------\t[FAILED]")
+      log("[Test: " + date + "\tMain class: " + config.classname + "]\t----------------------------------\t[FAILED]")
       log("Due to:")
       log(due)
     }

@@ -28,10 +28,6 @@ import ndp.scala.tools.sbs.util.LogLevel
  */
 object BenchmarkDriver {
 
-  private var _log: Log = null
-  def log = _log
-  def log_=(log: Log) = _log = log
-
   /**
    * Start point of the benchmark driver
    * Does the following:
@@ -45,52 +41,53 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = {
 
-    val config: Config = ArgumentParser parse args
-    log = new Log(config)
+    val (c, l) = ArgumentParser.parse(args)
+    config = c
+    log = l
 
-    if (config.LOG_LEVEL == LogLevel.DEBUG) {
-      log debug config.toString
-    }
+    log.debug(config.toString())
 
     try {
-      if (config.COMPILE) {
-        if (config.LOG_LEVEL == LogLevel.VERBOSE) {
-          log verbose "[Compile]"
-        }
+      if (config.compile) {
+        log.verbose("[Compile]")
 
         val settings = new Settings(log.error)
         val (ok, errArgs) = settings.processArguments(
           List(
-            "-classpath", config.CLASSPATH,
-            "-d", config.BENCHMARK_BUILD.path,
-            config.SRCPATH.path),
+            "-classpath", config.classpath,
+            "-d", config.benchmarkBuild.path,
+            config.srcpath.path),
           true)
 
         if (ok) {
-          println(settings.d)
           val compiler = new Global(settings)
-          //          (new compiler.Run) compile List(config.SRCPATH.path)
+          (new compiler.Run) compile List(config.srcpath.path)
         } else {
           errArgs map (err => log error err)
           System exit 1
         }
       }
 
-      log verbose "[Measure]"
+      log.verbose("[Measure]")
 
       val processBuilder = new ProcessBuilder(
         config.JAVACMD,
         "-cp",
-        config.SCALA_LIB,
+        config.SCALALIB,
         config.JAVAPROP,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
-        SteadyHarness.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + ";" + config.BENCHMARK_BUILD.path + ";" + "d:/university/5thyear/internship/working/nsbs/lib/commons-math-2.2.jar",
+        SteadyHarness.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
+          (System.getProperty("path.separator")) +
+          config.benchmarkBuild.path +
+          (System.getProperty("path.separator")) +
+          classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
         SteadyHarness.getClass.getName replace ("$", ""),
-        config toArgument
+        config.toArgument(),
+        log.toArgument()
       )
 
-      println(processBuilder.command)
+      log.verbose(processBuilder.command.toString())
 
       val process = processBuilder.start
       val stdout = process.getInputStream

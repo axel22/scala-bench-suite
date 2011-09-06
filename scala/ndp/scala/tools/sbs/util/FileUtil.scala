@@ -77,14 +77,14 @@ object FileUtil {
   /**
    * Creates result file
    */
-  def storeResult(log: Log, config: Config, result: BenchmarkResult): String = {
+  def storeResult(log: Log, config: Config, result: BenchmarkResult): Option[String] = {
     var filename: String = null
 
     log verbose this.toString
 
     while (filename == null) {
 
-      filename = "output/Memory/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.CLASSNAME + "." + config.BENCHMARK_TYPE
+      filename = "output/Memory/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.classname + "." + config.benchmarkType
 
       val file = new JFile(filename)
 
@@ -100,10 +100,10 @@ object FileUtil {
         try {
           val out = new FileWriter(filename)
           out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date) + "\n"
-          out write "Main Class:	" + config.CLASSNAME + "\n"
-          if (config.BENCHMARK_TYPE == BenchmarkType.STARTUP) {
+          out write "Main Class:	" + config.classname + "\n"
+          if (config.benchmarkType == BenchmarkType.STARTUP) {
             out write "Type:		Startup State Performance\n"
-          } else if (config.BENCHMARK_TYPE == BenchmarkType.STEADY) {
+          } else if (config.benchmarkType == BenchmarkType.STEADY) {
             out write "Type:		Steady State Performance\n"
           } else {
             out write "Type:		Memory Consumption\n"
@@ -121,7 +121,7 @@ object FileUtil {
         }
       }
     }
-    filename
+    Some(filename)
   }
 
 }

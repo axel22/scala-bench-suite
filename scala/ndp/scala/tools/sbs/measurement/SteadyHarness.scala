@@ -22,7 +22,7 @@ import ndp.scala.tools.sbs.util.Log
  *
  * @author ND P
  */
-object SteadyHarness extends Harness {
+object SteadyHarness {
 
   /**
    * Does the following:
@@ -37,27 +37,31 @@ object SteadyHarness extends Harness {
 
     try {
 
-      val argList = args(0) split " "
-      for (c <- argList) {
+      val confArgs = args(0) split " "
+      val logArgs = args(1) split " "
+      
+      for (c <- confArgs) {
         println(c)
       }
-      val config = new Config(argList)
+      for (l <- logArgs) {
+        println(l)
+      }
+      
+      config = new Config(confArgs)
 
-      val log = new Log(config)
+      log = new Log(logArgs)
 
       log("[Benchmarking steady state]")
 
       val steadyThreshold: Double = 0.02
-      val clazz = Class forName config.CLASSNAME
+      val clazz = Class forName config.classname
       val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
       val result = runBenchmark(
-        log,
-        config,
         (result: BenchmarkResult) => (Statistic CoV result) < steadyThreshold,
         {
           val start = Platform.currentTime
-          for (i <- 0 to config.RUNS) {
+          for (i <- 0 to config.runs) {
             benchmarkMainMethod.invoke(clazz, { null })
           }
           val end = Platform.currentTime

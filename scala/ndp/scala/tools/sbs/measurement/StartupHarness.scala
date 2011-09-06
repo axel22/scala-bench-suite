@@ -22,7 +22,7 @@ import ndp.scala.tools.sbs.util.LogLevel
  *
  * @author ND P
  */
-class StartupHarness(log: Log, config: Config) extends Harness {
+class StartupHarness {
 
   /**
    * Does the following:
@@ -39,25 +39,25 @@ class StartupHarness(log: Log, config: Config) extends Harness {
     val processBuilder = new ProcessBuilder(
       config.JAVACMD,
       "-cp",
-      config.SCALA_LIB,
+      config.SCALALIB,
       config.JAVAPROP,
       "scala.tools.nsc.MainGenericRunner",
       "-classpath",
-      config.BENCHMARK_BUILD.path,
-      config.CLASSNAME
+      config.benchmarkBuild.path +
+        (System getProperty "path.separator") +
+        config.classpath,
+      config.classname
     )
 
     log debug processBuilder.command.toString
 
-    var result: BenchmarkResult = new BenchmarkResult(log, config)
+    var result: BenchmarkResult = new BenchmarkResult
 
     // Ignore the first launch due to system status changing
     var process = processBuilder.start
     process.waitFor
 
     runBenchmark(
-      log,
-      config,
       _ => true,
       {
         val start = Platform.currentTime

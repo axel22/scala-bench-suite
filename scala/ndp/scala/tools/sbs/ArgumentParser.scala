@@ -10,17 +10,16 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{File => JFile}
-
+import java.io.{ File => JFile }
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
-
 import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.FileUtil
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
+import ndp.scala.tools.sbs.util.Log
 
 /**
  * Parser for the suite's arguments.
@@ -76,7 +75,7 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String]): Config = {
+  def parse(args: Array[String]): (Config, Log) = {
 
     val separator = System getProperty "file.separator"
 
@@ -110,9 +109,9 @@ object ArgumentParser {
             parseBinary(opt, rest.head)
             loop(rest.tail)
           } else if ((opt startsWith "--") || (rest.length > 0)) {
-            UI error "Options: " + opt
-            UI.printUsage
-            System exit 1
+            UI.error("Options: " + opt)
+            UI.printUsage()
+            System.exit(1)
           } else {
             classname = opt
           }
@@ -126,13 +125,13 @@ object ArgumentParser {
             benchmarkdir = new Directory(new JFile(stripQuotes(arg)))
             benchmarkBuild = new Directory(new JFile(stripQuotes(arg) + separator + "build"))
             try {
-              benchmarkdir createDirectory ()
-              benchmarkBuild createDirectory ()
+              benchmarkdir.createDirectory()
+              benchmarkBuild.createDirectory()
             } catch {
               case _ => {
-                UI error "Cannot create directory: " + benchmarkdir.path
+                UI.error("Cannot create directory: " + benchmarkdir.path)
                 UI.printUsage
-                System exit 1
+                System.exit(1)
               }
             }
           }
@@ -156,9 +155,9 @@ object ArgumentParser {
               runs = arg.toInt
             } catch {
               case _ => {
-                UI error Parameter.OPT_RUNS + " " + arg
+                UI.error(Parameter.OPT_RUNS + " " + arg)
                 UI.printUsage
-                System exit 1
+                System.exit(1)
               }
             }
           }
@@ -167,9 +166,9 @@ object ArgumentParser {
               multiplier = arg.toInt
             } catch {
               case _ => {
-                UI error Parameter.OPT_MULTIPLIER + " " + arg
+                UI.error(Parameter.OPT_MULTIPLIER + " " + arg)
                 UI.printUsage
-                System exit 1
+                System.exit(1)
               }
             }
           }
@@ -179,9 +178,9 @@ object ArgumentParser {
               case "verbose" => logLevel = LogLevel.VERBOSE
               case "info" => logLevel = LogLevel.INFO
               case _ => {
-                UI error Parameter.OPT_MULTIPLIER + " " + arg
+                UI.error(Parameter.OPT_MULTIPLIER + " " + arg)
                 UI.printUsage
-                System exit 1
+                System.exit(1)
               }
             }
           }
@@ -192,7 +191,7 @@ object ArgumentParser {
         opt match {
           case Parameter.OPT_HELP => {
             UI.printUsage
-            System exit 0
+            System.exit(0)
           }
           case Parameter.OPT_SHOWLOG => {
             showlog = true
@@ -203,18 +202,19 @@ object ArgumentParser {
         }
       }
 
-      def stripQuotes(s: String) = if (List('"', '\'') exists { c: Char => (s.length > 0 && c == s.head && c == s.last) }) s.tail.init else s
+      def stripQuotes(s: String) =
+        if (List('"', '\'') exists { c: Char => (s.length > 0 && c == s.head && c == s.last) }) s.tail.init else s
     }
 
     loop(args.toList)
 
     if (benchmarkdir == null) {
       UI.printUsage
-      System exit 1
+      System.exit(1)
     }
     if ((classname equals "") || (srcpath == null) || (scalahome == null) || (runs == 0)) {
       UI.printUsage
-      System exit 1
+      System.exit(1)
     }
     if (multiplier == 0) {
       multiplier = 2
@@ -226,23 +226,19 @@ object ArgumentParser {
       persistor = (Path(benchmarkdir.path) / "persistor").createDirectory()
     }
 
-    new Config(
+    (new Config(
       classname,
       srcpath,
       benchmarkdir,
       benchmarkBuild,
-      BenchmarkType.STARTUP,
+      BenchmarkType.MEMORY,
       runs,
       multiplier,
       scalahome,
       javahome,
       classpath,
-      separator,
       persistor,
-      compile,
-      FileUtil.createLog(benchmarkdir, classname, separator),
-      logLevel,
-      showlog
-    )
+      compile),
+    new Log(FileUtil.createLog(benchmarkdir, classname, separator),      logLevel,      showlog))
   }
 }

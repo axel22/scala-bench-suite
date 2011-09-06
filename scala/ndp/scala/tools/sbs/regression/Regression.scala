@@ -24,10 +24,10 @@ object Regression {
   /**
    * Loads benchmark histories from files and uses <code>Statistic</code> class to detect regression.
    */
-  def detectRegression(log: Log, config: Config, result: BenchmarkResult) {
+  def detectRegression(result: BenchmarkResult) {
 
     val report = new Report
-    val persistor = new Persistor(log, config)
+    val persistor = new Persistor
     var storedResult: BenchmarkResult = null
     var line: String = null
 
@@ -36,11 +36,11 @@ object Regression {
 
     if (Statistic testDifference persistor) {
       val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
-      log debug persistor.toString
+      log.debug(persistor.toString())
       for (i <- persistor) {
         means += Statistic mean i
       }
-      log debug means.toString
+      log.debug(persistor.toString())
       report(log, config, Constant.FAILED, Report dueToRegression means)
     } else {
       report(log, config, Constant.PASS, null)
