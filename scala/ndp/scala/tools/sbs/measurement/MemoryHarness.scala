@@ -34,19 +34,7 @@ object MemoryHarness {
   def main(args: Array[String]): Unit = {
 
     try {
-      val confArgs = args(0) split " "
-      val logArgs = args(1) split " "
-
-      for (c <- confArgs) {
-        println(c)
-      }
-      for (l <- logArgs) {
-        println(l)
-      }
-      
-      config = new Config(confArgs)
-
-      log = new Log(logArgs)
+      rebuildSettings(args)
 
       log("[Benchmarking memory consumption]")
 

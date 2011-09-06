@@ -68,12 +68,12 @@ class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
     }
   }
 
-  def toArgument(): String = {
+  def toArgument(): Array[String] = {
     var arr = new Array[String](Constant.MAX_ARGUMENT_LOG)
     arr(Constant.INDEX_LOG_FILE) = logFile.path
     arr(Constant.INDEX_LOG_LEVEL) = logLevel.toString
     arr(Constant.INDEX_SHOW_LOG) = logShow.toString
-    arr mkString " "
+    arr
   }
 
 }

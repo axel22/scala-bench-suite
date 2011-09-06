@@ -231,7 +231,7 @@ object ArgumentParser {
       srcpath,
       benchmarkdir,
       benchmarkBuild,
-      BenchmarkType.MEMORY,
+      BenchmarkType.STARTUP,
       runs,
       multiplier,
       scalahome,

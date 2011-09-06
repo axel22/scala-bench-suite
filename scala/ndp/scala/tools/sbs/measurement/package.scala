@@ -11,12 +11,34 @@ package ndp.scala.tools.sbs
 
 import java.lang.Thread.sleep
 import scala.compat.Platform
+
 import ndp.scala.tools.sbs.regression.Statistic
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.Config
+import ndp.scala.tools.sbs.util.Constant
+import ndp.scala.tools.sbs.util.Log
+import ndp.scala.tools.sbs.util.UI
 
 package object measurement {
+
+  /**
+   *
+   */
+  def rebuildSettings(args: Array[String]): (Config, Log) = {
+    val confArgs = args take Constant.MAX_ARGUMENT_CONFIG
+    val logArgs = args slice (Constant.MAX_ARGUMENT_CONFIG, args.length)
+
+    for (c <- confArgs) {
+      UI("Config " + c)
+    }
+    for (l <- logArgs) {
+      UI("Log    " + l)
+    }
+
+    config = new Config(confArgs)
+    log = new Log(logArgs)
+    
+    (config, log)
+  }
 
   /**
    * Warms the benchmark up and measures the desire metric.
@@ -28,7 +50,7 @@ package object measurement {
    */
   def runBenchmark(checkWarm: BenchmarkResult => Boolean, measure: => Long): BenchmarkResult = {
 
-    log verbose "[Warmup]"
+    log.verbose("[Warmup]")
 
     var result = new BenchmarkResult
 
@@ -36,23 +58,23 @@ package object measurement {
       cleanUp
       result += measure
 
-      log verbose "[Measured]	" + result.last
+      log.verbose("[Measured]	" + result.last)
     }
 
     while (!checkWarm(result)) {
       cleanUp
 
-      log verbose "[Measured]	" + result.last
+      log.verbose("[Measured]	" + result.last)
 
-      result remove 0
+      result.remove(0)
       result += measure
     }
 
-    log verbose "[End measurement]"
+    log.verbose("[End measurement]")
 
     constructStatistic(log, config, result)
 
-    log verbose "[End constructing statistical metrics]"
+    log.verbose("[End constructing statistical metrics]")
 
     result
   }
@@ -69,11 +91,11 @@ package object measurement {
     val diff = (right - left) / 2
 
     for (i <- result) {
-      log debug "[Measured]	" + i
+      log.debug("[Measured]	" + i)
     }
-    log info "[Average]	" + (mean formatted "%.2f")
-    log info "[Confident Interval]	[" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]"
-    log info "[Difference] " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%"
+    log("[Average]	            " + (mean formatted "%.2f"))
+    log("[Confident Interval]	[" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]")
+    log("[Difference]           " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%")
   }
 
   /**

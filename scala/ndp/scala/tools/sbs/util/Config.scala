@@ -11,7 +11,7 @@
 package ndp.scala.tools.sbs
 package util
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
@@ -66,7 +66,7 @@ case class Config(classname: String,
     lib mkString (System getProperty "path.separator")
   }
 
-  def toArgument(): String = {
+  def toArgument(): Array[String] = {
     var arr = new Array[String](Constant.MAX_ARGUMENT_CONFIG)
 
     arr(Constant.INDEX_CLASSNAME) = classname
@@ -82,8 +82,9 @@ case class Config(classname: String,
     arr(Constant.INDEX_PERSISTOR_LOC) = persistorLocation.path
     arr(Constant.INDEX_COMPILE) = compile.toString
 
-    arr mkString " "
+    arr
   }
+
   override def toString(): String = {
     "Config:" +
       "\n        Source:          " + srcpath.path +

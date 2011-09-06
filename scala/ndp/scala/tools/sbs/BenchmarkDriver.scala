@@ -10,16 +10,14 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.BufferedReader
-import java.io.InputStreamReader
-
+import scala.collection.mutable.ArrayBuffer
+import scala.sys.process.Process
+import scala.sys.process.ProcessIO
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
-
 import ndp.scala.tools.sbs.measurement.SteadyHarness
-import ndp.scala.tools.sbs.util.Config
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.LogLevel
+import ndp.scala.tools.sbs.util.Constant
+import ndp.scala.tools.sbs.measurement.MemoryHarness
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -70,44 +68,56 @@ object BenchmarkDriver {
 
       log.verbose("[Measure]")
 
-      val processBuilder = new ProcessBuilder(
+      val confArg = config.toArgument()
+      val logArg = log.toArgument()
+
+      val command = Seq(
         config.JAVACMD,
         "-cp",
         config.SCALALIB,
         config.JAVAPROP,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
-        SteadyHarness.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
+        MemoryHarness.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
           (System.getProperty("path.separator")) +
           config.benchmarkBuild.path +
           (System.getProperty("path.separator")) +
           classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-        SteadyHarness.getClass.getName replace ("$", ""),
-        config.toArgument(),
-        log.toArgument()
+        MemoryHarness.getClass.getName replace ("$", ""),
+        confArg(Constant.INDEX_CLASSNAME),
+        confArg(Constant.INDEX_SRCPATH),
+        confArg(Constant.INDEX_BENCHMARK_DIR),
+        confArg(Constant.INDEX_BENCHMARK_BUILD),
+        confArg(Constant.INDEX_BENCHMARK_TYPE),
+        confArg(Constant.INDEX_RUNS),
+        confArg(Constant.INDEX_MULTIPLIER),
+        confArg(Constant.INDEX_SCALA_HOME),
+        confArg(Constant.INDEX_JAVA_HOME),
+        confArg(Constant.INDEX_CLASSPATH),
+        confArg(Constant.INDEX_PERSISTOR_LOC),
+        confArg(Constant.INDEX_COMPILE),
+        logArg(Constant.INDEX_LOG_FILE),
+        logArg(Constant.INDEX_LOG_LEVEL),
+        logArg(Constant.INDEX_SHOW_LOG)
       )
-
-      log.verbose(processBuilder.command.toString())
-
-      val process = processBuilder.start
-      val stdout = process.getInputStream
-      val stderr = process.getErrorStream
-
-      val readerOut = new BufferedReader(new InputStreamReader(stdout))
-      var line: String = readerOut.readLine
-      while (line != null) {
-        println("Stdout: " + line)
-        line = readerOut.readLine
+      
+      for (c <- command) {
+        log.verbose("[Command]  " + c)
       }
-      readerOut.close
-
-      val readerErr = new BufferedReader(new InputStreamReader(stderr))
-      line = readerErr.readLine
-      while (line != null) {
-        println("Stderr: " + line)
-        line = readerErr.readLine
+      
+      var arr = ArrayBuffer[String]()
+      val processBuilder = Process(command)
+      val processIO = new ProcessIO(
+          _ => (),
+          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(arr.+=),
+          _ => ())
+      
+      val process = processBuilder.run(processIO)
+      val success = process.exitValue
+      
+      for (ret <- arr) {
+        log.verbose("[Result]  " + ret)
       }
-      readerErr.close
     } catch {
       /*case e: java.lang.reflect.InvocationTargetException => {
         e.getCause match {

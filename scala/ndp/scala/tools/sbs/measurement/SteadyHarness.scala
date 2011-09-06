@@ -12,10 +12,10 @@ package ndp.scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
-
 import ndp.scala.tools.sbs.regression.Statistic
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
+import ndp.scala.tools.sbs.util.Constant
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
@@ -37,20 +37,8 @@ object SteadyHarness {
 
     try {
 
-      val confArgs = args(0) split " "
-      val logArgs = args(1) split " "
+      rebuildSettings(args)
       
-      for (c <- confArgs) {
-        println(c)
-      }
-      for (l <- logArgs) {
-        println(l)
-      }
-      
-      config = new Config(confArgs)
-
-      log = new Log(logArgs)
-
       log("[Benchmarking steady state]")
 
       val steadyThreshold: Double = 0.02
@@ -73,12 +61,12 @@ object SteadyHarness {
         Console println ret
       }
 
-      System exit 0
+      System.exit(0)
     } catch {
       case e =>
         println(e.toString)
         println(e.getStackTraceString)
-        System exit 1
+        System.exit(1)
     }
   }
 
