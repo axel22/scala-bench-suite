@@ -19,11 +19,21 @@ object Constant {
   /**
    * Result of regression.
    */
-  val PASS = true
+  val REGRESSION_PASS = true
   /**
    * Result of regression.
    */
-  val FAILED = false
+  val REGRESSION_FAILED = false
+  
+  /**
+   * Precision thredshold of confidance interval.
+   */
+  val CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD = 0.01
+  
+  /**
+   * Maximum counter for measurements of a series.
+   */
+  val MAX_MEASUREMENT = 10
 
   val MAX_ARGUMENT_CONFIG = 12
   val INDEX_CLASSNAME = 0

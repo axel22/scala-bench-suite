@@ -34,17 +34,21 @@ object Regression {
     persistor += result
     persistor.load
 
-    if (Statistic testDifference persistor) {
-      val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
-      log.debug(persistor.toString())
-      for (i <- persistor) {
-        means += Statistic mean i
+    Statistic testDifference persistor match {
+      case Left(isPassed) => {
+        if (isPassed) {
+          val means: ArrayBuffer[Double] = new ArrayBuffer[Double]
+          log.debug(persistor.toString())
+          for (i <- persistor) {
+            means += Statistic mean i
+          }
+          log.debug(persistor.toString())
+          report(Constant.REGRESSION_FAILED, Report dueToRegression means)
+        } else {
+          report(Constant.REGRESSION_PASS, null)
+        }
       }
-      log.debug(persistor.toString())
-      report(log, config, Constant.FAILED, Report dueToRegression means)
-    } else {
-      report(log, config, Constant.PASS, null)
+      case Right(s) => report(Constant.REGRESSION_FAILED, Report dueToReason s)
     }
   }
-
 }

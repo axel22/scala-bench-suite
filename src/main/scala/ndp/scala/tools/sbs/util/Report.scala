@@ -18,7 +18,7 @@ import scala.collection.mutable.ArrayBuffer
 
 class Report {
 
-  def apply(log: Log, config: Config, result: Boolean, due: String) {
+  def apply(result: Boolean, due: String) {
     val date = new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm:ss").format(new Date)
     if (result) {
       log("[Test: " + date + "\tMain class: " + config.classname + "]\t----------------------------------\t[  OK  ]")
@@ -48,5 +48,7 @@ object Report {
   def dueToException(e: Exception): String = {
     e.getStackTraceString
   }
+  
+  def dueToReason(s: String) = s
 
 }

@@ -32,7 +32,7 @@ class StartupHarness {
    * <li>And stores the result running time series to file.
    * </ul>
    */
-  def run(): BenchmarkResult = {
+  def run(): Either[BenchmarkResult, String] = {
 
     log("[Benchmarking startup state]")
 

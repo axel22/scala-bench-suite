@@ -109,7 +109,7 @@ object BenchmarkDriver {
       val processBuilder = Process(command)
       val processIO = new ProcessIO(
           _ => (),
-          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(arr.+=),
+          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(println),
           _ => ())
       
       val process = processBuilder.run(processIO)

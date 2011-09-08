@@ -12,13 +12,13 @@ package ndp.scala.tools.sbs
 package measurement
 
 import java.io.File
-
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source.fromFile
-
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.FileUtil
 import ndp.scala.tools.sbs.util.Log
+import ndp.scala.tools.sbs.regression.Statistic
+import ndp.scala.tools.sbs.util.Constant
 
 /**
  * Class represents the result of benchmarking. Allows user to store or load a list of values from file.
@@ -27,6 +27,38 @@ import ndp.scala.tools.sbs.util.Log
  */
 class BenchmarkResult extends ArrayBuffer[Long] {
 
+  /**
+   * Calculates statistical metrics.
+   *
+   * @return
+   * <ul>
+   * <li>`true` if the ration between the confidence interval and the mean is less than the thredshold
+   * <li>`false` otherwise
+   * </ul> 
+   */
+  def isReliable = {
+
+    if (length == 0) {
+      log.debug("Init measurement")
+      false
+    } else if (length != config.multiplier) {
+      log.debug("Wrong in measurment length")
+      false
+    } else {
+      val mean = Statistic mean this
+      val (left, right) = Statistic confidenceInterval this
+      val diff = (right - left)
+
+      for (i <- array) {
+        log.debug("[Measured]	" + i)
+      }
+      log.verbose("[Average]	            " + (mean formatted "%.2f"))
+      log.verbose("[Confident Interval]	[" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]")
+      log.verbose("[Difference]           " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%")
+      (diff / mean) < Constant.CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD
+    }
+  }
+  
   /**
    *
    */

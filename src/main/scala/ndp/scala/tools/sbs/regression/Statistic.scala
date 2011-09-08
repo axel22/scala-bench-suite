@@ -27,10 +27,57 @@ import ndp.scala.tools.sbs.util.Log
 object Statistic {
 
   /**
+   * Minimum significant level.
+   */
+  private val alphaMax: Double = 0.2
+  
+  /**
+   * Maximum significant level.
+   */
+  private val alphaMin: Double = 0
+  
+  /**
    * The significant level.
    */
-  private var alpha = 0.01
+  private var alpha = alphaMin
+  
+  /**
+   * Reduces the confidence level time by time to by 5% each time,
+   * except 2 cases:
+   * <ul>
+   * <li>From 100% to 99%
+   * <li>From 99% to 95%
+   * </ul>
+   * 
+   * @return `true` if success, `false` if the confidence leval is at the minimum value.
+   */
+  def reduceConfidenceLevel(): Boolean = {
+    if (alpha == 0) {
+      alpha = 0.01
+      true
+    }
+    else if (alpha == 0.01) {
+      alpha = 0.05
+      true
+    }
+    else if (alpha <= alphaMax) {
+      alpha += 0.05
+      true
+    }
+    else {
+      false
+    }
+  }
+  
+  /**
+   * @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
+   */
+  def isConfidenceLevelAcceptable = if (alpha <= alphaMax) true else false
 
+  def resetConfidenceInterval() {
+    alpha = alphaMin
+  }
+  
   /**
    * Computes the confidence interval for the given sample.
    *
@@ -178,14 +225,14 @@ object Statistic {
    * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  def testDifference(persistor: Persistor): Boolean = {
+  def testDifference(persistor: Persistor): Either[Boolean, String] = {
     if (persistor.length < 2) {
-      throw new java.lang.Exception("Not enough result files specified. No regression.")
+      Right("Not enough result files specified. No regression.")
     }
     if (persistor.length == 2) {
-      testConfidenceIntervals(persistor)
+      Left(testConfidenceIntervals(persistor))
     } else {
-      testANOVA(persistor)
+      Left(testANOVA(persistor))
     }
   }
 

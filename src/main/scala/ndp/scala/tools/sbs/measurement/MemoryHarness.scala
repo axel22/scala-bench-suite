@@ -21,7 +21,7 @@ import ndp.scala.tools.sbs.util.Log
  *
  * @author ND P
  */
-object MemoryHarness {
+object MemoryHarness extends SubProcessHarness {
 
   /**
    * Does the following:
@@ -31,51 +31,34 @@ object MemoryHarness {
    * <li>Measures and stores the result to file.
    * </ul>
    */
-  def main(args: Array[String]): Unit = {
+  def run(): Either[BenchmarkResult, String] = {
 
-    try {
-      rebuildSettings(args)
+    log("[Benchmarking memory consumption]")
 
-      log("[Benchmarking memory consumption]")
+    val runtime: Runtime = Runtime.getRuntime
+    var clazz: Class[_] = null
+    var method: Method = null
 
-      val runtime: Runtime = Runtime.getRuntime
-      var clazz: Class[_] = null
-      var method: Method = null
-
-      val result = runBenchmark(
-        (result: BenchmarkResult) => {
-          var i: Int = 1
-          while ((i < result.length) && (result(i) == result.head)) {
-            i += 1
-          }
-          if (i == result.length) true else false
-        },
-        {
-          val start = runtime.freeMemory
-          clazz = Class forName config.classname
-          method = clazz.getMethod("main", classOf[Array[String]])
-          method.invoke(clazz, { null })
-          val end = runtime.freeMemory
-
-          clazz = null
-          method = null
-
-          start - end
+    runBenchmark(
+      (result: BenchmarkResult) => {
+        var i: Int = 1
+        while ((i < result.length) && (result(i) == result.head)) {
+          i += 1
         }
-      )
+        if (i == result.length) true else false
+      },
+      {
+        val start = runtime.freeMemory
+        clazz = Class forName config.classname
+        method = clazz.getMethod("main", classOf[Array[String]])
+        method.invoke(clazz, { null })
+        val end = runtime.freeMemory
 
-      for (ret <- result) {
-        Console println ret
-      }
+        clazz = null
+        method = null
 
-      System exit 0
-    } catch {
-      case e => {
-        println(e.toString)
-        println(e.getStackTraceString)
-        System exit 1
+        start - end
       }
-    }
+    )
   }
-
 }
