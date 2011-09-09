@@ -16,5 +16,11 @@ package object sbs {
   def config_=(config: Config) {
     _config = config
   }
+  
+  private var _benchmark: Benchmark = null
+  def benchmark = _benchmark
+  def benchmark_=(benchmark: Benchmark) {
+    _benchmark = benchmark
+  }
 
 }

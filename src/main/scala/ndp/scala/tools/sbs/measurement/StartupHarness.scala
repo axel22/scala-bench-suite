@@ -43,10 +43,10 @@ class StartupHarness {
       config.JAVAPROP,
       "scala.tools.nsc.MainGenericRunner",
       "-classpath",
-      config.benchmarkBuild.path +
+      benchmark.buildPath.path +
         (System getProperty "path.separator") +
         config.classpath,
-      config.classname
+      benchmark.name
     )
 
     log debug processBuilder.command.toString

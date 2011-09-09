@@ -37,7 +37,7 @@ object SteadyHarness extends SubProcessHarness {
 
     val steadyThreshold: Double = 0.02
     //    val clazz = Class forName config.classname
-    val clazz = (new URLClassLoader(Array(new URL("file:" + config.benchmarkBuild.path + "/")))).loadClass(config.classname)
+    val clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
     val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
     runBenchmark(

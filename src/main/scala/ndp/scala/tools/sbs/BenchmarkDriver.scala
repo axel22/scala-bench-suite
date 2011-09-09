@@ -10,15 +10,10 @@
 
 package ndp.scala.tools.sbs
 
-import scala.collection.mutable.ArrayBuffer
-import scala.sys.process.Process
-import scala.sys.process.ProcessIO
-import scala.tools.nsc.Global
-import scala.tools.nsc.Settings
-import ndp.scala.tools.sbs.measurement.SteadyHarness
-import ndp.scala.tools.sbs.util.Constant
 import ndp.scala.tools.sbs.measurement.MemoryHarness
-import ndp.scala.tools.sbs.regression.SampleGenerator
+import ndp.scala.tools.sbs.measurement.SteadyHarness
+import ndp.scala.tools.sbs.regression.Persistor
+import ndp.scala.tools.sbs.util.Constant
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -40,35 +35,21 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = {
 
-    val (c, l) = ArgumentParser.parse(args)
+    val (c, l, b) = ArgumentParser.parse(args)
     config = c
     log = l
+    benchmark = b
 
     log.debug(config.toString())
 
     try {
       if (config.compile) {
-        log.verbose("[Compile]")
-
-        val settings = new Settings(log.error)
-        val (ok, errArgs) = settings.processArguments(
-          List(
-            "-classpath", config.classpath,
-            "-d", config.benchmarkBuild.path,
-            config.srcpath.path),
-          true)
-
-        if (ok) {
-          val compiler = new Global(settings)
-          (new compiler.Run) compile List(config.srcpath.path)
-        } else {
-          errArgs map (err => log error err)
-          System exit 1
+        if (!benchmark.compile()) {
+          System.exit(1)
         }
       }
-      
       if (config.sampleNumber > 0) {
-        SampleGenerator.generate()
+        Persistor.generate(config.sampleNumber)
       }
 
       log.verbose("[Measure]")
@@ -85,7 +66,7 @@ object BenchmarkDriver {
         "-classpath",
         MemoryHarness.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
           (System.getProperty("path.separator")) +
-          config.benchmarkBuild.path +
+          benchmark.buildPath.path +
           (System.getProperty("path.separator")) +
           classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
         MemoryHarness.getClass.getName replace ("$", ""),

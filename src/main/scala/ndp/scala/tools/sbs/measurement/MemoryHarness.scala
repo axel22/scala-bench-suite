@@ -52,7 +52,7 @@ object MemoryHarness extends SubProcessHarness {
       {
         val start = runtime.freeMemory
 //        clazz = Class forName config.classname
-        clazz = (new URLClassLoader(Array(new URL("file:" + config.benchmarkBuild.path + "/")))).loadClass(config.classname)
+        clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
         method = clazz.getMethod("main", classOf[Array[String]])
         method.invoke(clazz, { null })
         val end = runtime.freeMemory

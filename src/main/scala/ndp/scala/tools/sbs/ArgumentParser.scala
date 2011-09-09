@@ -10,16 +10,19 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
+
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
+
+import ndp.scala.tools.sbs.util.LogLevel.LogLevel
 import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Config
-import ndp.scala.tools.sbs.util.FileUtil
+import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
-import ndp.scala.tools.sbs.util.Log
 
 /**
  * Parser for the suite's arguments.
@@ -77,13 +80,14 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String]): (Config, Log) = {
+  def parse(args: Array[String]): (Config, Log, Benchmark) = {
 
     val separator = System getProperty "file.separator"
 
     var benchmarkdir: Directory = null
     var srcpath: File = null
     var classname = ""
+    var benchmarkArguments: ArrayBuffer[String] = new ArrayBuffer
     var classpath = "."
     var benchmarkBuild: Directory = null
     var scalahome: Directory = null
@@ -95,7 +99,7 @@ object ArgumentParser {
     var runs = 0
 
     var compile = true
-    var logLevel = LogLevel.INFO
+    var logLevel: LogLevel = LogLevel.INFO
     var showlog = false
 
     /**
@@ -117,6 +121,9 @@ object ArgumentParser {
             System.exit(1)
           } else {
             classname = opt
+            for (a <- rest) {
+              benchmarkArguments += a
+            }
           }
         }
         case Nil => ()
@@ -161,29 +168,13 @@ object ArgumentParser {
             }
           }
           case Parameter.OPT_CREATE_SAMPLE => {
-            sampleNumber = arg.toInt
+            sampleNumber = parseInt(arg)
           }
           case Parameter.OPT_RUNS => {
-            try {
-              runs = arg.toInt
-            } catch {
-              case _ => {
-                UI.error(Parameter.OPT_RUNS + " " + arg)
-                UI.printUsage
-                System.exit(1)
-              }
-            }
+            runs = parseInt(arg)
           }
           case Parameter.OPT_MULTIPLIER => {
-            try {
-              multiplier = arg.toInt
-            } catch {
-              case _ => {
-                UI.error(Parameter.OPT_MULTIPLIER + " " + arg)
-                UI.printUsage
-                System.exit(1)
-              }
-            }
+            multiplier = parseInt(arg)
           }
           case Parameter.OPT_LOG_LEVEL => {
             if (arg equals LogLevel.DEBUG.toString()) {
@@ -220,6 +211,19 @@ object ArgumentParser {
 
       def stripQuotes(s: String) =
         if (List('"', '\'') exists { c: Char => (s.length > 0 && c == s.head && c == s.last) }) s.tail.init else s
+
+      def parseInt(i: String): Int = {
+        try {
+          i.toInt
+        } catch {
+          case _ => {
+            UI.error(Parameter.OPT_RUNS + " " + i)
+            UI.printUsage
+            System.exit(1)
+            0
+          }
+        }
+      }
     }
 
     loop(args.toList)
@@ -244,10 +248,7 @@ object ArgumentParser {
 
     (
       new Config(
-        classname,
-        srcpath,
         benchmarkdir,
-        benchmarkBuild,
         BenchmarkType.STARTUP,
         runs,
         multiplier,
@@ -263,7 +264,13 @@ object ArgumentParser {
           case None => null
         },
         logLevel,
-        showlog)
+        showlog),
+      new Benchmark(
+        classname,
+        benchmarkArguments,
+        srcpath,
+        benchmarkBuild
+      )
     )
   }
 }

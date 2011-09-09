@@ -134,7 +134,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     }
     val data = new ArrayBuffer[String]
     data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
-    data += "Main Class:       " + config.classname
+    data += "Main Class:       " + benchmark.name
     data += "Type:             " + config.benchmarkType
     data += "Confidence level: " + confidenceLevel + " %"
     data += "-------------------------------"
@@ -143,7 +143,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     }
     FileUtil.createAndStore(
       config.persistorLocation.path,
-      config.classname + "." + config.benchmarkType,
+      benchmark.name + "." + config.benchmarkType,
       data
     )
   }
