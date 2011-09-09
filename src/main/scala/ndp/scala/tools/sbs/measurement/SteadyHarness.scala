@@ -12,8 +12,9 @@ package ndp.scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
-
 import ndp.scala.tools.sbs.regression.Statistic
+import java.net.URLClassLoader
+import java.net.URL
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
@@ -35,7 +36,8 @@ object SteadyHarness extends SubProcessHarness {
     log("[Benchmarking steady state]")
 
     val steadyThreshold: Double = 0.02
-    val clazz = Class forName config.classname
+    //    val clazz = Class forName config.classname
+    val clazz = (new URLClassLoader(Array(new URL("file:" + config.benchmarkBuild.path + "/")))).loadClass(config.classname)
     val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
     runBenchmark(

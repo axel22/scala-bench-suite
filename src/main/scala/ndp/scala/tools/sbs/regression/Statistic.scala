@@ -29,17 +29,21 @@ object Statistic {
   /**
    * Minimum significant level.
    */
-  private val alphaMax: Double = 0.2
+  private val alphaMax: Double = 0.1
   
   /**
    * Maximum significant level.
    */
-  private val alphaMin: Double = 0
+  private val alphaMin: Double = 0.00
   
   /**
    * The significant level.
    */
-  private var alpha = alphaMin
+  private var _alpha = alphaMin
+  def alpha = _alpha
+  def alpha_=(alpha: Double) {
+    _alpha = alpha
+  }
   
   /**
    * Reduces the confidence level time by time to by 5% each time,
@@ -54,17 +58,21 @@ object Statistic {
   def reduceConfidenceLevel(): Boolean = {
     if (alpha == 0) {
       alpha = 0.01
+      log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
     }
     else if (alpha == 0.01) {
       alpha = 0.05
+      log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
     }
     else if (alpha <= alphaMax) {
       alpha += 0.05
+      log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
     }
     else {
+      log.verbose("Confidence level is not reducible")
       false
     }
   }
@@ -192,6 +200,7 @@ object Statistic {
     for (i <- series) {
       squareSum += (i - mean) * (i - mean)
     }
+//    log.debug("[Standard deviation] " + sqrt(squareSum / (runs - 1)))
     sqrt(squareSum / (runs - 1))
   }
 
@@ -213,7 +222,7 @@ object Statistic {
   /**
    * @return	The confident level
    */
-  def confidentLevel = (1 - alpha) * 100
+  def confidenceLevel = (1 - alpha) * 100
 
   /**
    * Statistically rigorously compares means of samples using statistically rigorous evaluation method:

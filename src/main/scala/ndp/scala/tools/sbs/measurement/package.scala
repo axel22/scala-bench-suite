@@ -10,35 +10,13 @@
 package ndp.scala.tools.sbs
 
 import java.lang.Thread.sleep
+
 import scala.compat.Platform
 
 import ndp.scala.tools.sbs.regression.Statistic
-import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Constant
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.UI
 
 package object measurement {
-
-  /**
-   *
-   */
-  def rebuildSettings(args: Array[String]): (Config, Log) = {
-    val confArgs = args take Constant.MAX_ARGUMENT_CONFIG
-    val logArgs = args slice (Constant.MAX_ARGUMENT_CONFIG, args.length)
-
-    for (c <- confArgs) {
-      UI("Config " + c)
-    }
-    for (l <- logArgs) {
-      UI("Log    " + l)
-    }
-
-    config = new Config(confArgs)
-    log = new Log(logArgs)
-
-    (config, log)
-  }
 
   /**
    * Warms the benchmark up and measures the desire metric.
@@ -50,54 +28,53 @@ package object measurement {
    */
   def runBenchmark(checkWarm: BenchmarkResult => Boolean, measure: => Long): Either[BenchmarkResult, String] = {
 
-    log.verbose("[Warmup]")
+    val endl = System getProperty "line.separator"
+    log.verbose("")
+    log.verbose("--Warmup--")
 
     var result = new BenchmarkResult
 
     val iteratorMax = config.multiplier * 5
     var iteratorCount = 0
-    var measureCount = 0
+    var iteratorMeasure = 0
 
-    while ((measureCount < Constant.MAX_MEASUREMENT) && (!result.isReliable)) {
-      
-      Statistic.resetConfidenceInterval()
-      
-      while (Statistic.isConfidenceLevelAcceptable) {
+    while (iteratorMeasure < Constant.MAX_MEASUREMENT && !result.isReliable) {
 
-        log.verbose("[Start getting a series]")
+      result.clear()
 
-        for (mul <- 1 to config.multiplier) {
-          cleanUp
-          result += measure
+      log.verbose("")
+      log.verbose("--Start getting a series--")
 
-          log.verbose("[Measured]	" + result.last)
-        }
-        iteratorCount = config.multiplier
+      for (mul <- 1 to config.multiplier) {
+        cleanUp
+        result += measure
 
-        while ((iteratorCount < iteratorMax) && (!checkWarm(result))) {
-          cleanUp
+        log.verbose("----Measured----  " + result.last)
+      }
+      iteratorCount = config.multiplier
 
-          log.verbose("[Measured]	" + result.last)
+      while ((iteratorCount < iteratorMax) && (!checkWarm(result))) {
+        cleanUp
 
-          result.remove(0)
-          result += measure
-          iteratorCount += 1
-        }
-        if (iteratorCount == iteratorMax) {
-          Statistic.reduceConfidenceLevel()
-        }
+        log.verbose("----Measured----  " + result.last)
+
+        result.remove(0)
+        result += measure
+        iteratorCount += 1
       }
 
-      measureCount += 1
+      if (iteratorCount == iteratorMax) {
+        log.verbose("--Unwarmmable--")
+        result.clear()
+      }
+      
+      iteratorMeasure += 1
       log.verbose("[End measurement]")
     }
 
-    log.verbose("[End constructing statistical metrics]")
-
-    if (measureCount >= Constant.MAX_MEASUREMENT) {
+    if (iteratorMeasure >= Constant.MAX_MEASUREMENT) {
       Right("Immeasurable")
-    }
-    else {
+    } else {
       Left(result)
     }
   }

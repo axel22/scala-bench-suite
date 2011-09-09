@@ -1,6 +1,11 @@
 package ndp.scala.tools.sbs
 package measurement
 
+import ndp.scala.tools.sbs.util.Config
+import ndp.scala.tools.sbs.util.Constant
+import ndp.scala.tools.sbs.util.Log
+import ndp.scala.tools.sbs.util.UI
+
 trait SubProcessHarness {
 
   /**
@@ -9,8 +14,8 @@ trait SubProcessHarness {
    */
   def main(args: Array[String]): Unit = {
     try {
-//      rebuildSettings(args)
-//      reportResult(run())
+      rebuildSettings(args)
+      reportResult(run())
       System.exit(0)
     } catch {
       case e =>
@@ -33,6 +38,26 @@ trait SubProcessHarness {
         Console println s
       }
     }
+  }
+  
+  /**
+   *
+   */
+  def rebuildSettings(args: Array[String]): (Config, Log) = {
+    val confArgs = args take Constant.MAX_ARGUMENT_CONFIG
+    val logArgs = args slice (Constant.MAX_ARGUMENT_CONFIG, args.length)
+
+    for (c <- confArgs) {
+      UI("Config " + c)
+    }
+    for (l <- logArgs) {
+      UI("Log    " + l)
+    }
+
+    config = new Config(confArgs)
+    log = new Log(logArgs)
+
+    (config, log)
   }
   
 }

@@ -28,14 +28,15 @@ object Constant {
   /**
    * Precision thredshold of confidance interval.
    */
-  val CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD = 0.01
+  val CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD = 0.02
   
+  /* Constants for creating command line arguments to rebuild Config */
   /**
    * Maximum counter for measurements of a series.
    */
   val MAX_MEASUREMENT = 10
 
-  val MAX_ARGUMENT_CONFIG = 12
+  val MAX_ARGUMENT_CONFIG = 13
   val INDEX_CLASSNAME = 0
   val INDEX_SRCPATH = 1
   val INDEX_BENCHMARK_DIR = 2
@@ -47,9 +48,12 @@ object Constant {
   val INDEX_JAVA_HOME = 8
   val INDEX_CLASSPATH = 9
   val INDEX_PERSISTOR_LOC = 10
-  val INDEX_COMPILE = 11
+  val INDEX_SAMPLE_NUMBER = 11
+  val INDEX_COMPILE = 12
 
+  /* Constatns for creating command line arguments to rebuild Log */
   val MAX_ARGUMENT_LOG = 3
+  
   val INDEX_LOG_FILE = 0
   val INDEX_LOG_LEVEL = 1
   val INDEX_SHOW_LOG = 2

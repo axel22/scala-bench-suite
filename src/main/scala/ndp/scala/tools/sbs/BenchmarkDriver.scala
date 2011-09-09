@@ -18,6 +18,7 @@ import scala.tools.nsc.Settings
 import ndp.scala.tools.sbs.measurement.SteadyHarness
 import ndp.scala.tools.sbs.util.Constant
 import ndp.scala.tools.sbs.measurement.MemoryHarness
+import ndp.scala.tools.sbs.regression.SampleGenerator
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -65,6 +66,10 @@ object BenchmarkDriver {
           System exit 1
         }
       }
+      
+      if (config.sampleNumber > 0) {
+        SampleGenerator.generate()
+      }
 
       log.verbose("[Measure]")
 
@@ -102,21 +107,25 @@ object BenchmarkDriver {
       )
       
       for (c <- command) {
-        log.verbose("[Command]  " + c)
+        log.verbose("--Command--  " + c)
       }
       
-      var arr = ArrayBuffer[String]()
+      /*var arr = ArrayBuffer[String]()
       val processBuilder = Process(command)
       val processIO = new ProcessIO(
           _ => (),
-          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(println),
-          _ => ())
+          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(arr.+=),
+          stderr => scala.io.Source.fromInputStream(stderr).getLines.foreach(println))
       
       val process = processBuilder.run(processIO)
       val success = process.exitValue
       
       for (ret <- arr) {
         log.verbose("[Result]  " + ret)
+      }*/
+      SteadyHarness.run() match {
+        case Left(ret) => println(ret.toString())
+        case Right(s) => println(s)
       }
     } catch {
       /*case e: java.lang.reflect.InvocationTargetException => {
@@ -125,7 +134,8 @@ object BenchmarkDriver {
           log error "Class " + n.getMessage() + " not found."
         }
         case n: java.lang.NoClassDefFoundError => log error "Class " + n.getMessage() + " not found."
-        case n => log error n.toString
+        case n
+         => log error n.toString
         }
       }
       case e: java.lang.ClassNotFoundException => {

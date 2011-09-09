@@ -30,6 +30,7 @@ case class Config(classname: String,
                   javahome: Directory,
                   classpath: String,
                   persistorLocation: Directory,
+                  sampleNumber: Int,
                   compile: Boolean) {
 
   def this(args: Array[String]) {
@@ -51,6 +52,7 @@ case class Config(classname: String,
       new Directory(new JFile(args(Constant.INDEX_JAVA_HOME))),
       args(Constant.INDEX_CLASSPATH),
       new Directory(new JFile(args(Constant.INDEX_PERSISTOR_LOC))),
+      args(Constant.INDEX_SAMPLE_NUMBER).toInt,
       args(Constant.INDEX_COMPILE).toBoolean
     )
   }
@@ -80,27 +82,29 @@ case class Config(classname: String,
     arr(Constant.INDEX_JAVA_HOME) = javahome.path
     arr(Constant.INDEX_CLASSPATH) = classpath
     arr(Constant.INDEX_PERSISTOR_LOC) = persistorLocation.path
+    arr(Constant.INDEX_SAMPLE_NUMBER) = sampleNumber.toString
     arr(Constant.INDEX_COMPILE) = compile.toString
 
     arr
   }
 
   override def toString(): String = {
+    val endl = System getProperty "line.separator"
     "Config:" +
-      "\n        Source:          " + srcpath.path +
-      "\n        Classname:       " + classname +
-      "\n        BenchmarkDir:    " + benchmarkDirectory.path +
-      "\n        Scala home:      " + scalahome.path +
-      "\n        Java home:       " + javahome.path +
-      "\n        Runs:            " + runs +
-      "\n        Multiplier:      " + multiplier +
-      "\n        Previous result: " + persistorLocation.path +
-      "\n        BenchmarkType:   " + benchmarkType +
-      "\n        Compile:         " + compile +
-      "\n        Java:            " + JAVACMD +
-      "\n        Java properties: " + JAVAPROP +
-      "\n        Scala library:   " + SCALALIB +
-      "\n"
+      endl + "        Source:          " + srcpath.path +
+      endl + "        Classname:       " + classname +
+      endl + "        BenchmarkDir:    " + benchmarkDirectory.path +
+      endl + "        Scala home:      " + scalahome.path +
+      endl + "        Java home:       " + javahome.path +
+      endl + "        Runs:            " + runs +
+      endl + "        Multiplier:      " + multiplier +
+      endl + "        Previous result: " + persistorLocation.path +
+      endl + "        Sample number:   " + sampleNumber +
+      endl + "        BenchmarkType:   " + benchmarkType +
+      endl + "        Compile:         " + compile +
+      endl + "        Java:            " + JAVACMD +
+      endl + "        Java properties: " + JAVAPROP +
+      endl + "        Scala library:   " + SCALALIB
   }
 
 }

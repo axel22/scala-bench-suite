@@ -12,20 +12,36 @@ package ndp.scala.tools.sbs
 package util
 
 import java.io.{ File => JFile }
-
 import scala.tools.nsc.io.File
-
 import LogLevel.LogLevel
+import java.io.FileWriter
+import scala.tools.nsc.io.Directory
+import java.text.SimpleDateFormat
+import scala.collection.mutable.ArrayBuffer
+import java.util.Date
 
-class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
+class Log {
+
+  var logFile: File = null
+  var logLevel: LogLevel = LogLevel.INFO
+  var logShow = false
+
+  def this(logFile: File, logLevel: LogLevel, logShow: Boolean) {
+    this
+    this.logFile = logFile
+    this.logLevel = logLevel
+    this.logShow = logShow
+  }
 
   def this(args: Array[String]) {
     this(
       new File(new JFile(args(Constant.INDEX_LOG_FILE))),
-      if (args(Constant.INDEX_LOG_LEVEL) equals "debug") {
+      if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.DEBUG.toString()) {
         LogLevel.DEBUG
-      } else if (args(Constant.INDEX_LOG_LEVEL) equals "verbose") {
+      } else if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.VERBOSE.toString()) {
         LogLevel.VERBOSE
+      } else if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.ALL.toString()) {
+        LogLevel.ALL
       } else {
         LogLevel.INFO
       },
@@ -33,7 +49,9 @@ class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
   }
 
   def apply(message: String) {
-    Console println message
+    if (logFile != null) {
+      FileUtil.write(logFile.path, message)
+    }
   }
 
   def info(message: String) {
@@ -44,7 +62,7 @@ class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
   }
 
   def debug(message: String) {
-    if (logLevel == LogLevel.DEBUG) {
+    if (logLevel == LogLevel.DEBUG || logLevel == LogLevel.ALL) {
       this("[Debug]    " + message)
       if (logShow) {
         UI("[Debug]    " + message)
@@ -60,7 +78,7 @@ class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
   }
 
   def verbose(message: String) {
-    if (logLevel == LogLevel.VERBOSE) {
+    if (logLevel == LogLevel.VERBOSE || logLevel == LogLevel.ALL) {
       this("[Verbose]  " + message)
       if (logShow) {
         UI("[Verbose]  " + message)
@@ -78,7 +96,23 @@ class Log(logFile: File, logLevel: LogLevel, logShow: Boolean) {
 
 }
 
+object Log extends Log {
+  /**
+   * Creates a new file for logging whose name in the format:
+   * YYYYMMDD.hhmmss.BenchmarkClass.log
+   */
+  def createLog(benchmarkDir: Directory, classname: String): Option[File] = {
+    var logInit = new ArrayBuffer[String]
+    val date = new Date
+    logInit += "Logging for " + classname + " on " +
+      new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
+    logInit += "-------------------------------"
+    FileUtil.createAndStore(benchmarkDir.path, classname + ".log", logInit)
+  }
+
+}
+
 object LogLevel extends Enumeration {
   type LogLevel = Value
-  val INFO, DEBUG, VERBOSE = Value
+  val INFO, DEBUG, VERBOSE, ALL = Value
 }

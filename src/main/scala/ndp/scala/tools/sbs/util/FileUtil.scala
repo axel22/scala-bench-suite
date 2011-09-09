@@ -17,111 +17,101 @@ import java.lang.Thread.sleep
 import java.text.SimpleDateFormat
 import java.util.Date
 
-import scala.tools.nsc.io.Directory
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.File
-
-import ndp.scala.tools.sbs.measurement.BenchmarkResult
 
 object FileUtil {
 
   /**
-   * Creates a new file for logging whose name in the format:
-   * YYYYMMDD.hhmmss.BenchmarkClass.log
+   * Writes the given message to the given file.
    */
-  def createLog(benchmarkDir: Directory, classname: String, separator: String): File = {
-    var filename: String = null
-    var jfile: JFile = null
-    var date: String = null
-
-    //    log verbose this.toString
-
-    while (filename == null) {
-
-      date = new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date)
-      filename = benchmarkDir.path + separator + date + classname + ".log"
-
-     jfile = new JFile(filename)
-
-      //      if (config.LOG_LEVEL == LogLevel.VERBOSE) {
-      //        log verbose "Trying to store to " + file.getAbsolutePath
-      //      }
-
-      if (jfile exists) {
-
-        //        if (config.LOG_LEVEL == LogLevel.VERBOSE) {
-        //          log verbose "File " + file.getName + " already exists"
-        //        }
-
-        sleep(1000)
-        filename = null
-      } else {
-        try {
-          val out = new FileWriter(jfile)
-          out write "Logging for " + classname + " on " + new SimpleDateFormat("MM/dd/yyyy").format(new Date) + " at " + new SimpleDateFormat("HH:mm").format(new Date)
-          out write (System getProperty "line.separator") + "-------------------------------"
-          out close
-        } catch {
-          case e => {
-            filename = null
-            //            log debug e.toString
-          }
-        }
-      }
-    }
-    new File(jfile)
-    //    if (config.LOG_LEVEL == LogLevel.VERBOSE) {
-    //      log verbose "Stored to " + new File(filename).getAbsolutePath
-    //    }
+  def write(filename: String, message: String) {
+    val writer = new FileWriter(filename, true)
+    writer.write(message)
+    writer.write(System getProperty "line.separator")
+    writer.close()
   }
-  
+
   /**
-   * Creates result file
+   * Tries to create a new file whose name in the format:
+   * <path><slash>YYYYMMDD.hhmmss.<last>
+   *
+   * @param path	The path to the directory containing the file
+   * @param last	The true name of the file (excludes the time prefix)
+   *
+   * @return	`Some` file if success, `None` otherwises
    */
-  def storeResult(log: Log, config: Config, result: BenchmarkResult): Option[String] = {
+  def createFile(path: String, last: String): Option[File] = {
     var filename: String = null
+    val maxTry = 5
+    var i = 0
 
-    log verbose this.toString
+    while (i < maxTry && filename == null) {
 
-    while (filename == null) {
+      filename = path + (System getProperty "file.separator") +
+        new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + last
 
-      filename = "output/Memory/" + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + config.classname + "." + config.benchmarkType
-
-      val file = new JFile(filename)
-
-        log verbose "Trying to store to " + file.getAbsolutePath
-
-      if (file exists) {
-
-          log verbose "File " + file.getName + " already exists"
-
-        sleep(1000)
+      if (!createFile(filename)) {
         filename = null
-      } else {
+        i += 1
+        sleep(1000)
+      }
+    }
+
+    if (filename != null) {
+      Some(File(filename))
+    } else {
+      None
+    }
+  }
+
+  /**
+   * Tries to get the file with the given name.
+   *
+   * @param filename	The file name
+   *
+   * @return	`true` if success, `false` otherwise
+   */
+  def createFile(filename: String): Boolean = {
+    val file = new JFile(filename)
+    if (file.exists()) {
+      false
+    } else {
+      try {
+        file.createNewFile()
+        true
+      } catch {
+        case _ => false
+      }
+    }
+  }
+
+  /**
+   * Tries to create a file and write some data to it.
+   */
+  def createAndStore(path: String, last: String, whatToWrite: ArrayBuffer[String]): Option[File] = {
+    val maybeAFile = FileUtil.createFile(path, last)
+    maybeAFile match {
+      case Some(file) => {
         try {
-          val out = new FileWriter(filename)
-          out write "Date:		" + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date) + "\n"
-          out write "Main Class:	" + config.classname + "\n"
-          if (config.benchmarkType == BenchmarkType.STARTUP) {
-            out write "Type:		Startup State Performance\n"
-          } else if (config.benchmarkType == BenchmarkType.STEADY) {
-            out write "Type:		Steady State Performance\n"
-          } else {
-            out write "Type:		Memory Consumption\n"
+          for (line <- whatToWrite) {
+            write(file.path, line)
           }
-          out write "-------------------------------\n"
-          for (invidual <- result) {
-            out write invidual.toString + "\n"
-          }
-          out close
+          Some(file)
         } catch {
           case e => {
-            filename = null
-            log debug e.toString
+            if (log != null) {
+              log.debug(file.path + (System getProperty "line.separator") + e.toString())
+            }
+            else {
+              UI(file.path + (System getProperty "line.separator") + e.toString())
+            }
+            None
           }
         }
       }
+      case None => None
     }
-    Some(filename)
   }
 
 }

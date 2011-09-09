@@ -44,6 +44,7 @@ object ArgumentParser {
     val OPT_MULTIPLIER = "--multiplier"
     val OPT_LOG_LEVEL = "--log-level"
     val OPT_PERSISTOR = "--persistor"
+    val OPT_CREATE_SAMPLE = "--create-sample"
 
     val UNARY = List(OPT_NONCOMPILE, OPT_SHOWLOG, OPT_HELP)
     val BINARY = List(
@@ -65,7 +66,8 @@ object ArgumentParser {
         (opt equals OPT_RUNS) ||
         (opt equals OPT_MULTIPLIER) ||
         (opt equals OPT_LOG_LEVEL) ||
-        (opt equals OPT_PERSISTOR)
+        (opt equals OPT_PERSISTOR) ||
+        (opt equals OPT_CREATE_SAMPLE)
     }
 
   }
@@ -88,6 +90,7 @@ object ArgumentParser {
     var javahome: Directory = null
     var persistor: Directory = null
 
+    var sampleNumber = 0
     var multiplier = 0
     var runs = 0
 
@@ -149,6 +152,16 @@ object ArgumentParser {
           }
           case Parameter.OPT_PERSISTOR => {
             persistor = new Directory(new JFile(stripQuotes(arg)))
+            if (!persistor.exists) {
+              persistor.createDirectory()
+            } else if (!persistor.isDirectory || !persistor.canRead) {
+              UI.error(persistor.path + " inaccessible")
+              UI.printUsage
+              System.exit(1)
+            }
+          }
+          case Parameter.OPT_CREATE_SAMPLE => {
+            sampleNumber = arg.toInt
           }
           case Parameter.OPT_RUNS => {
             try {
@@ -173,15 +186,18 @@ object ArgumentParser {
             }
           }
           case Parameter.OPT_LOG_LEVEL => {
-            arg match {
-              case "debug" => logLevel = LogLevel.DEBUG
-              case "verbose" => logLevel = LogLevel.VERBOSE
-              case "info" => logLevel = LogLevel.INFO
-              case _ => {
-                UI.error(Parameter.OPT_MULTIPLIER + " " + arg)
-                UI.printUsage
-                System.exit(1)
-              }
+            if (arg equals LogLevel.DEBUG.toString()) {
+              logLevel = LogLevel.DEBUG
+            } else if (arg equals LogLevel.VERBOSE.toString()) {
+              logLevel = LogLevel.VERBOSE
+            } else if (arg equals LogLevel.INFO.toString()) {
+              logLevel = LogLevel.INFO
+            } else if (arg equals LogLevel.ALL.toString()) {
+              logLevel = LogLevel.ALL
+            } else {
+              UI.error(Parameter.OPT_LOG_LEVEL + " " + arg)
+              UI.printUsage
+              System.exit(1)
             }
           }
         }
@@ -226,19 +242,28 @@ object ArgumentParser {
       persistor = (Path(benchmarkdir.path) / "persistor").createDirectory()
     }
 
-    (new Config(
-      classname,
-      srcpath,
-      benchmarkdir,
-      benchmarkBuild,
-      BenchmarkType.STARTUP,
-      runs,
-      multiplier,
-      scalahome,
-      javahome,
-      classpath,
-      persistor,
-      compile),
-    new Log(FileUtil.createLog(benchmarkdir, classname, separator),      logLevel,      showlog))
+    (
+      new Config(
+        classname,
+        srcpath,
+        benchmarkdir,
+        benchmarkBuild,
+        BenchmarkType.STARTUP,
+        runs,
+        multiplier,
+        scalahome,
+        javahome,
+        classpath,
+        persistor,
+        sampleNumber,
+        compile),
+      new Log(
+        Log.createLog(benchmarkdir, classname) match {
+          case Some(file) => file
+          case None => null
+        },
+        logLevel,
+        showlog)
+    )
   }
 }

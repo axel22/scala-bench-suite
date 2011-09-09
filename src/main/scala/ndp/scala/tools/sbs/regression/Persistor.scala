@@ -10,15 +10,14 @@
 package ndp.scala.tools.sbs
 package regression
 
-import java.io.File
+import java.io.{ File => JFile }
 import java.io.FileFilter
-
 import scala.collection.mutable.ArrayBuffer
-
 import ndp.scala.tools.sbs.measurement.BenchmarkResult
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
+import scala.tools.nsc.io.File
 
 class Persistor extends ArrayBuffer[BenchmarkResult] {
 
@@ -28,35 +27,28 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
   def load(): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = new File(config.persistorLocation.path)
+    val dir = new File(new JFile(config.persistorLocation.path))
 
-    log debug ("Persistor directory: " + dir.getAbsolutePath)
-
+    log.debug("--Persistor directory--  " + dir.path)
+    
     if (!dir.isDirectory || !dir.canRead) {
-      throw new Exception("Cannot find previous result")
-    }
-
-    val files = dir.listFiles(new FileFilter {
-      override def accept(file: File): Boolean = {
-        file.isFile && file.canRead
-      }
-    })
-
-    for (file <- files) {
-      try {
-
-        log verbose "[Read file]	" + file.getAbsolutePath
-
-        storedResult = new BenchmarkResult
-        storedResult.load(file)
-
-        log debug "[Read]	" + storedResult.toString
-
-        this += storedResult
-      } catch {
-        case e => {
-          log debug e.toString
-          throw e
+      log("[Cannot find previous results]")
+    } else {
+      val files = dir.walkFilter(path => path.isFile && path.canRead)
+      for (file <- files) {
+        try {
+          log.verbose("[Read file]	" + file.path)
+          
+          storedResult = new BenchmarkResult
+          storedResult.load(file.toFile)
+          
+          log.debug("[Read]	" + storedResult.toString)
+          
+          this += storedResult
+        } catch {
+          case e => {
+            log.debug(e.toString)
+          }
         }
       }
     }
