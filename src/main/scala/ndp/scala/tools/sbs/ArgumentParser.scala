@@ -10,7 +10,7 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
@@ -73,6 +73,8 @@ object ArgumentParser {
         (opt equals OPT_CREATE_SAMPLE)
     }
 
+    def isOption(opt: String) = isUnary(opt) || isBinary(opt)
+
   }
 
   /**
@@ -84,9 +86,9 @@ object ArgumentParser {
 
     val separator = System getProperty "file.separator"
 
-    var benchmarkdir: Directory = null
+    var benchmarkdir: Directory = Path(".").toDirectory
     var srcpath: File = null
-    var classname = ""
+    var benchmarkName = ""
     var benchmarkArguments: ArrayBuffer[String] = new ArrayBuffer
     var classpath = "."
     var benchmarkBuild: Directory = null
@@ -108,19 +110,19 @@ object ArgumentParser {
      */
     def loop(args: List[String]) {
       args match {
-        case opt :: rest => {
-          if (Parameter isUnary opt) {
-            parseUnary(opt)
+        case head :: rest => {
+          if (Parameter isUnary head) {
+            parseUnary(head)
             loop(rest)
-          } else if (Parameter isBinary opt) {
-            parseBinary(opt, rest.head)
+          } else if (Parameter isBinary head) {
+            parseBinary(head, rest.head)
             loop(rest.tail)
-          } else if ((opt startsWith "--") || (rest.length > 0)) {
-            UI.error("Options: " + opt)
+          } else if ((head startsWith "-") || (rest.length > 0)) {
+            UI.error("Options: " + head)
             UI.printUsage()
             System.exit(1)
           } else {
-            classname = opt
+            benchmarkName = head
             for (a <- rest) {
               benchmarkArguments += a
             }
@@ -232,7 +234,7 @@ object ArgumentParser {
       UI.printUsage
       System.exit(1)
     }
-    if ((classname equals "") || (srcpath == null) || (scalahome == null) || (runs == 0)) {
+    if ((benchmarkName equals "") || (scalahome == null) || (runs == 0)) {
       UI.printUsage
       System.exit(1)
     }
@@ -259,14 +261,14 @@ object ArgumentParser {
         sampleNumber,
         compile),
       new Log(
-        Log.createLog(benchmarkdir, classname) match {
+        Log.createLog(benchmarkdir, benchmarkName) match {
           case Some(file) => file
           case None => null
         },
         logLevel,
         showlog),
       new Benchmark(
-        classname,
+        benchmarkName,
         benchmarkArguments,
         srcpath,
         benchmarkBuild

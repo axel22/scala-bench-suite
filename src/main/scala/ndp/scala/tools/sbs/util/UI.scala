@@ -23,7 +23,7 @@ object UI {
   def error(x: Any) = Console println "[Error] " + x
 
   def printUsage() {
-    this print "Usage: BenchmarkSuite --srcpath <scala source file> --runs <runs> [Options] <MainClassName>"
+    this print "Usage: sbs <options> <benchmark class> <benchmark arguments>"
     this print "	Options: [--multiplier <multiplier>] [--noncompile] [--classdir <classdir>] [--help]"
     this print "	The benchmark runs <runs> times, forcing a garbage collection between runs."
     this print "	The optional -multiplier causes the benchmark to be repeated <multiplier> times, each time for <runs> executions."

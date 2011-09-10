@@ -13,7 +13,6 @@ import java.lang.Thread.sleep
 
 import scala.compat.Platform
 
-import ndp.scala.tools.sbs.regression.Statistic
 import ndp.scala.tools.sbs.util.Constant
 
 package object measurement {
@@ -67,10 +66,12 @@ package object measurement {
         log.verbose("--Unwarmmable--")
         result.clear()
       }
-      
+
       iteratorMeasure += 1
       log.verbose("[End measurement]")
     }
+
+    benchmark.finallize()
 
     if (iteratorMeasure >= Constant.MAX_MEASUREMENT) {
       Right("Immeasurable")

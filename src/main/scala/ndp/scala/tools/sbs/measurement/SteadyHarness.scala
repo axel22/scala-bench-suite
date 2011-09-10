@@ -37,15 +37,17 @@ object SteadyHarness extends SubProcessHarness {
 
     val steadyThreshold: Double = 0.02
     //    val clazz = Class forName config.classname
-    val clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
-    val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
+//    val clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
+//    val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
 
+    benchmark.init()
     runBenchmark(
       (result: BenchmarkResult) => (Statistic CoV result) < steadyThreshold,
       {
         val start = Platform.currentTime
         for (i <- 0 to config.runs) {
-          benchmarkMainMethod.invoke(clazz, { null })
+//          benchmarkMainMethod.invoke(clazz, { null })
+          benchmark.run()
         }
         val end = Platform.currentTime
         end - start
