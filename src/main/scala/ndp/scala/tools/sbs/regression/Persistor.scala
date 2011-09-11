@@ -10,12 +10,14 @@
 package ndp.scala.tools.sbs
 package regression
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
+
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
+
 import ndp.scala.tools.sbs.measurement.BenchmarkResult
-import ndp.scala.tools.sbs.measurement.SteadyHarness
+import ndp.scala.tools.sbs.measurement.BenchmarkRunner
 
 class Persistor extends ArrayBuffer[BenchmarkResult] {
 
@@ -89,7 +91,7 @@ object Persistor extends Persistor {
   def generate(num: Int) {
     var i = 0
     while (i < num) {
-      SteadyHarness.run() match {
+      BenchmarkRunner.run() match {
         case Left(ret) => {
           ret.store() match {
             case Some(_) => {

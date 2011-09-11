@@ -68,22 +68,26 @@ class BenchmarkResult extends ArrayBuffer[Long] {
       log.verbose("--Average--            " + (mean formatted "%.2f"))
 
       val (left, right) = Statistic confidenceInterval this
-      log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]")
+      log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+        (right formatted "%.2f") + "]")
 
       var diff = (right - left)
-      log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%")
+      log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+        ((diff / mean * 100) formatted "%.2f") + "%")
 
-      while (Statistic.isConfidenceLevelAcceptable && (diff / mean) >= Constant.CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD) {
+      while (Statistic.isConfidenceLevelAcceptable && (diff / mean) >= Constant.CI_PRECISION_THREDSHOLD) {
         Statistic.reduceConfidenceLevel()
 
         val (left, right) = Statistic confidenceInterval this
-        log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]")
+        log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+          (right formatted "%.2f") + "]")
 
         diff = (right - left)
-        log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " + ((diff / mean * 100) formatted "%.2f") + "%")
+        log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+          ((diff / mean * 100) formatted "%.2f") + "%")
       }
 
-      if ((diff / mean) < Constant.CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD) {
+      if ((diff / mean) < Constant.CI_PRECISION_THREDSHOLD) {
         this.confidenceLevel = Statistic.confidenceLevel.toInt
         Statistic.resetConfidenceInterval()
         true
@@ -138,13 +142,11 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     data += "Type:             " + config.benchmarkType
     data += "Confidence level: " + confidenceLevel + " %"
     data += "-------------------------------"
-    for (invidual <- this) {
-      data += invidual.toString
-    }
+
     FileUtil.createAndStore(
       config.persistorLocation.path,
       benchmark.name + "." + config.benchmarkType,
-      data
+      foldLeft(data) { (data, l) => data + l.toString }
     )
   }
 
@@ -153,10 +155,10 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    */
   override def toString(): String = {
     val endl = (System getProperty "line.separator")
-    var str = "Benchmarking result at " + confidenceLevel.toString() + "%: "
-    for (l <- this) {
-      str += endl + "             ----  " + l
+    foldLeft("Benchmarking result at " + confidenceLevel.toString() + "%: ") {
+      (str, l) =>
+        str + endl + "             ----  " + l
     }
-    str
   }
+
 }

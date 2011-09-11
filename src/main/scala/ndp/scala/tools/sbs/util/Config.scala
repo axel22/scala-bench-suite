@@ -11,11 +11,9 @@
 package ndp.scala.tools.sbs
 package util
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
 
 import BenchmarkType.BenchmarkType
 
@@ -86,8 +84,6 @@ case class Config(benchmarkDirectory: Directory,
   override def toString(): String = {
     val endl = System getProperty "line.separator"
     "Config:" +
-//      endl + "        Source:          " + srcpath.path +
-//      endl + "        Classname:       " + classname +
       endl + "        BenchmarkDir:    " + benchmarkDirectory.path +
       endl + "        Scala home:      " + scalahome.path +
       endl + "        Java home:       " + javahome.path +

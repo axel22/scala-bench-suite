@@ -29,7 +29,7 @@ object Constant {
   /**
    * Precision thredshold of confidance interval.
    */
-  val CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD = 0.02
+  val CI_PRECISION_THREDSHOLD = 0.02
   
   /**
    * Thredshold to detect whether the benchmark has reached steady state.

@@ -6,7 +6,7 @@ import ndp.scala.tools.sbs.util.Constant
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.UI
 
-trait SubProcessHarness {
+trait SubProcessRunner {
 
   /**
    * Entry point for this measuring sub-process 

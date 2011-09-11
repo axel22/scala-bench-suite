@@ -14,10 +14,7 @@ package regression
 import scala.collection.mutable.ArrayBuffer
 
 import ndp.scala.tools.sbs.measurement.BenchmarkResult
-import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Constant
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.Report
 
 object Regression {
