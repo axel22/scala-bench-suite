@@ -11,18 +11,17 @@
 package ndp.scala.tools.sbs
 
 import java.io.{ File => JFile }
-
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
-
 import ndp.scala.tools.sbs.util.LogLevel.LogLevel
 import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
+import scala.tools.nsc.GenericRunnerSettings
 
 /**
  * Parser for the suite's arguments.
@@ -49,18 +48,12 @@ object ArgumentParser {
     val OPT_PERSISTOR = "--persistor"
     val OPT_CREATE_SAMPLE = "--create-sample"
 
-    val UNARY = List(OPT_NONCOMPILE, OPT_SHOWLOG, OPT_HELP)
-    val BINARY = List(
-      OPT_BENCHMARK_DIR, OPT_SRCPATH, OPT_CLASSPATH, OPT_SCALA_HOME,
-      OPT_JAVA_HOME, OPT_RUNS, OPT_MULTIPLIER, OPT_LOG_LEVEL, OPT_PERSISTOR)
-
-    def isUnary(opt: String): Boolean = {
+    def isUnary(opt: String) =
       (opt equals OPT_NONCOMPILE) ||
         (opt equals OPT_SHOWLOG) ||
         (opt equals OPT_HELP)
-    }
 
-    def isBinary(opt: String): Boolean = {
+    def isBinary(opt: String) =
       (opt equals OPT_BENCHMARK_DIR) ||
         (opt equals OPT_SRCPATH) ||
         (opt equals OPT_CLASSPATH) ||
@@ -71,7 +64,6 @@ object ArgumentParser {
         (opt equals OPT_LOG_LEVEL) ||
         (opt equals OPT_PERSISTOR) ||
         (opt equals OPT_CREATE_SAMPLE)
-    }
 
     def isOption(opt: String) = isUnary(opt) || isBinary(opt)
 
@@ -88,8 +80,8 @@ object ArgumentParser {
 
     var benchmarkdir: Directory = Path(".").toDirectory
     var srcpath: File = null
-    var benchmarkName = ""
-    var benchmarkArguments: ArrayBuffer[String] = new ArrayBuffer
+    var benchmarkName: String = null
+    var benchmarkArguments = List[String]()
     var classpath = "."
     var benchmarkBuild: Directory = null
     var scalahome: Directory = null
@@ -123,9 +115,7 @@ object ArgumentParser {
             System.exit(1)
           } else {
             benchmarkName = head
-            for (a <- rest) {
-              benchmarkArguments += a
-            }
+            benchmarkArguments = rest
           }
         }
         case Nil => ()
@@ -230,15 +220,15 @@ object ArgumentParser {
 
     loop(args.toList)
 
-    if (benchmarkdir == null) {
+    if (compile && srcpath == null) {
+      UI.printUsage()
+      System.exit(1)
+    }
+    if ((benchmarkName == null) || (scalahome == null) || (runs == 0)) {
       UI.printUsage
       System.exit(1)
     }
-    if ((benchmarkName equals "") || (scalahome == null) || (runs == 0)) {
-      UI.printUsage
-      System.exit(1)
-    }
-    if (multiplier == 0) {
+    if (multiplier == 0 || multiplier == 1) {
       multiplier = 2
     }
     if (javahome == null) {
@@ -248,7 +238,10 @@ object ArgumentParser {
       persistor = (Path(benchmarkdir.path) / "persistor").createDirectory()
     }
 
-    (
+    val settings = new GenericRunnerSettings(log.error)
+    settings.processArguments(List("-cp", classpath + (System getProperty "path.separator") + benchmarkBuild.path), false)
+
+    return (
       new Config(
         benchmarkdir,
         BenchmarkType.STARTUP,
@@ -270,9 +263,8 @@ object ArgumentParser {
       new Benchmark(
         benchmarkName,
         benchmarkArguments,
+        settings.classpathURLs,
         srcpath,
-        benchmarkBuild
-      )
-    )
+        benchmarkBuild))
   }
 }

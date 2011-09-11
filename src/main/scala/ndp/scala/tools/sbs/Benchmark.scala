@@ -24,7 +24,7 @@ case class Benchmark(name: String,
   /**
    *
    */
-  private val oldContext = Thread.currentThread.getContextClassLoader()
+  private val oldContext = Thread.currentThread.getContextClassLoader
 
   /**
    * Uses strange named compiler Global to compile.
@@ -71,7 +71,6 @@ case class Benchmark(name: String,
    * Runs the benchmark object and throws Exceptions (if any).
    */
   def run() {
-    //TODO add full classpath
     method.invoke(null, Array(arguments.toArray: AnyRef): _*)
   }
 
