@@ -11,17 +11,19 @@
 package ndp.scala.tools.sbs
 
 import java.io.{ File => JFile }
-import scala.collection.mutable.ArrayBuffer
+
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
+import scala.tools.nsc.GenericRunnerSettings
+
+import ndp.scala.tools.sbs.measurement.Benchmark
 import ndp.scala.tools.sbs.util.LogLevel.LogLevel
 import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
-import scala.tools.nsc.GenericRunnerSettings
 
 /**
  * Parser for the suite's arguments.
@@ -239,7 +241,8 @@ object ArgumentParser {
     }
 
     val settings = new GenericRunnerSettings(log.error)
-    settings.processArguments(List("-cp", classpath + (System getProperty "path.separator") + benchmarkBuild.path), false)
+    settings.processArguments(
+      List("-cp", classpath + (System getProperty "path.separator") + benchmarkBuild.path), false)
 
     return (
       new Config(

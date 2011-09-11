@@ -20,6 +20,7 @@ object Constant {
    * Result of regression.
    */
   val REGRESSION_PASS = true
+  
   /**
    * Result of regression.
    */
@@ -29,6 +30,12 @@ object Constant {
    * Precision thredshold of confidance interval.
    */
   val CONFIDENCE_INTERVAL_PRECISION_THREDSHOLD = 0.02
+  
+  /**
+   * Thredshold to detect whether the benchmark has reached steady state.
+   */
+  val STEADY_THREDSHOLD = 0.02
+  
   
   /* Constants for creating command line arguments to rebuild Config */
   /**

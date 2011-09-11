@@ -104,7 +104,7 @@ object BenchmarkDriver {
       for (ret <- arr) {
         log.verbose("[Result]  " + ret)
       }*/
-      SteadyHarness.run() match {
+      MemoryHarness.run() match {
         case Left(ret) => println(ret.toString())
         case Right(s) => println(s)
       }

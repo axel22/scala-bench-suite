@@ -30,12 +30,12 @@ object Statistic {
    * Minimum significant level.
    */
   private val alphaMax: Double = 0.1
-  
+
   /**
    * Maximum significant level.
    */
   private val alphaMin: Double = 0.00
-  
+
   /**
    * The significant level.
    */
@@ -44,7 +44,7 @@ object Statistic {
   def alpha_=(alpha: Double) {
     _alpha = alpha
   }
-  
+
   /**
    * Reduces the confidence level time by time to by 5% each time,
    * except 2 cases:
@@ -52,7 +52,7 @@ object Statistic {
    * <li>From 100% to 99%
    * <li>From 99% to 95%
    * </ul>
-   * 
+   *
    * @return `true` if success, `false` if the confidence leval is at the minimum value.
    */
   def reduceConfidenceLevel(): Boolean = {
@@ -60,23 +60,20 @@ object Statistic {
       alpha = 0.01
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
-    }
-    else if (alpha == 0.01) {
+    } else if (alpha == 0.01) {
       alpha = 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
-    }
-    else if (alpha <= alphaMax) {
+    } else if (alpha <= alphaMax) {
       alpha += 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
       true
-    }
-    else {
+    } else {
       log.verbose("Confidence level is not reducible")
       false
     }
   }
-  
+
   /**
    * @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
    */
@@ -85,7 +82,7 @@ object Statistic {
   def resetConfidenceInterval() {
     alpha = alphaMin
   }
-  
+
   /**
    * Computes the confidence interval for the given sample.
    *
@@ -93,13 +90,15 @@ object Statistic {
    * @return	The left and right end points of the confidence interval.
    */
   def confidenceInterval(series: BenchmarkResult): (Double, Double) = {
-
+    val SD = standardDeviation(series)
     var diff: Double = 0
 
-    if (series.length >= 30) {
-      diff = inverseGaussianDistribution * standardDeviation(series) / sqrt(series.length)
+    if (SD == 0) {
+      diff = 0
+    } else if (series.length >= 30) {
+      diff = inverseGaussianDistribution * SD / sqrt(series.length)
     } else {
-      diff = inverseStudentDistribution(series.length - 1) * standardDeviation(series) / sqrt(series.length)
+      diff = inverseStudentDistribution(series.length - 1) * SD / sqrt(series.length)
     }
 
     (mean(series) - diff, mean(series) + diff)
@@ -111,9 +110,8 @@ object Statistic {
    * @param alpha	The significant level
    * @return	The z value
    */
-  private def inverseGaussianDistribution(): Double = {
+  private def inverseGaussianDistribution() =
     new NormalDistributionImpl(0, 1).inverseCumulativeProbability(1 - alpha / 2)
-  }
 
   /**
    * Computes the t value of the Student distribution using:
@@ -125,9 +123,8 @@ object Statistic {
    * @param df	The degree of freedom
    * @return	The t value
    */
-  private def inverseStudentDistribution(df: Int): Double = {
+  private def inverseStudentDistribution(df: Int) =
     new TDistributionImpl(df).inverseCumulativeProbability(1 - alpha / 2)
-  }
 
   /**
    * Computes the F value of the Fisher F distribution using:
@@ -140,37 +137,20 @@ object Statistic {
    * @param n2	The second degree of freedom
    * @return	The F value
    */
-  private def inverseFDistribution(n1: Int, n2: Int): Double = {
+  private def inverseFDistribution(n1: Int, n2: Int) =
     new FDistributionImpl(n1, n2).inverseCumulativeProbability(1 - alpha)
-  }
 
   /**
    * @param series	The result of benchmarking
    * @return	The minimum value
    */
-  def min(series: BenchmarkResult): Long = {
-    var result = series.head
-    for (i <- series) {
-      if (result > i) {
-        result = i
-      }
-    }
-    result
-  }
+  def min(series: BenchmarkResult) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
 
   /**
    * @param series	The result of benchmarking
    * @return	The maximum value
    */
-  def max(series: BenchmarkResult): Long = {
-    var result = series.head
-    for (i <- series) {
-      if (result < i) {
-        result = i
-      }
-    }
-    result
-  }
+  def max(series: BenchmarkResult) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
 
   /**
    * Computes the sample mean.
@@ -178,14 +158,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The average
    */
-  def mean(series: BenchmarkResult): Double = {
-    var sum: Double = 0
-    val runs = series.length
-    for (i <- series) {
-      sum += i
-    }
-    sum / runs
-  }
+  def mean(series: BenchmarkResult) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
 
   /**
    * Computes the standard deviation of a given sample.
@@ -194,14 +167,8 @@ object Statistic {
    * @return	The standard deviation
    */
   def standardDeviation(series: BenchmarkResult): Double = {
-    var squareSum: Double = 0
-    val runs = series.length
-    val mean: Double = this.mean(series)
-    for (i <- series) {
-      squareSum += (i - mean) * (i - mean)
-    }
-//    log.debug("[Standard deviation] " + sqrt(squareSum / (runs - 1)))
-    sqrt(squareSum / (runs - 1))
+    val mean = this.mean(series)
+    sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
   }
 
   /**
@@ -210,9 +177,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The coefficient of variation
    */
-  def CoV(series: BenchmarkResult): Double = {
-    standardDeviation(series) / mean(series)
-  }
+  def CoV(series: BenchmarkResult) = standardDeviation(series) / mean(series)
 
   /**
    * @return	The significant level alpha
@@ -318,7 +283,7 @@ object Statistic {
     val n1 = persistor.length - 1
     val n2 = persistor.length * persistor.head.length - persistor.length
     val FValue: Double = SSA * n2 / SSE / n1
-    
+
     log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
     if (FValue > inverseFDistribution(n1, n2)) true else false

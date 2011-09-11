@@ -53,7 +53,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    * <li>`false` otherwise
    * </ul>
    */
-  def isReliable = {
+  def isReliable: Boolean = {
 
     if (length == 0) {
       log.debug("--Cleared result--")

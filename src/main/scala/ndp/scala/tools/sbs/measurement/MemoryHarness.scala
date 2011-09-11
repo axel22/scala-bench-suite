@@ -11,13 +11,6 @@
 package ndp.scala.tools.sbs
 package measurement
 
-import java.lang.reflect.Method
-import ndp.scala.tools.sbs.util.Config
-import ndp.scala.tools.sbs.util.Log
-import java.net.URLClassLoader
-import java.net.URL
-import ndp.scala.tools.sbs.regression.Statistic
-
 /**
  * Class represents the harness controls the runtime for measuring memory consumption.
  *
@@ -38,29 +31,14 @@ object MemoryHarness extends SubProcessHarness {
     log("[Benchmarking memory consumption]")
 
     val runtime: Runtime = Runtime.getRuntime
-    var clazz: Class[_] = null
-    var method: Method = null
-
     runBenchmark(
-      (result: BenchmarkResult) => {
-        var i: Int = 1
-        while ((i < result.length) && (result(i) == result.head)) {
-          i += 1
-        }
-        if (i == result.length) true else false
-      },
+      series => (series map (t => t == series.head) filter (b => b)).length == series.length,
       {
         val start = runtime.freeMemory
-//        clazz = Class forName config.classname
-        clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
-        method = clazz.getMethod("main", classOf[Array[String]])
-        method.invoke(clazz, { null })
-        val end = runtime.freeMemory
-
-        clazz = null
-        method = null
-
-        start - end
+        benchmark.init()
+        benchmark.run()
+        benchmark.finallize()
+        start - runtime.freeMemory
       }
     )
   }

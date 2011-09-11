@@ -12,9 +12,9 @@ package ndp.scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
+
 import ndp.scala.tools.sbs.regression.Statistic
-import java.net.URLClassLoader
-import java.net.URL
+import ndp.scala.tools.sbs.util.Constant
 
 /**
  * Class represent the harness controls the runtime of steady state benchmarking.
@@ -35,22 +35,13 @@ object SteadyHarness extends SubProcessHarness {
   def run(): Either[BenchmarkResult, String] = {
     log("[Benchmarking steady state]")
 
-    val steadyThreshold: Double = 0.02
-    //    val clazz = Class forName config.classname
-//    val clazz = (new URLClassLoader(Array(new URL("file:" + benchmark.buildPath.path + "/")))).loadClass(benchmark.name)
-//    val benchmarkMainMethod = clazz.getMethod("main", classOf[Array[String]])
-
     benchmark.init()
     runBenchmark(
-      (result: BenchmarkResult) => (Statistic CoV result) < steadyThreshold,
+      series => (Statistic CoV series) < Constant.STEADY_THREDSHOLD,
       {
         val start = Platform.currentTime
-        for (i <- 0 to config.runs) {
-//          benchmarkMainMethod.invoke(clazz, { null })
-          benchmark.run()
-        }
-        val end = Platform.currentTime
-        end - start
+        (1 to config.runs) map (_ => benchmark.run)
+        Platform.currentTime - start
       }
     )
   }

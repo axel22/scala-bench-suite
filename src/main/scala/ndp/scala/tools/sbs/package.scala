@@ -1,5 +1,6 @@
 package ndp.scala.tools
 
+import ndp.scala.tools.sbs.measurement.Benchmark
 import ndp.scala.tools.sbs.util.Config
 import ndp.scala.tools.sbs.util.Log
 

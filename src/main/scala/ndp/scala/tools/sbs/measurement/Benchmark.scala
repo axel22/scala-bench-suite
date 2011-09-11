@@ -1,4 +1,5 @@
 package ndp.scala.tools.sbs
+package measurement
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -11,18 +12,18 @@ import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 
 case class Benchmark(name: String,
-                arguments: List[String],
-                classpathURLs: List[URL],
-                srcPath: Path,
-                buildPath: Path) {
+                     arguments: List[String],
+                     classpathURLs: List[URL],
+                     srcPath: Path,
+                     buildPath: Path) {
 
   /**
-   *
+   * Benchmark `main` method.
    */
   private var method: Method = null
 
   /**
-   *
+   * Current class loader context.
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
 
@@ -63,7 +64,7 @@ case class Benchmark(name: String,
       Thread.currentThread.setContextClassLoader(classLoader)
     } catch {
       case x: ClassNotFoundException => throw new ClassNotFoundException(
-        name + " (args = %s, classpath = %s)".format(arguments mkString ", ", ClassPath.fromURLs(classpathURLs: _*)))
+        name + " args = " + arguments mkString ", " + ", classpath = " + ClassPath.fromURLs(classpathURLs: _*))
     }
   }
 
@@ -82,6 +83,6 @@ case class Benchmark(name: String,
   }
 
   override def toString(): String =
-    "Benchmark [" + name + "] [" + arguments mkString " " + "[" + srcPath.path + "] [" + buildPath + "]"
+    "Benchmark [" + name + "] [" + arguments mkString " "
 
 }
