@@ -64,25 +64,20 @@ case class Benchmark(name: String,
       Thread.currentThread.setContextClassLoader(classLoader)
     } catch {
       case x: ClassNotFoundException => throw new ClassNotFoundException(
-        name + " args = " + arguments mkString ", " + ", classpath = " + ClassPath.fromURLs(classpathURLs: _*))
+        name + " args = " + (arguments mkString ", ") + ", classpath = " + ClassPath.fromURLs(classpathURLs: _*))
     }
   }
 
   /**
    * Runs the benchmark object and throws Exceptions (if any).
    */
-  def run() {
-    method.invoke(null, Array(arguments.toArray: AnyRef): _*)
-  }
+  def run() = method.invoke(null, Array(arguments.toArray: AnyRef): _*)
 
   /**
    * Resets the context.
    */
-  def finallize() {
-    Thread.currentThread.setContextClassLoader(oldContext)
-  }
+  def finallize() = Thread.currentThread.setContextClassLoader(oldContext)
 
-  override def toString(): String =
-    "Benchmark [" + name + "] [" + arguments mkString " "
+  override def toString = "Benchmark [" + name + "] [" + arguments mkString " "
 
 }

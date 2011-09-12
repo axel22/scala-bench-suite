@@ -10,7 +10,7 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
 
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
@@ -84,7 +84,7 @@ object ArgumentParser {
     var srcpath: File = null
     var benchmarkName: String = null
     var benchmarkArguments = List[String]()
-    var classpath = "."
+    var classpath = ""
     var benchmarkBuild: Directory = null
     var scalahome: Directory = null
     var javahome: Directory = null
@@ -247,7 +247,7 @@ object ArgumentParser {
     return (
       new Config(
         benchmarkdir,
-        BenchmarkType.STARTUP,
+        BenchmarkType.MEMORY,
         runs,
         multiplier,
         scalahome,

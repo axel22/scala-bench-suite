@@ -199,14 +199,14 @@ object Statistic {
    * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  def testDifference(persistor: Persistor): Either[Boolean, String] = {
+  def testDifference(persistor: Persistor): Either[Option[(Double, Double)], Option[ArrayBuffer[Double]]] = {
     if (persistor.length < 2) {
-      Right("Not enough result files specified. No regression.")
+      throw new Exception("Not enough result files specified.")
     }
     if (persistor.length == 2) {
       Left(testConfidenceIntervals(persistor))
     } else {
-      Left(testANOVA(persistor))
+      Right(testANOVA(persistor))
     }
   }
 
@@ -216,7 +216,7 @@ object Statistic {
    * @param persistor	The list of previous results
    * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
    */
-  private def testConfidenceIntervals(persistor: Persistor): Boolean = {
+  private def testConfidenceIntervals(persistor: Persistor): Option[(Double, Double)] = {
     var series = persistor(0)
 
     val mean1 = mean(series)
@@ -239,54 +239,54 @@ object Statistic {
       c1 = diff - inverseGaussianDistribution * s
       c2 = diff + inverseGaussianDistribution * s
     } else {
-      val ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) / ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
+      val ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
+        ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
       c1 = diff - inverseStudentDistribution(ndf) * s
       c2 = diff + inverseStudentDistribution(ndf) * s
     }
 
-    if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) {
-      true
-    } else {
-      false
-    }
+    if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) None else Some(c1, c2)
   }
 
   /**
    * Statistically rigorously compares means of three or more samples using ANOVA.
    *
    * @param persistor	The list of previous results
-   * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
+   * @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
-  private def testANOVA(persistor: Persistor): Boolean = {
-    var sum: Long = 0
+  private def testANOVA(persistor: Persistor): Option[ArrayBuffer[Double]] = {
 
-    for (alternative <- persistor) {
-      for (invidual <- alternative) {
-        sum += invidual
-      }
-    }
+    val sum = persistor.foldLeft(0: Long) { (sum, p) => p.foldLeft(sum) { (s, r) => s + r } }
 
     val overall: Double = sum / (persistor.length * persistor.head.length)
 
     var SSA: Double = 0
     var SSE: Double = 0
+
     for (alternative <- persistor) {
       val alternativeMean = mean(alternative)
-      SSA += (alternativeMean - overall) * (alternativeMean - overall)
-
-      for (invidual <- alternative) {
-        SSE += (invidual - alternativeMean) * (invidual - alternativeMean)
-      }
+      SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.length
+      SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
-    SSA *= persistor.head.length
 
     val n1 = persistor.length - 1
-    val n2 = persistor.length * persistor.head.length - persistor.length
-    val FValue: Double = SSA * n2 / SSE / n1
+    val n_2 = persistor.length * persistor.head.length - persistor.length
+    println(n_2)
+    val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
+    println(n2)
+    val FValue = SSA * n2 / SSE / n1
 
-    log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+    log.debug(
+      "[SSA] " + SSA +
+        "\t[SSE] " + SSE +
+        "\t[FValue] " + FValue +
+        "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
-    if (FValue > inverseFDistribution(n1, n2)) true else false
+    if (FValue > inverseFDistribution(n1, n2)) {
+      Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+    } else {
+      None
+    }
   }
 
 }

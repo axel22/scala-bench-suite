@@ -22,12 +22,12 @@ import ndp.scala.tools.sbs.util.Constant
 object BenchmarkRunner extends SubProcessRunner {
 
   /**
-   * Does the following:
-   * <ul>
-   * <li>Loads the benchmark class and its <code>main</code> method from .class file using reflection.
-   * <li>Iterates the loading of benchmark class and the invoking of <code>main</code> for memory consumption to be stable.
-   * <li>Measures and stores the result to file.
-   * </ul>
+   * Warms the benchmark up if necessary and measures the desired metric.
+   *
+   * @param	checkWarm	The function checking whether the benchmark has reached steady state
+   * @param measure	The thunk to calculate the desired metric
+   * 
+   * @return	The result if success, otherwies a `String` describes the reason.
    */
   def run(): Either[BenchmarkResult, String] = {
 
@@ -42,7 +42,6 @@ object BenchmarkRunner extends SubProcessRunner {
           val start = runtime.freeMemory
           benchmark.init()
           benchmark.run()
-          benchmark.finallize()
           start - runtime.freeMemory
         }
       )
@@ -91,17 +90,8 @@ object BenchmarkRunner extends SubProcessRunner {
     }
   }
 
-  /**
-   * Warms the benchmark up and measures the desire metric.
-   *
-   * @param log	The logger
-   * @param config
-   * @param	checkWarm	The function checking whether the benchmark has reached steady state
-   * @param measure	The thunk to calculate the desired metric
-   */
   def run(checkWarm: BenchmarkResult => Boolean, measure: => Long): Either[BenchmarkResult, String] = {
 
-    val endl = System getProperty "line.separator"
     log.verbose("")
     log.verbose("--Warmup--")
 
@@ -119,15 +109,15 @@ object BenchmarkRunner extends SubProcessRunner {
       log.verbose("--Start getting a series--")
 
       for (mul <- 1 to config.multiplier) {
-        cleanUp
+        cleanUp()
         result += measure
 
         log.verbose("----Measured----  " + result.last)
       }
       iteratorCount = config.multiplier
 
-      while ((iteratorCount < iteratorMax) && (!checkWarm(result))) {
-        cleanUp
+      while (iteratorCount < iteratorMax && !checkWarm(result)) {
+        cleanUp()
 
         log.verbose("----Measured----  " + result.last)
 
