@@ -133,7 +133,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    */
   def store(): Option[File] = {
     if (array.length == 0) {
-      log("Nothing to store")
+      log.info("Nothing to store")
       return None
     }
     val data = new ArrayBuffer[String]

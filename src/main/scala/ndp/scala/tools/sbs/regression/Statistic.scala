@@ -201,7 +201,7 @@ object Statistic {
    */
   def testDifference(persistor: Persistor): Either[Option[(Double, Double)], Option[ArrayBuffer[Double]]] = {
     if (persistor.length < 2) {
-      throw new Exception("Not enough result files specified.")
+      throw new Exception("Not enough result files specified at " + persistor.location.path)
     }
     if (persistor.length == 2) {
       Left(testConfidenceIntervals(persistor))
@@ -269,23 +269,27 @@ object Statistic {
       SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
-    val n1 = persistor.length - 1
-    val n_2 = persistor.length * persistor.head.length - persistor.length
-    println(n_2)
-    val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
-    println(n2)
-    val FValue = SSA * n2 / SSE / n1
-
-    log.debug(
-      "[SSA] " + SSA +
-        "\t[SSE] " + SSE +
-        "\t[FValue] " + FValue +
-        "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
-
-    if (FValue > inverseFDistribution(n1, n2)) {
+    if (confidenceLevel == 100 && SSA != 0) {
       Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
     } else {
-      None
+      val n1 = persistor.length - 1
+      val n_2 = persistor.length * persistor.head.length - persistor.length
+      println(n_2)
+      val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
+      println(n2)
+      val FValue = SSA * n2 / SSE / n1
+
+      log.debug(
+        "[SSA] " + SSA +
+          "\t[SSE] " + SSE +
+          "\t[FValue] " + FValue +
+          "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+          
+      if (FValue > inverseFDistribution(n1, n2)) {
+        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+      } else {
+        None
+      }
     }
   }
 

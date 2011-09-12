@@ -48,7 +48,7 @@ class Log {
       args(Constant.INDEX_SHOW_LOG).toBoolean)
   }
 
-  def apply(message: String) {
+  private def apply(message: String) {
     if (logFile != null) {
       FileUtil.write(logFile.path, message)
     }

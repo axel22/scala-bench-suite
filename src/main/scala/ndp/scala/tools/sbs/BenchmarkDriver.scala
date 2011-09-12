@@ -10,6 +10,7 @@
 
 package ndp.scala.tools.sbs
 
+import ndp.scala.tools.sbs.measurement.BenchmarkResult
 import ndp.scala.tools.sbs.measurement.BenchmarkRunner
 import ndp.scala.tools.sbs.regression.Persistor
 import ndp.scala.tools.sbs.regression.Statistic
@@ -30,7 +31,6 @@ object BenchmarkDriver {
    * <li>Parse input parameters
    * <li>Compile the sources of the benchmarks if necessary
    * <li>Run all the benchmarks with the specified parameters
-   * <li>Load the previous results
    * <li>Run comparisons to previous results
    * </ul>
    */
@@ -56,24 +56,7 @@ object BenchmarkDriver {
       val report = new Report
 
       BenchmarkRunner.run() match {
-        case Left(ret) => {
-          val persistor = new Persistor
-          val report = new Report
-
-          persistor += ret
-          persistor.load
-
-          Statistic testDifference persistor match {
-            case Left(c) => c match {
-              case None => report(Constant.REGRESSION_PASS, null)
-              case Some((left, right)) => report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
-            }
-            case Right(r) => r match {
-              case None => report(Constant.REGRESSION_PASS, null)
-              case Some(meanArray) => report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
-            }
-          }
-        }
+        case Left(ret) => detectRegression(ret)
         case Right(s) => {
           report(Constant.REGRESSION_FAILED, Report dueToReason s)
         }
@@ -82,6 +65,30 @@ object BenchmarkDriver {
       case e: Exception => {
         val report = new Report
         report(Constant.REGRESSION_FAILED, Report dueToException e)
+      }
+    }
+  }
+
+  /**
+   * Loads previous results and uses statistically rigorous method to detect regression.
+   * 
+   * @param result	The benchmark result just measured.
+   */
+  def detectRegression(result: BenchmarkResult) {
+    val persistor = new Persistor(config.persistorLocation)
+    val report = new Report
+
+    persistor += result
+    persistor.load
+
+    Statistic testDifference persistor match {
+      case Left(c) => c match {
+        case None => report(Constant.REGRESSION_PASS, null)
+        case Some((left, right)) => report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
+      }
+      case Right(r) => r match {
+        case None => report(Constant.REGRESSION_PASS, null)
+        case Some(meanArray) => report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
       }
     }
   }

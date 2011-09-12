@@ -11,7 +11,7 @@
 package ndp.scala.tools.sbs
 package regression
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
@@ -39,22 +39,25 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
   def load(): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = new File(new JFile(location.path))
+    val dir = new Directory(new JFile(location.path))
 
     log.debug("--Persistor directory--  " + dir.path)
 
     if (!dir.isDirectory || !dir.canRead) {
-      log("[Cannot find previous results]")
+      log.info("--Cannot find previous results--")
     } else {
-      val files = dir.walkFilter(path => path.isFile && path.canRead)
+      val files = dir.walkFilter(path => {println(path.path); path.isFile && path.canRead})
+
+      log.debug(files.toString)
+
       for (file <- files) {
         try {
-          log.verbose("[Read file]	" + file.path)
+          log.verbose("--Read file--	" + file.path)
 
           storedResult = new BenchmarkResult
           storedResult.load(file.toFile)
 
-          log.debug("[Read]	" + storedResult.toString)
+          log.debug("----Read----	" + storedResult.toString)
 
           this += storedResult
         } catch {
@@ -74,7 +77,7 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
    */
   def store() {
     if (array.length == 0) {
-      log("Nothing to store")
+      log.info("--Nothing to store--")
       return
     }
     for (result <- this) {

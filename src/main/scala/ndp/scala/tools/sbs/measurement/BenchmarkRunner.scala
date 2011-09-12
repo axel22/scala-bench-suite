@@ -33,7 +33,7 @@ object BenchmarkRunner extends SubProcessRunner {
 
     if (config.benchmarkType == BenchmarkType.MEMORY) {
 
-      log("[Benchmarking memory consumption]")
+      log.info("[Benchmarking memory consumption]")
 
       val runtime: Runtime = Runtime.getRuntime
       run(
@@ -47,7 +47,7 @@ object BenchmarkRunner extends SubProcessRunner {
       )
     } else if (config.benchmarkType == BenchmarkType.STARTUP) {
      
-      log("[Benchmarking startup state]")
+      log.info("[Benchmarking startup state]")
 
       val processBuilder = new ProcessBuilder(
         config.JAVACMD,
@@ -76,7 +76,7 @@ object BenchmarkRunner extends SubProcessRunner {
         }
       )
     } else {
-      log("[Benchmarking steady state]")
+      log.info("[Benchmarking steady state]")
 
       benchmark.init()
       run(
