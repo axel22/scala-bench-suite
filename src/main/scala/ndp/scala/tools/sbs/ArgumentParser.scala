@@ -10,7 +10,7 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
@@ -40,7 +40,7 @@ object ArgumentParser {
     val OPT_HELP = "--help"
 
     val OPT_BENCHMARK_DIR = "--benchmark-dir"
-    val OPT_SRCPATH = "--srcpath"
+    //    val OPT_SRCPATH = "--srcpath"
     val OPT_CLASSPATH = "--classpath"
     val OPT_SCALA_HOME = "--scala-home"
     val OPT_JAVA_HOME = "--java-home"
@@ -57,7 +57,7 @@ object ArgumentParser {
 
     def isBinary(opt: String) =
       (opt equals OPT_BENCHMARK_DIR) ||
-        (opt equals OPT_SRCPATH) ||
+        //        (opt equals OPT_SRCPATH) ||
         (opt equals OPT_CLASSPATH) ||
         (opt equals OPT_SCALA_HOME) ||
         (opt equals OPT_JAVA_HOME) ||
@@ -80,12 +80,11 @@ object ArgumentParser {
 
     val separator = System getProperty "file.separator"
 
-    var benchmarkdir: Directory = Path(".").toDirectory
-    var srcpath: File = null
+    var root = "."
+    var src = List[File]()
     var benchmarkName: String = null
     var benchmarkArguments = List[String]()
     var classpath = ""
-    var benchmarkBuild: Directory = null
     var scalahome: Directory = null
     var javahome: Directory = null
     var persistor: Directory = null
@@ -112,9 +111,7 @@ object ArgumentParser {
             parseBinary(head, rest.head)
             loop(rest.tail)
           } else if ((head startsWith "-") || (rest.length > 0)) {
-            UI.error("Options: " + head)
-            UI.printUsage()
-            System.exit(1)
+            exitOnError("Options: " + head)
           } else {
             benchmarkName = head
             benchmarkArguments = rest
@@ -123,83 +120,40 @@ object ArgumentParser {
         case Nil => ()
       }
 
-      def parseBinary(opt: String, arg: String) {
-        opt match {
-          case Parameter.OPT_BENCHMARK_DIR => {
-            benchmarkdir = new Directory(new JFile(stripQuotes(arg)))
-            benchmarkBuild = new Directory(new JFile(stripQuotes(arg) + separator + "build"))
-            try {
-              benchmarkdir.createDirectory()
-              benchmarkBuild.createDirectory()
-            } catch {
-              case _ => {
-                UI.error("Cannot create directory: " + benchmarkdir.path)
-                UI.printUsage
-                System.exit(1)
-              }
-            }
-          }
-          case Parameter.OPT_SRCPATH => {
-            srcpath = new File(new JFile(stripQuotes(arg)))
-          }
-          case Parameter.OPT_CLASSPATH => {
-            classpath = arg
-          }
-          case Parameter.OPT_SCALA_HOME => {
-            scalahome = new Directory(new JFile(stripQuotes(arg)))
-          }
-          case Parameter.OPT_JAVA_HOME => {
-            javahome = new Directory(new JFile(stripQuotes(arg)))
-          }
-          case Parameter.OPT_PERSISTOR => {
-            persistor = new Directory(new JFile(stripQuotes(arg)))
-            if (!persistor.exists) {
-              persistor.createDirectory()
-            } else if (!persistor.isDirectory || !persistor.canRead) {
-              UI.error(persistor.path + " inaccessible")
-              UI.printUsage
-              System.exit(1)
-            }
-          }
-          case Parameter.OPT_CREATE_SAMPLE => {
-            sampleNumber = parseInt(arg)
-          }
-          case Parameter.OPT_RUNS => {
-            runs = parseInt(arg)
-          }
-          case Parameter.OPT_MULTIPLIER => {
-            multiplier = parseInt(arg)
-          }
-          case Parameter.OPT_LOG_LEVEL => {
-            if (arg equals LogLevel.DEBUG.toString()) {
-              logLevel = LogLevel.DEBUG
-            } else if (arg equals LogLevel.VERBOSE.toString()) {
-              logLevel = LogLevel.VERBOSE
-            } else if (arg equals LogLevel.INFO.toString()) {
-              logLevel = LogLevel.INFO
-            } else if (arg equals LogLevel.ALL.toString()) {
-              logLevel = LogLevel.ALL
-            } else {
-              UI.error(Parameter.OPT_LOG_LEVEL + " " + arg)
-              UI.printUsage
-              System.exit(1)
-            }
+      def parseBinary(opt: String, arg: String) = opt match {
+        case Parameter.OPT_BENCHMARK_DIR => root = stripQuotes(arg)
+        case Parameter.OPT_CLASSPATH => classpath = arg
+        case Parameter.OPT_SCALA_HOME => scalahome = new Directory(new JFile(stripQuotes(arg)))
+        case Parameter.OPT_JAVA_HOME => javahome = new Directory(new JFile(stripQuotes(arg)))
+        case Parameter.OPT_PERSISTOR => persistor = new Directory(new JFile(stripQuotes(arg)))
+        case Parameter.OPT_CREATE_SAMPLE => sampleNumber = parseInt(arg)
+        case Parameter.OPT_RUNS => runs = parseInt(arg)
+        case Parameter.OPT_MULTIPLIER => multiplier = parseInt(arg)
+        case Parameter.OPT_LOG_LEVEL => {
+          if (arg equals LogLevel.DEBUG.toString()) {
+            logLevel = LogLevel.DEBUG
+          } else if (arg equals LogLevel.VERBOSE.toString()) {
+            logLevel = LogLevel.VERBOSE
+          } else if (arg equals LogLevel.INFO.toString()) {
+            logLevel = LogLevel.INFO
+          } else if (arg equals LogLevel.ALL.toString()) {
+            logLevel = LogLevel.ALL
+          } else {
+            exitOnError(Parameter.OPT_LOG_LEVEL + " " + arg)
           }
         }
       }
 
-      def parseUnary(opt: String) {
-        opt match {
-          case Parameter.OPT_HELP => {
-            UI.printUsage
-            System.exit(0)
-          }
-          case Parameter.OPT_SHOWLOG => {
-            showlog = true
-          }
-          case Parameter.OPT_NONCOMPILE => {
-            compile = false
-          }
+      def parseUnary(opt: String) = opt match {
+        case Parameter.OPT_HELP => {
+          UI.printUsage
+          System.exit(0)
+        }
+        case Parameter.OPT_SHOWLOG => {
+          showlog = true
+        }
+        case Parameter.OPT_NONCOMPILE => {
+          compile = false
         }
       }
 
@@ -211,9 +165,7 @@ object ArgumentParser {
           i.toInt
         } catch {
           case _ => {
-            UI.error(Parameter.OPT_RUNS + " " + i)
-            UI.printUsage
-            System.exit(1)
+            exitOnError(Parameter.OPT_RUNS + " " + i)
             0
           }
         }
@@ -222,32 +174,49 @@ object ArgumentParser {
 
     loop(args.toList)
 
-    if (compile && srcpath == null) {
-      UI.printUsage()
-      System.exit(1)
-    }
     if ((benchmarkName == null) || (scalahome == null) || (runs == 0)) {
-      UI.printUsage
-      System.exit(1)
+      exitOnError("No benchmark specified.")
     }
+
+    val benchmarkdir = Directory(root + (System getProperty "file.separator") + benchmarkName)
+    try {
+      benchmarkdir.createDirectory()
+      (benchmarkdir / "bin").createDirectory()
+      if (compile) {
+        val srcdir = (benchmarkdir / "src").toDirectory
+        src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src) { (src, f) => f :: src }
+        if (src.length == 0) {
+          exitOnError("No source file specified.")
+        }
+      }
+    } catch {
+      case _ => exitOnError("Something wrong with benchmark directory: " + benchmarkdir.path)
+    }
+
+    if (persistor == null) {
+      persistor = (Path(benchmarkdir.path) / "result").createDirectory()
+    }
+    if (!persistor.exists) {
+      persistor.createDirectory()
+    } else if (!persistor.isDirectory || !persistor.canRead) {
+      exitOnError("Persistor " + persistor.path + " inaccessible")
+    }
+
     if (multiplier == 0 || multiplier == 1) {
       multiplier = 2
     }
     if (javahome == null) {
       javahome = new Directory(new JFile(System getProperty "java.home"))
     }
-    if (persistor == null) {
-      persistor = (Path(benchmarkdir.path) / "persistor").createDirectory()
-    }
 
     val settings = new GenericRunnerSettings(log.error)
     settings.processArguments(
-      List("-cp", classpath + (System getProperty "path.separator") + benchmarkBuild.path), false)
+      List("-cp", classpath + (System getProperty "path.separator") + benchmarkdir.path + "/bin"), false)
 
     return (
       new Config(
-        benchmarkdir,
-        BenchmarkType.MEMORY,
+        Directory(benchmarkdir),
+        BenchmarkType.STEADY,
         runs,
         multiplier,
         scalahome,
@@ -267,7 +236,14 @@ object ArgumentParser {
         benchmarkName,
         benchmarkArguments,
         settings.classpathURLs,
-        srcpath,
-        benchmarkBuild))
+        src,
+        (benchmarkdir / "bin").toDirectory))
   }
+
+  def exitOnError(message: String) {
+    UI.error(message)
+    UI.printUsage
+    System.exit(1)
+  }
+
 }

@@ -4,18 +4,19 @@ package measurement
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URL
-
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.File
 
 case class Benchmark(name: String,
                      arguments: List[String],
                      classpathURLs: List[URL],
-                     srcPath: Path,
-                     buildPath: Path) {
+                     src: List[File],
+                     bin: Directory) {
 
   /**
    * Benchmark `main` method.
@@ -34,16 +35,14 @@ case class Benchmark(name: String,
     log.verbose("[Compile]")
 
     val settings = new Settings(log.error)
-    val (ok, errArgs) = settings.processArguments(
-      List(
-        "-classpath", config.classpath,
-        "-d", buildPath.path,
-        srcPath.path),
-      true)
+    val (ok, errArgs) = settings.processArguments(List("-classpath", config.classpath, "-d", bin.path), false)
+
+    log.debug(settings.d.value)
+    settings.outdir.value = bin.path
 
     if (ok) {
       val compiler = new Global(settings)
-      (new compiler.Run) compile List(srcPath.path)
+      (new compiler.Run) compile (src map (_.path))
     } else {
       errArgs map (err => log.error(err))
     }

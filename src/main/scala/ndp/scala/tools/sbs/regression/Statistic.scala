@@ -269,26 +269,33 @@ object Statistic {
       SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
-    if (confidenceLevel == 100 && SSA != 0) {
+    if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
       Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
     } else {
+      reduceConfidenceLevel()
       val n1 = persistor.length - 1
-      val n_2 = persistor.length * persistor.head.length - persistor.length
-      println(n_2)
       val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
-      println(n2)
       val FValue = SSA * n2 / SSE / n1
 
-      log.debug(
-        "[SSA] " + SSA +
-          "\t[SSE] " + SSE +
-          "\t[FValue] " + FValue +
-          "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
-          
-      if (FValue > inverseFDistribution(n1, n2)) {
-        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
-      } else {
+      var break = false
+      while (!break && isConfidenceLevelAcceptable) {
+
+        log.debug(
+          "[SSA] " + SSA +
+            "\t[SSE] " + SSE +
+            "\t[FValue] " + FValue +
+            "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+
+        if (FValue > inverseFDistribution(n1, n2)) {
+          reduceConfidenceLevel()
+        } else {
+          break = true
+        }
+      }
+      if (break) {
         None
+      } else {
+        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
       }
     }
   }

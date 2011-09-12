@@ -32,6 +32,7 @@ object BenchmarkDriver {
    * <li>Compile the sources of the benchmarks if necessary
    * <li>Run all the benchmarks with the specified parameters
    * <li>Run comparisons to previous results
+   * <li>Stores the benchmark result into file
    * </ul>
    */
   def main(args: Array[String]): Unit = {
@@ -56,7 +57,13 @@ object BenchmarkDriver {
       val report = new Report
 
       BenchmarkRunner.run() match {
-        case Left(ret) => detectRegression(ret)
+        case Left(ret) => {
+          detectRegression(ret)
+          ret.store() match {
+            case Some(f) => log.info("Result stored into " + f.path)
+            case None => log.info("Cannot stored the result.")
+          }
+        }
         case Right(s) => {
           report(Constant.REGRESSION_FAILED, Report dueToReason s)
         }
@@ -71,7 +78,7 @@ object BenchmarkDriver {
 
   /**
    * Loads previous results and uses statistically rigorous method to detect regression.
-   * 
+   *
    * @param result	The benchmark result just measured.
    */
   def detectRegression(result: BenchmarkResult) {

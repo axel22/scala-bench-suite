@@ -56,7 +56,7 @@ object BenchmarkRunner extends SubProcessRunner {
         config.JAVAPROP,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
-        benchmark.buildPath.path +
+        benchmark.bin.path +
           (System getProperty "path.separator") +
           config.classpath,
         benchmark.name

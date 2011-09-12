@@ -13,17 +13,20 @@ package util
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.collection.mutable.ArrayBuffer
+import ndp.scala.tools.sbs.regression.Statistic
 
 class Report {
 
   def apply(result: Boolean, due: String) {
     val date = new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm:ss").format(new Date)
     if (result) {
-      log.info("[Test: " + date + " Main class: " + benchmark.name + "]    ----------------------------------    [  OK  ]")
+      log.info("[Test: " + date + " Main class: " + benchmark.name + "]" +
+        "    ----------------------------------    [  OK  ]" +
+        (System getProperty "line.separator") + "           at confidence level " + Statistic.confidenceLevel + "%")
     } else {
-      log.info("[Test: " + date + " Main class: " + benchmark.name + "]    ----------------------------------    [FAILED]")
+      log.info("[Test: " + date + " Main class: " + benchmark.name + "]" +
+        "    ----------------------------------    [FAILED]")
       log.info("Due to:")
       log.info(due)
     }
