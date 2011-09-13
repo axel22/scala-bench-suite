@@ -11,43 +11,20 @@
 package ndp.scala.tools.sbs
 package util
 
-import java.io.{File => JFile}
-
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 
-import BenchmarkType.BenchmarkType
+import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 
 case class Config(benchmarkDirectory: Directory,
-                  benchmarkType: BenchmarkType,
+                  metrics: ArrayBuffer[BenchmarkType],
                   runs: Int,
                   multiplier: Int,
                   scalahome: Directory,
                   javahome: Directory,
-                  classpath: String,
                   persistorLocation: Directory,
                   sampleNumber: Int,
                   compile: Boolean) {
-
-  def this(args: Array[String]) {
-    this(
-      new Directory(new JFile(args(Constant.INDEX_BENCHMARK_DIR))),
-      if (args(Constant.INDEX_BENCHMARK_TYPE) equals "Startup") {
-        BenchmarkType.STARTUP
-      } else if (args(Constant.INDEX_BENCHMARK_TYPE) equals "Steady") {
-        BenchmarkType.STEADY
-      } else {
-        BenchmarkType.MEMORY
-      },
-      args(Constant.INDEX_RUNS).toInt,
-      args(Constant.INDEX_MULTIPLIER).toInt,
-      new Directory(new JFile(args(Constant.INDEX_SCALA_HOME))),
-      new Directory(new JFile(args(Constant.INDEX_JAVA_HOME))),
-      args(Constant.INDEX_CLASSPATH),
-      new Directory(new JFile(args(Constant.INDEX_PERSISTOR_LOC))),
-      args(Constant.INDEX_SAMPLE_NUMBER).toInt,
-      args(Constant.INDEX_COMPILE).toBoolean
-    )
-  }
 
   val JAVACMD = javahome + System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java"
   val JAVAPROP = "-Dscala.home=" + scalahome
@@ -63,17 +40,15 @@ case class Config(benchmarkDirectory: Directory,
   def toArgument(): Array[String] = {
     var arr = new Array[String](Constant.MAX_ARGUMENT_CONFIG)
 
-//    arr(Constant.INDEX_CLASSNAME) = classname
-//    arr(Constant.INDEX_BENCHMARK_ARG) = benchmarkArguments mkString " "
-//    arr(Constant.INDEX_SRCPATH) = srcpath.path
+    //    arr(Constant.INDEX_CLASSNAME) = classname
+    //    arr(Constant.INDEX_BENCHMARK_ARG) = benchmarkArguments mkString " "
+    //    arr(Constant.INDEX_SRCPATH) = srcpath.path
     arr(Constant.INDEX_BENCHMARK_DIR) = benchmarkDirectory.path
-//    arr(Constant.INDEX_BENCHMARK_BUILD) = benchmarkBuild.path
-    arr(Constant.INDEX_BENCHMARK_TYPE) = benchmarkType.toString
+    //    arr(Constant.INDEX_BENCHMARK_BUILD) = benchmarkBuild.path
     arr(Constant.INDEX_RUNS) = runs.toString
     arr(Constant.INDEX_MULTIPLIER) = multiplier.toString
     arr(Constant.INDEX_SCALA_HOME) = scalahome.path
     arr(Constant.INDEX_JAVA_HOME) = javahome.path
-    arr(Constant.INDEX_CLASSPATH) = classpath
     arr(Constant.INDEX_PERSISTOR_LOC) = persistorLocation.path
     arr(Constant.INDEX_SAMPLE_NUMBER) = sampleNumber.toString
     arr(Constant.INDEX_COMPILE) = compile.toString
@@ -91,16 +66,10 @@ case class Config(benchmarkDirectory: Directory,
       endl + "        Multiplier:      " + multiplier +
       endl + "        Previous result: " + persistorLocation.path +
       endl + "        Sample number:   " + sampleNumber +
-      endl + "        BenchmarkType:   " + benchmarkType +
       endl + "        Compile:         " + compile +
       endl + "        Java:            " + JAVACMD +
       endl + "        Java properties: " + JAVAPROP +
       endl + "        Scala library:   " + SCALALIB
   }
 
-}
-
-object BenchmarkType extends Enumeration {
-  type BenchmarkType = Value
-  val STARTUP, STEADY, MEMORY = Value
 }

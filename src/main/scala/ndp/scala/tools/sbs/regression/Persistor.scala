@@ -11,12 +11,10 @@
 package ndp.scala.tools.sbs
 package regression
 
-import java.io.{ File => JFile }
-
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
 
+import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 import ndp.scala.tools.sbs.measurement.BenchmarkResult
 import ndp.scala.tools.sbs.measurement.BenchmarkRunner
 
@@ -36,17 +34,17 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
   /**
    * Loads previous benchmark result from local directory.
    */
-  def load(): Persistor = {
+  def load(metric: BenchmarkType): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = new Directory(new JFile(location.path))
+    val dir = (location / metric.toString).toDirectory
 
     log.debug("--Persistor directory--  " + dir.path)
 
     if (!dir.isDirectory || !dir.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-      val files = dir.walkFilter(path => {println(path.path); path.isFile && path.canRead})
+      val files = dir walkFilter (path => path.isFile && path.canRead)
 
       log.debug(files.toString)
 
@@ -54,7 +52,7 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
         try {
           log.verbose("--Read file--	" + file.path)
 
-          storedResult = new BenchmarkResult
+          storedResult = new BenchmarkResult(metric)
           storedResult.load(file.toFile)
 
           log.debug("----Read----	" + storedResult.toString)
@@ -92,10 +90,10 @@ object Persistor extends Persistor {
   /**
    * Generates sample results.
    */
-  def generate(num: Int) {
+  def generate(metric: BenchmarkType, num: Int) {
     var i = 0
     while (i < num) {
-      BenchmarkRunner.run() match {
+      BenchmarkRunner.run(metric) match {
         case Left(ret) => {
           ret.store() match {
             case Some(_) => {

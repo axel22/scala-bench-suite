@@ -54,7 +54,7 @@ trait SubProcessRunner {
       UI("Log    " + l)
     }
 
-    config = new Config(confArgs)
+//    config = new Config(confArgs)
     log = new Log(logArgs)
 
     (config, log)

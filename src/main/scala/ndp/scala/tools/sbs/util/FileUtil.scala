@@ -11,14 +11,15 @@
 package ndp.scala.tools.sbs
 package util
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 import java.io.FileWriter
 import java.lang.Thread.sleep
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.File
+import scala.tools.nsc.io.Path
+import scala.tools.nsc.io.Directory
 
 object FileUtil {
 
@@ -102,8 +103,7 @@ object FileUtil {
           case e => {
             if (log != null) {
               log.debug(file.path + (System getProperty "line.separator") + e.toString())
-            }
-            else {
+            } else {
               UI(file.path + (System getProperty "line.separator") + e.toString())
             }
             None
@@ -111,6 +111,33 @@ object FileUtil {
         }
       }
       case None => None
+    }
+  }
+
+  /**
+   * Clean all contents of a directory.
+   *
+   * @param dir	The desired directory
+   */
+  def clean(dir: Path): Option[String] = {
+    try {
+      dir.toDirectory.list foreach (_.deleteRecursively)
+      None
+    } catch {
+      case _ => Some("Cannot clean directory: " + dir.path)
+    }
+  }
+
+  /**
+   * Creates new directory.
+   *
+   * @param path	The path of the desired directory
+   */
+  def mkDir(path: Path): Either[Directory, String] = {
+    try {
+      Left(path.createDirectory())
+    } catch {
+      case _ => Right("Cannot created directory: " + path.path)
     }
   }
 

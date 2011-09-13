@@ -12,31 +12,28 @@ package ndp.scala.tools.sbs
 package measurement
 
 import java.lang.Thread.sleep
-
 import scala.compat.Platform
-
 import ndp.scala.tools.sbs.regression.Statistic
-import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Constant
+import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 
-object BenchmarkRunner extends SubProcessRunner {
+object BenchmarkRunner {
 
   /**
    * Warms the benchmark up if necessary and measures the desired metric.
    *
    * @param	checkWarm	The function checking whether the benchmark has reached steady state
    * @param measure	The thunk to calculate the desired metric
-   * 
+   *
    * @return	The result if success, otherwies a `String` describes the reason.
    */
-  def run(): Either[BenchmarkResult, String] = {
+  def run(metric: BenchmarkType): Either[BenchmarkResult, String] = {
 
-    if (config.benchmarkType == BenchmarkType.MEMORY) {
-
+    if (metric == BenchmarkType.MEMORY) {
       log.info("[Benchmarking memory consumption]")
-
       val runtime: Runtime = Runtime.getRuntime
       run(
+        metric,
         series => (series map (t => t == series.head) filter (b => b)).length == series.length,
         {
           val start = runtime.freeMemory
@@ -45,41 +42,26 @@ object BenchmarkRunner extends SubProcessRunner {
           start - runtime.freeMemory
         }
       )
-    } else if (config.benchmarkType == BenchmarkType.STARTUP) {
-     
+    } else if (metric == BenchmarkType.STARTUP) {
       log.info("[Benchmarking startup state]")
-
-      val processBuilder = new ProcessBuilder(
-        config.JAVACMD,
-        "-cp",
-        config.SCALALIB,
-        config.JAVAPROP,
-        "scala.tools.nsc.MainGenericRunner",
-        "-classpath",
-        benchmark.bin.path +
-          (System getProperty "path.separator") +
-          config.classpath,
-        benchmark.name
-      )
-
-      log.debug(processBuilder.command.toString)
-
-      // Ignore the first launch due to system status changing
-      processBuilder.start.waitFor
-
-      run(
-        _ => true,
-        {
-          val start = Platform.currentTime
-          processBuilder.start.waitFor
-          Platform.currentTime - start
-        }
-      )
+      if (benchmark.initCommand()) {
+        run(
+          metric,
+          _ => true,
+          {
+            val start = Platform.currentTime
+            benchmark.runCommand()
+            Platform.currentTime - start
+          }
+        )
+      } else {
+        Right("Benchmark process failed.")
+      }
     } else {
       log.info("[Benchmarking steady state]")
-
       benchmark.init()
       run(
+        metric,
         series => (Statistic CoV series) < Constant.STEADY_THREDSHOLD,
         {
           val start = Platform.currentTime
@@ -90,12 +72,14 @@ object BenchmarkRunner extends SubProcessRunner {
     }
   }
 
-  def run(checkWarm: BenchmarkResult => Boolean, measure: => Long): Either[BenchmarkResult, String] = {
+  def run(metric: BenchmarkType,
+          checkWarm: BenchmarkResult => Boolean,
+          measure: => Long): Either[BenchmarkResult, String] = {
 
     log.verbose("")
     log.verbose("--Warmup--")
 
-    var result = new BenchmarkResult
+    var result = new BenchmarkResult(metric)
 
     val iteratorMax = config.multiplier * 5
     var iteratorCount = 0
@@ -111,16 +95,14 @@ object BenchmarkRunner extends SubProcessRunner {
       for (mul <- 1 to config.multiplier) {
         cleanUp()
         result += measure
-
         log.verbose("----Measured----  " + result.last)
       }
       iteratorCount = config.multiplier
 
       while (iteratorCount < iteratorMax && !checkWarm(result)) {
-        cleanUp()
-
         log.verbose("----Measured----  " + result.last)
 
+        cleanUp()
         result.remove(0)
         result += measure
         iteratorCount += 1

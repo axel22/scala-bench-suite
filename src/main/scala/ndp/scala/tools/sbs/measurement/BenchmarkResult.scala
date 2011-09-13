@@ -11,7 +11,6 @@
 package ndp.scala.tools.sbs
 package measurement
 
-import java.lang.Thread.sleep
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -19,6 +18,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.io.Source.fromFile
 import scala.tools.nsc.io.File
 
+import BenchmarkType.BenchmarkType
 import ndp.scala.tools.sbs.regression.Statistic
 import ndp.scala.tools.sbs.util.Constant
 import ndp.scala.tools.sbs.util.FileUtil
@@ -39,10 +39,24 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     _confidenceLevel = confidenceLevel
   }
 
-  def this(confidenceLevel: Int) {
-    this()
-    this.confidenceLevel = confidenceLevel
+  /**
+   *
+   */
+  private var _metric: BenchmarkType = null
+  def metric = _metric
+  def metric_=(metric: BenchmarkType) {
+    _metric = metric
   }
+
+  def this(metric: BenchmarkType) {
+    this()
+    this.metric = metric
+  }
+
+  //  def this(confidenceLevel: Int, metric: BenchmarkType) {
+  //    this(metric)
+  //    this.confidenceLevel = confidenceLevel
+  //  }
 
   /**
    * Calculates statistical metrics.
@@ -139,13 +153,13 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     val data = new ArrayBuffer[String]
     data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
     data += "Main Class:       " + benchmark.name
-    data += "Type:             " + config.benchmarkType
+    data += "Type:             " + metric
     data += "Confidence level: " + confidenceLevel + " %"
     data += "-------------------------------"
 
     FileUtil.createAndStore(
-      config.persistorLocation.path,
-      benchmark.name + "." + config.benchmarkType,
+      (config.persistorLocation / metric.toString()).path,
+      benchmark.name + "." + metric,
       foldLeft(data) { (data, l) => data + l.toString }
     )
   }
@@ -153,12 +167,12 @@ class BenchmarkResult extends ArrayBuffer[Long] {
   /**
    *
    */
-  override def toString(): String = {
-    val endl = (System getProperty "line.separator")
-    foldLeft("Benchmarking result at " + confidenceLevel.toString() + "%: ") {
-      (str, l) =>
-        str + endl + "             ----  " + l
-    }
-  }
+  override def toString(): String =
+    foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
 
+}
+
+object BenchmarkType extends Enumeration {
+  type BenchmarkType = Value
+  val STARTUP, STEADY, MEMORY = Value
 }

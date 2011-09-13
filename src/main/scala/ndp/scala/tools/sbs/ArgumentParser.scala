@@ -10,17 +10,20 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.GenericRunnerSettings
 
+import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 import ndp.scala.tools.sbs.measurement.Benchmark
+import ndp.scala.tools.sbs.measurement.BenchmarkType
 import ndp.scala.tools.sbs.util.LogLevel.LogLevel
-import ndp.scala.tools.sbs.util.BenchmarkType
 import ndp.scala.tools.sbs.util.Config
+import ndp.scala.tools.sbs.util.FileUtil
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
@@ -35,6 +38,10 @@ object ArgumentParser {
    */
   private object Parameter {
 
+    val OPT_STEADY = "--steady-performance"
+    val OPT_STARTUP = "--startup-performance"
+    val OPT_MEMORY = "--memory-usage"
+    val OPT_CLEAN = "--clean"
     val OPT_NONCOMPILE = "--noncompile"
     val OPT_SHOWLOG = "--show-log"
     val OPT_HELP = "--help"
@@ -51,7 +58,11 @@ object ArgumentParser {
     val OPT_CREATE_SAMPLE = "--create-sample"
 
     def isUnary(opt: String) =
-      (opt equals OPT_NONCOMPILE) ||
+      (opt equals OPT_STEADY) ||
+        (opt equals OPT_STARTUP) ||
+        (opt equals OPT_MEMORY) ||
+        (opt equals OPT_CLEAN) ||
+        (opt equals OPT_NONCOMPILE) ||
         (opt equals OPT_SHOWLOG) ||
         (opt equals OPT_HELP)
 
@@ -78,7 +89,7 @@ object ArgumentParser {
    */
   def parse(args: Array[String]): (Config, Log, Benchmark) = {
 
-    val separator = System getProperty "file.separator"
+    val slash = System getProperty "file.separator"
 
     var root = "."
     var src = List[File]()
@@ -88,6 +99,10 @@ object ArgumentParser {
     var scalahome: Directory = null
     var javahome: Directory = null
     var persistor: Directory = null
+
+    var metrics = ArrayBuffer[BenchmarkType]()
+
+    var clean = false
 
     var sampleNumber = 0
     var multiplier = 0
@@ -145,6 +160,10 @@ object ArgumentParser {
       }
 
       def parseUnary(opt: String) = opt match {
+        case Parameter.OPT_STEADY => metrics += BenchmarkType.STEADY
+        case Parameter.OPT_STARTUP => metrics += BenchmarkType.STARTUP
+        case Parameter.OPT_MEMORY => metrics += BenchmarkType.MEMORY
+        case Parameter.OPT_CLEAN => clean = true
         case Parameter.OPT_HELP => {
           UI.printUsage
           System.exit(0)
@@ -174,36 +193,56 @@ object ArgumentParser {
 
     loop(args.toList)
 
-    if ((benchmarkName == null) || (scalahome == null) || (runs == 0)) {
+    if (benchmarkName == null) {
       exitOnError("No benchmark specified.")
     }
+    if (scalahome == null) {
+      exitOnError("No scala home specified.")
+    }
 
-    val benchmarkdir = Directory(root + (System getProperty "file.separator") + benchmarkName)
-    try {
-      benchmarkdir.createDirectory()
-      (benchmarkdir / "bin").createDirectory()
-      if (compile) {
-        val srcdir = (benchmarkdir / "src").toDirectory
-        src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src) { (src, f) => f :: src }
-        if (src.length == 0) {
-          exitOnError("No source file specified.")
-        }
+    var benchmarkdir: Directory = null
+    FileUtil.mkDir(root + (System getProperty "file.separator") + benchmarkName) match {
+      case Left(dir) => benchmarkdir = dir
+      case Right(err) => exitOnError(err)
+    }
+    FileUtil.mkDir(benchmarkdir / "bin") match {
+      case Right(err) => exitOnError(err)
+      case _ => ()
+    }
+    if (compile) {
+      val srcdir = (benchmarkdir / "src").toDirectory
+      src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src) { (src, f) => f :: src }
+      if (src.length == 0) {
+        exitOnError("No source file specified.")
       }
-    } catch {
-      case _ => exitOnError("Something wrong with benchmark directory: " + benchmarkdir.path)
     }
 
-    if (persistor == null) {
-      persistor = (Path(benchmarkdir.path) / "result").createDirectory()
-    }
-    if (!persistor.exists) {
-      persistor.createDirectory()
+    if (persistor == null || !persistor.exists) {
+      FileUtil.mkDir(Path(benchmarkdir.path) / "result") match {
+        case Left(dir) => persistor = dir
+        case Right(err) => exitOnError(err)
+      }
     } else if (!persistor.isDirectory || !persistor.canRead) {
       exitOnError("Persistor " + persistor.path + " inaccessible")
+    }
+    metrics map (
+      m => FileUtil.mkDir(persistor / m.toString) match {
+        case Right(err) => exitOnError(err)
+        case _ => ()
+      })
+    if (clean) {
+      metrics map (
+        m => FileUtil.clean(persistor / m.toString) match {
+          case Some(err) => exitOnError(err)
+          case _ => ()
+        })
     }
 
     if (multiplier == 0 || multiplier == 1) {
       multiplier = 2
+    }
+    if (runs == 0) {
+      runs = 1
     }
     if (javahome == null) {
       javahome = new Directory(new JFile(System getProperty "java.home"))
@@ -216,12 +255,11 @@ object ArgumentParser {
     return (
       new Config(
         Directory(benchmarkdir),
-        BenchmarkType.STEADY,
+        metrics,
         runs,
         multiplier,
         scalahome,
         javahome,
-        classpath,
         persistor,
         sampleNumber,
         compile),

@@ -1,22 +1,39 @@
+/*
+ * Benchmark
+ * 
+ * Version 
+ * 
+ * Created on September 09th, 2011
+ * 
+ * Created by ND P
+ */
+
 package ndp.scala.tools.sbs
 package measurement
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.net.URL
-import scala.tools.nsc.io.Path
+
+import scala.sys.process.Process
+import scala.sys.process.ProcessBuilder
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.File
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
-import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
 
 case class Benchmark(name: String,
                      arguments: List[String],
                      classpathURLs: List[URL],
                      src: List[File],
                      bin: Directory) {
+
+  /**
+   * Benchmark process.
+   */
+  private var process: ProcessBuilder = null
 
   /**
    * Benchmark `main` method.
@@ -35,7 +52,13 @@ case class Benchmark(name: String,
     log.verbose("[Compile]")
 
     val settings = new Settings(log.error)
-    val (ok, errArgs) = settings.processArguments(List("-classpath", config.classpath, "-d", bin.path), false)
+    val (ok, errArgs) = settings.processArguments(
+      List(
+        "-classpath",
+        (classpathURLs map (_.toString) mkString (System getProperty "path.separator")),
+        "-d",
+        bin.path),
+      false)
 
     log.debug(settings.d.value)
     settings.outdir.value = bin.path
@@ -76,6 +99,37 @@ case class Benchmark(name: String,
    * Resets the context.
    */
   def finallize() = Thread.currentThread.setContextClassLoader(oldContext)
+
+  /**
+   * Creates the process command for start up benchmarking.
+   */
+  def initCommand(): Boolean = {
+    val colon = (System getProperty "path.separator")
+    val command = arguments.foldLeft(
+      Seq(config.JAVACMD,
+        "-cp",
+        config.SCALALIB,
+        config.JAVAPROP,
+        "scala.tools.nsc.MainGenericRunner",
+        "-classpath",
+        bin.path + colon +
+          config.SCALALIB + colon +
+          (classpathURLs map (_.toString) mkString (System getProperty "path.separator")),
+        name)
+    ) { (cmd, arg) => cmd :+ arg }
+
+    log.debug(command.toString)
+
+    process = Process(command)
+
+    // Ignore the first launch due to system status changing
+    process.! == 0
+  }
+
+  /**
+   * Runs the benchmark process.
+   */
+  def runCommand() = process !
 
   override def toString = "Benchmark [" + name + "] [" + arguments mkString " "
 

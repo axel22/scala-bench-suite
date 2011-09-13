@@ -48,26 +48,27 @@ object BenchmarkDriver {
       if (config.compile && !benchmark.compile()) {
         System.exit(1)
       }
-      if (config.sampleNumber > 0) {
-        Persistor.generate(config.sampleNumber)
-      }
 
       log.verbose("[Measure]")
 
+      if (config.sampleNumber > 0) {
+        config.metrics map (metric => Persistor.generate(metric, config.sampleNumber))
+      }
+
       val report = new Report
 
-      BenchmarkRunner.run() match {
-        case Left(ret) => {
-          detectRegression(ret)
-          ret.store() match {
-            case Some(f) => log.info("Result stored into " + f.path)
-            case None => log.info("Cannot stored the result.")
+      config.metrics map (
+        metric => BenchmarkRunner.run(metric) match {
+          case Left(ret) => {
+            detectRegression(ret)
+            ret.store() match {
+              case Some(f) => log.info("Result stored into " + f.path)
+              case None => log.info("Cannot stored the result.")
+            }
           }
+          case Right(s) => report(Constant.REGRESSION_FAILED, Report dueToReason s)
         }
-        case Right(s) => {
-          report(Constant.REGRESSION_FAILED, Report dueToReason s)
-        }
-      }
+      )
     } catch {
       case e: Exception => {
         val report = new Report
@@ -86,16 +87,21 @@ object BenchmarkDriver {
     val report = new Report
 
     persistor += result
-    persistor.load
+    persistor.load(result.metric)
 
-    Statistic testDifference persistor match {
-      case Left(c) => c match {
-        case None => report(Constant.REGRESSION_PASS, null)
-        case Some((left, right)) => report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
-      }
-      case Right(r) => r match {
-        case None => report(Constant.REGRESSION_PASS, null)
-        case Some(meanArray) => report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
+    if (persistor.length < 2) {
+      report(Constant.REGRESSION_FAILED,
+        Report dueToReason "Not enough result files specified at " + persistor.location.path)
+    } else {
+      Statistic testDifference persistor match {
+        case Left(c) => c match {
+          case None => report(Constant.REGRESSION_PASS, null)
+          case Some((left, right)) => report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
+        }
+        case Right(r) => r match {
+          case None => report(Constant.REGRESSION_PASS, null)
+          case Some(meanArray) => report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
+        }
       }
     }
   }

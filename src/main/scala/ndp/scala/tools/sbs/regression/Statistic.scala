@@ -19,7 +19,6 @@ import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 
 import ndp.scala.tools.sbs.measurement.BenchmarkResult
-import ndp.scala.tools.sbs.util.Log
 
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
@@ -100,7 +99,6 @@ object Statistic {
     } else {
       diff = inverseStudentDistribution(series.length - 1) * SD / sqrt(series.length)
     }
-
     (mean(series) - diff, mean(series) + diff)
   }
 
@@ -197,7 +195,7 @@ object Statistic {
    * </ul>
    *
    * @param persistor	The list of previous results
-   * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
+   * @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
   def testDifference(persistor: Persistor): Either[Option[(Double, Double)], Option[ArrayBuffer[Double]]] = {
     if (persistor.length < 2) {
@@ -214,7 +212,7 @@ object Statistic {
    * Statistically rigorously compares means of two samples using confidence intervals.
    *
    * @param persistor	The list of previous results
-   * @return	<code>true</code> if there is statistically significant difference among the means, <code>false</code> otherwise
+   * @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
   private def testConfidenceIntervals(persistor: Persistor): Option[(Double, Double)] = {
     var series = persistor(0)
@@ -245,14 +243,14 @@ object Statistic {
       c2 = diff + inverseStudentDistribution(ndf) * s
     }
 
-    if (((c1 > 0) && (c2 > 0)) || ((c1 < 0) && (c2 < 0))) None else Some(c1, c2)
+    if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) None else Some(c1, c2)
   }
 
   /**
    * Statistically rigorously compares means of three or more samples using ANOVA.
    *
    * @param persistor	The list of previous results
-   * @return	`true` if there is statistically significant difference among the means, `false` otherwise
+   * @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
   private def testANOVA(persistor: Persistor): Option[ArrayBuffer[Double]] = {
 
@@ -270,29 +268,25 @@ object Statistic {
     }
 
     if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
+      // Memory case
       Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+    }
+    else if (SSE == 0 && SSA == 0) {
+      None
     } else {
+      // Performance case
       reduceConfidenceLevel()
       val n1 = persistor.length - 1
       val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
       val FValue = SSA * n2 / SSE / n1
 
-      var break = false
-      while (!break && isConfidenceLevelAcceptable) {
+      log.debug(
+        "[SSA] " + SSA +
+          "\t[SSE] " + SSE +
+          "\t[FValue] " + FValue +
+          "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
 
-        log.debug(
-          "[SSA] " + SSA +
-            "\t[SSE] " + SSE +
-            "\t[FValue] " + FValue +
-            "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
-
-        if (FValue > inverseFDistribution(n1, n2)) {
-          reduceConfidenceLevel()
-        } else {
-          break = true
-        }
-      }
-      if (break) {
+      if (FValue <= inverseFDistribution(n1, n2)) {
         None
       } else {
         Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
