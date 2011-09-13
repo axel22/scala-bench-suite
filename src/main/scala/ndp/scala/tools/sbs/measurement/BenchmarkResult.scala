@@ -158,8 +158,8 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     data += "-------------------------------"
 
     FileUtil.createAndStore(
-      (config.persistorLocation / metric.toString()).path,
-      benchmark.name + "." + metric,
+      (config.persistorLocation / metric.toString).path,
+      benchmark.name + "." + metric.toString,
       foldLeft(data) { (data, l) => data + l.toString }
     )
   }

@@ -10,7 +10,7 @@
 
 package ndp.scala.tools.sbs
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
@@ -211,7 +211,7 @@ object ArgumentParser {
     }
     if (compile) {
       val srcdir = (benchmarkdir / "src").toDirectory
-      src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src) { (src, f) => f :: src }
+      src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src)((src, f) => f :: src)
       if (src.length == 0) {
         exitOnError("No source file specified.")
       }
@@ -225,13 +225,13 @@ object ArgumentParser {
     } else if (!persistor.isDirectory || !persistor.canRead) {
       exitOnError("Persistor " + persistor.path + " inaccessible")
     }
-    metrics map (
+    metrics foreach (
       m => FileUtil.mkDir(persistor / m.toString) match {
         case Right(err) => exitOnError(err)
         case _ => ()
       })
     if (clean) {
-      metrics map (
+      metrics foreach (
         m => FileUtil.clean(persistor / m.toString) match {
           case Some(err) => exitOnError(err)
           case _ => ()
@@ -250,7 +250,7 @@ object ArgumentParser {
 
     val settings = new GenericRunnerSettings(log.error)
     settings.processArguments(
-      List("-cp", classpath + (System getProperty "path.separator") + benchmarkdir.path + "/bin"), false)
+      List("-cp", classpath + (System getProperty "path.separator") + benchmarkdir.path + slash + "bin"), false)
 
     return (
       new Config(

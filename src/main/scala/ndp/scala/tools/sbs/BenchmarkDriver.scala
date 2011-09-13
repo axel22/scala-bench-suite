@@ -52,12 +52,12 @@ object BenchmarkDriver {
       log.verbose("[Measure]")
 
       if (config.sampleNumber > 0) {
-        config.metrics map (metric => Persistor.generate(metric, config.sampleNumber))
+        config.metrics foreach (metric => Persistor.generate(metric, config.sampleNumber))
       }
 
       val report = new Report
 
-      config.metrics map (
+      config.metrics foreach (
         metric => BenchmarkRunner.run(metric) match {
           case Left(ret) => {
             detectRegression(ret)
@@ -83,7 +83,7 @@ object BenchmarkDriver {
    * @param result	The benchmark result just measured.
    */
   def detectRegression(result: BenchmarkResult) {
-    val persistor = new Persistor(config.persistorLocation)
+    val persistor = new Persistor((config.persistorLocation / result.metric.toString).toDirectory)
     val report = new Report
 
     persistor += result

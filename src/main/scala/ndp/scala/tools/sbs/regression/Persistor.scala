@@ -37,19 +37,14 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
   def load(metric: BenchmarkType): Persistor = {
     var line: String = null
     var storedResult: BenchmarkResult = null
-    val dir = (location / metric.toString).toDirectory
 
-    log.debug("--Persistor directory--  " + dir.path)
+    log.debug("--Persistor directory--  " + location.path)
 
-    if (!dir.isDirectory || !dir.canRead) {
+    if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-      val files = dir walkFilter (path => path.isFile && path.canRead)
-
-      log.debug(files.toString)
-
-      for (file <- files) {
-        try {
+      location walkFilter (path => path.isFile && path.canRead) foreach (
+        file => try {
           log.verbose("--Read file--	" + file.path)
 
           storedResult = new BenchmarkResult(metric)
@@ -63,7 +58,7 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
             log.debug(e.toString)
           }
         }
-      }
+      )
     }
     this
   }
@@ -73,15 +68,7 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
    * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
    * with additional information (date and time, main benchmark class name).
    */
-  def store() {
-    if (array.length == 0) {
-      log.info("--Nothing to store--")
-      return
-    }
-    for (result <- this) {
-      result.store
-    }
-  }
+  def store() = foreach(_.store())
 
 }
 
