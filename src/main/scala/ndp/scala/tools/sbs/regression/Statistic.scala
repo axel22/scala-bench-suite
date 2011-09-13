@@ -254,7 +254,7 @@ object Statistic {
    */
   private def testANOVA(persistor: Persistor): Option[ArrayBuffer[Double]] = {
 
-    val sum = persistor.foldLeft(0: Long) { (sum, p) => p.foldLeft(sum) { (s, r) => s + r } }
+    val sum = persistor.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
     val overall: Double = sum / (persistor.length * persistor.head.length)
 
@@ -270,14 +270,13 @@ object Statistic {
     if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
       // Memory case
       Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
-    }
-    else if (SSE == 0 && SSA == 0) {
+    } else if (SSE == 0 && SSA == 0) {
       None
     } else {
       // Performance case
       reduceConfidenceLevel()
       val n1 = persistor.length - 1
-      val n2 = persistor.foldLeft(0) { (s, p) => s + p.length } - persistor.length
+      val n2 = persistor.foldLeft(0)((s, p) => s + p.length) - persistor.length
       val FValue = SSA * n2 / SSE / n1
 
       log.debug(

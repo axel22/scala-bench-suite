@@ -34,7 +34,7 @@ object BenchmarkRunner {
       val runtime: Runtime = Runtime.getRuntime
       run(
         metric,
-        series => series forall (_.==(series.head)),
+        series => series forall (_ == series.head),
         {
           val start = runtime.freeMemory
           benchmark.init()
