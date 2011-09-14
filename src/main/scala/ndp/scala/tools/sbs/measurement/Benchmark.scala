@@ -114,7 +114,7 @@ case class Benchmark(name: String,
         "-classpath",
         bin.path + colon +
           config.SCALALIB + colon +
-          (classpathURLs map (_.toString) mkString (System getProperty "path.separator")),
+          (classpathURLs map (_.toString) mkString colon),
         name)
     ) { (cmd, arg) => cmd :+ arg }
 

@@ -115,6 +115,39 @@ object FileUtil {
   }
 
   /**
+   * Creates directory structure for benchmarking.
+   */
+  def createBenchmarkDir(root: String, name: String): Either[Directory, String] = {
+    val slash = System getProperty "file.separator"
+    try {
+      mkDir(root + slash + name) match {
+        case Left(dir) => {
+          mkDir(dir / "bin") match {
+            case Right(err) => Right(err)
+            case _ => ()
+          }
+          mkDir(dir / "lib") match {
+            case Right(err) => Right(err)
+            case _ => ()
+          }
+          mkDir(dir / "result") match {
+            case Right(err) => Right(err)
+            case _ => ()
+          }
+          mkDir(dir / "src") match {
+            case Right(err) => Right(err)
+            case _ => ()
+          }
+          Left(dir)
+        }
+        case e => e
+      }
+    } catch {
+      case _ => Right("Cannot access directory: " + root)
+    }
+  }
+
+  /**
    * Clean all contents of a directory.
    *
    * @param dir	The desired directory
@@ -137,7 +170,7 @@ object FileUtil {
     try {
       Left(path.createDirectory())
     } catch {
-      case _ => Right("Cannot created directory: " + path.path)
+      case _ => Right("Cannot create directory: " + path.path)
     }
   }
 

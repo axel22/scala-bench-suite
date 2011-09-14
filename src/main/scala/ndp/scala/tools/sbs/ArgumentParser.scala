@@ -11,13 +11,11 @@
 package ndp.scala.tools.sbs
 
 import java.io.{ File => JFile }
-
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.GenericRunnerSettings
-
 import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 import ndp.scala.tools.sbs.measurement.Benchmark
 import ndp.scala.tools.sbs.measurement.BenchmarkType
@@ -27,6 +25,7 @@ import ndp.scala.tools.sbs.util.FileUtil
 import ndp.scala.tools.sbs.util.Log
 import ndp.scala.tools.sbs.util.LogLevel
 import ndp.scala.tools.sbs.util.UI
+import java.net.URL
 
 /**
  * Parser for the suite's arguments.
@@ -90,12 +89,13 @@ object ArgumentParser {
   def parse(args: Array[String]): (Config, Log, Benchmark) = {
 
     val slash = System getProperty "file.separator"
+    val colon = System getProperty "path.separator"
 
     var root = "."
     var src = List[File]()
     var benchmarkName: String = null
     var benchmarkArguments = List[String]()
-    var classpath = ""
+    var classpath: String = null
     var scalahome: Directory = null
     var javahome: Directory = null
     var persistor: Directory = null
@@ -125,7 +125,9 @@ object ArgumentParser {
           } else if (Parameter isBinary head) {
             parseBinary(head, rest.head)
             loop(rest.tail)
-          } else if ((head startsWith "-") || (rest.length > 0)) {
+          } else if ((head startsWith "-") && (rest.length > 0)) {
+            println(head)
+            println(rest)
             exitOnError("Options: " + head)
           } else {
             benchmarkName = head
@@ -200,14 +202,12 @@ object ArgumentParser {
       exitOnError("No scala home specified.")
     }
 
-    var benchmarkdir: Directory = null
-    FileUtil.mkDir(root + (System getProperty "file.separator") + benchmarkName) match {
-      case Left(dir) => benchmarkdir = dir
-      case Right(err) => exitOnError(err)
-    }
-    FileUtil.mkDir(benchmarkdir / "bin") match {
-      case Right(err) => exitOnError(err)
-      case _ => ()
+    val benchmarkdir = FileUtil.createBenchmarkDir(root, benchmarkName) match {
+      case Left(dir) => dir
+      case Right(err) => {
+        exitOnError(err)
+        null
+      }
     }
     if (compile) {
       val srcdir = (benchmarkdir / "src").toDirectory
@@ -218,10 +218,7 @@ object ArgumentParser {
     }
 
     if (persistor == null || !persistor.exists) {
-      FileUtil.mkDir(Path(benchmarkdir.path) / "result") match {
-        case Left(dir) => persistor = dir
-        case Right(err) => exitOnError(err)
-      }
+      persistor = (benchmarkdir / "result").toDirectory
     } else if (!persistor.isDirectory || !persistor.canRead) {
       exitOnError("Persistor " + persistor.path + " inaccessible")
     }
@@ -248,9 +245,17 @@ object ArgumentParser {
       javahome = new Directory(new JFile(System getProperty "java.home"))
     }
 
+//    val libs = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
+//    val bins = Directory(benchmarkdir / "bin").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
+//    val userClasspath = if (classpath != null) (classpath split colon).toList map (Path(_) toURL) else Nil
+//    val classpathURLs = libs ++ bins ++ userClasspath ++ List(new URL("file:" + benchmarkdir.path + slash + "bin"))
+
+    val jars = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (_.path)
+    val classpathString = jars.foldLeft(classpath + colon + benchmarkdir.path + slash + "bin")((s, j) => s + colon + j)
     val settings = new GenericRunnerSettings(log.error)
-    settings.processArguments(
-      List("-cp", classpath + (System getProperty "path.separator") + benchmarkdir.path + slash + "bin"), false)
+    settings.processArguments(List("-cp", classpathString), false)
+
+    settings.classpathURLs foreach println
 
     return (
       new Config(
