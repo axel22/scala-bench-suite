@@ -233,17 +233,25 @@ object Statistic {
     var c1: Double = 0
     var c2: Double = 0
 
-    if ((n1 >= 30) && (n2 >= 30)) {
-      c1 = diff - inverseGaussianDistribution * s
-      c2 = diff + inverseGaussianDistribution * s
+    if (confidenceLevel == 100 && diff == 0) {
+      None
     } else {
-      val ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
-        ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
-      c1 = diff - inverseStudentDistribution(ndf) * s
-      c2 = diff + inverseStudentDistribution(ndf) * s
-    }
+      reduceConfidenceLevel()
+      if ((n1 >= 30) && (n2 >= 30)) {
+        c1 = diff - inverseGaussianDistribution * s
+        c2 = diff + inverseGaussianDistribution * s
+      } else {
+        var ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
+          ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
+        if (ndf == 0) {
+          ndf = 1
+        }
+        c1 = diff - inverseStudentDistribution(ndf) * s
+        c2 = diff + inverseStudentDistribution(ndf) * s
+      }
 
-    if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) None else Some(c1, c2)
+      if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) Some(c1, c2) else None
+    }
   }
 
   /**

@@ -225,14 +225,24 @@ object ArgumentParser {
     metrics foreach (
       m => FileUtil.mkDir(persistor / m.toString) match {
         case Right(err) => exitOnError(err)
-        case _ => ()
-      })
+        case Left(dir) => FileUtil.mkDir(dir.path + slash + "FAILED") match {
+          case Right(err) => exitOnError(err)
+          case _ => ()
+        }
+      }
+
+    )
     if (clean) {
+      FileUtil.clean(benchmarkdir / "bin") match {
+        case Some(err) => exitOnError(err)
+        case _ => ()
+      }
       metrics foreach (
         m => FileUtil.clean(persistor / m.toString) match {
           case Some(err) => exitOnError(err)
           case _ => ()
         })
+
     }
 
     if (multiplier == 0 || multiplier == 1) {
@@ -245,10 +255,10 @@ object ArgumentParser {
       javahome = new Directory(new JFile(System getProperty "java.home"))
     }
 
-//    val libs = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
-//    val bins = Directory(benchmarkdir / "bin").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
-//    val userClasspath = if (classpath != null) (classpath split colon).toList map (Path(_) toURL) else Nil
-//    val classpathURLs = libs ++ bins ++ userClasspath ++ List(new URL("file:" + benchmarkdir.path + slash + "bin"))
+    //    val libs = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
+    //    val bins = Directory(benchmarkdir / "bin").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
+    //    val userClasspath = if (classpath != null) (classpath split colon).toList map (Path(_) toURL) else Nil
+    //    val classpathURLs = libs ++ bins ++ userClasspath ++ List(new URL("file:" + benchmarkdir.path + slash + "bin"))
 
     val jars = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (_.path)
     val classpathString = jars.foldLeft(classpath + colon + benchmarkdir.path + slash + "bin")((s, j) => s + colon + j)

@@ -145,11 +145,12 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
    * with additional information (date and time, main benchmark class name).
    */
-  def store(): Option[File] = {
+  def store(passed: Boolean): Option[File] = {
     if (array.length == 0) {
       log.info("Nothing to store")
       return None
     }
+    val directory = if (passed) "" else (System getProperty "file.separator") + "FAILED"
     val data = new ArrayBuffer[String]
     data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
     data += "Main Class:       " + benchmark.name
@@ -158,7 +159,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     data += "-------------------------------"
 
     FileUtil.createAndStore(
-      (config.persistorLocation / metric.toString).path,
+      (config.persistorLocation / metric.toString).path + directory,
       benchmark.name + "." + metric.toString,
       foldLeft(data) { (data, l) => data + l.toString }
     )

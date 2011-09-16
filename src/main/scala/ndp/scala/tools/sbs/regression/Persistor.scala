@@ -68,7 +68,7 @@ class Persistor extends ArrayBuffer[BenchmarkResult] {
    * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
    * with additional information (date and time, main benchmark class name).
    */
-  def store() = foreach(_.store())
+  def store() = foreach(_.store(true))
 
 }
 
@@ -82,7 +82,7 @@ object Persistor extends Persistor {
     while (i < num) {
       BenchmarkRunner.run(metric) match {
         case Left(ret) => {
-          ret.store() match {
+          ret.store(true) match {
             case Some(_) => {
               log.debug("--Stored--")
               i += 1

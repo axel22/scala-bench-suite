@@ -60,8 +60,8 @@ object BenchmarkDriver {
       config.metrics foreach (
         metric => BenchmarkRunner.run(metric) match {
           case Left(ret) => {
-            detectRegression(ret)
-            ret.store() match {
+            val passOrFail = detectRegression(ret)
+            ret.store(passOrFail) match {
               case Some(f) => log.info("Result stored into " + f.path)
               case None => log.info("Cannot stored the result.")
             }
@@ -82,25 +82,40 @@ object BenchmarkDriver {
    *
    * @param result	The benchmark result just measured.
    */
-  def detectRegression(result: BenchmarkResult) {
+  def detectRegression(result: BenchmarkResult): Boolean = {
     val persistor = new Persistor((config.persistorLocation / result.metric.toString).toDirectory)
     val report = new Report
 
     persistor += result
     persistor.load(result.metric)
+    
+    persistor foreach println
 
     if (persistor.length < 2) {
       report(Constant.REGRESSION_FAILED,
         Report dueToReason "Not enough result files specified at " + persistor.location.path)
+        true
     } else {
       Statistic testDifference persistor match {
         case Left(c) => c match {
-          case None => report(Constant.REGRESSION_PASS, null)
-          case Some((left, right)) => report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
+          case None => {
+            report(Constant.REGRESSION_PASS, null)
+            true
+          }
+          case Some((left, right)) => {
+            report(Constant.REGRESSION_FAILED, Report dueToCITest (left, right))
+            false
+          }
         }
         case Right(r) => r match {
-          case None => report(Constant.REGRESSION_PASS, null)
-          case Some(meanArray) => report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
+          case None => {
+            report(Constant.REGRESSION_PASS, null)
+            true
+          }
+          case Some(meanArray) => {
+            report(Constant.REGRESSION_FAILED, Report dueToFTest meanArray)
+            false
+          }
         }
       }
     }

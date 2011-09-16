@@ -1,6 +1,13 @@
 TODO:
 -----
 
+introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
+check if regression detection works for time based tests
+transition to sbt
+
+DONE:
+-----
+
 Format the code
 Change the style - no capital names, meaningful variable names
 Indent the code - 2 spaces instead of a TAB
@@ -13,12 +20,3 @@ Change the encoding to UTF-8
 Generate the files that contain old results into a subdir `tmp`, not a top-level directory
 Remove the `bin` directory from the repository
 Add other stuff from your notes here
-
-
-DONE:
------
-
-introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
-check if regression detection works for time based tests
-transition to sbt
-
