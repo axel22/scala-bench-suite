@@ -1,15 +1,15 @@
 /*
- * Benchmark
+ * SnippetBenchmark
  * 
  * Version 
  * 
- * Created on September 09th, 2011
+ * Created on September 17th, 2011
  * 
  * Created by ND P
  */
 
 package scala.tools.sbs
-package measurement
+package benchmark
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -23,18 +23,19 @@ import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
-import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-case class Benchmark(name: String,
+import BenchmarkMode.BenchmarkMode
+
+case class SnippetBenchmark(name: String,
                      arguments: List[String],
-                     metrics: List[BenchmarkType],
+                     modes: List[BenchmarkMode],
                      classpathURLs: List[URL],
                      src: List[File],
                      bin: Directory,
                      log: Log,
-                     config: Config) {
+                     config: Config) extends Benchmark {
 
   /**
    * Benchmark process.

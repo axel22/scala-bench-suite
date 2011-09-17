@@ -16,7 +16,7 @@ import scala.math.sqrt
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
-import scala.tools.sbs.measurement.MeasurementSeries
+import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
@@ -79,7 +79,7 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @param series	The result of benchmarking
    * @return	The left and right end points of the confidence interval.
    */
-  def confidenceInterval(series: MeasurementSeries): (Double, Double) = {
+  def confidenceInterval(series: Series): (Double, Double) = {
     val SD = standardDeviation(series)
     var diff: Double = 0
 
@@ -133,13 +133,13 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @param series	The result of benchmarking
    * @return	The minimum value
    */
-  def min(series: MeasurementSeries) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
+  def min(series: Series) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
 
   /**
    * @param series	The result of benchmarking
    * @return	The maximum value
    */
-  def max(series: MeasurementSeries) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
+  def max(series: Series) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
 
   /**
    * Computes the sample mean.
@@ -147,7 +147,7 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @param series	The result of benchmarking
    * @return	The average
    */
-  def mean(series: MeasurementSeries) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
+  def mean(series: Series) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
 
   /**
    * Computes the standard deviation of a given sample.
@@ -155,7 +155,7 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @param series	The result of benchmarking
    * @return	The standard deviation
    */
-  def standardDeviation(series: MeasurementSeries): Double = {
+  def standardDeviation(series: Series): Double = {
     val mean = this.mean(series)
     sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
   }
@@ -166,7 +166,7 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @param series	The result of benchmarking
    * @return	The coefficient of variation
    */
-  def CoV(series: MeasurementSeries) = standardDeviation(series) / mean(series)
+  def CoV(series: Series) = standardDeviation(series) / mean(series)
 
   /**
    * @return	The significant level alpha
@@ -206,13 +206,13 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    * @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
   private def testConfidenceIntervals(persistor: Persistor): Option[(Double, Double)] = {
-    var series = persistor(0)
+    var series = persistor(0).series
 
     val mean1 = mean(series)
     val s1 = standardDeviation(series)
     val n1 = series.length
 
-    series = persistor(1)
+    series = persistor(1).series
 
     val mean2 = mean(series)
     val s2 = standardDeviation(series)
@@ -253,29 +253,29 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
    */
   private def testANOVA(persistor: Persistor): Option[ArrayBuffer[Double]] = {
 
-    val sum = persistor.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
+    val sum = persistor.foldLeft(0: Long)((sum, p) => p.series.foldLeft(sum)((s, r) => s + r))
 
-    val overall: Double = sum / (persistor.length * persistor.head.length)
+    val overall: Double = sum / (persistor.length * persistor.head.series.length)
 
     var SSA: Double = 0
     var SSE: Double = 0
 
     for (alternative <- persistor) {
-      val alternativeMean = mean(alternative)
-      SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.length
-      SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
+      val alternativeMean = mean(alternative.series)
+      SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.series.length
+      SSE += alternative.series.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
     if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
       // Memory case
-      Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+      Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p.series) })
     } else if (SSE == 0 && SSA == 0) {
       None
     } else {
       // Performance case
       reduceConfidenceLevel()
       val n1 = persistor.length - 1
-      val n2 = persistor.foldLeft(0)((s, p) => s + p.length) - persistor.length
+      val n2 = persistor.foldLeft(0)((s, p) => s + p.series.length) - persistor.length
       val FValue = SSA * n2 / SSE / n1
 
       log.debug(
@@ -287,7 +287,7 @@ class Statistic(log: Log, config: Config, var alpha: Double = 0) {
       if (FValue <= inverseFDistribution(n1, n2)) {
         None
       } else {
-        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p.series) })
       }
     }
   }

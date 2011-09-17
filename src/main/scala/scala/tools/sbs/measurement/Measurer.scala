@@ -8,7 +8,10 @@
  * Cretead by ND P
  */
 
-package scala.tools.sbs.measurement
+package scala.tools.sbs
+package measurement
+
+import scala.tools.sbs.benchmark.Benchmark
 
 trait Measurer {
 

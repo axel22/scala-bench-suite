@@ -13,61 +13,58 @@ package regression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
-import scala.tools.sbs.measurement.Benchmark
 import scala.tools.sbs.measurement.BenchmarkRunner
-import scala.tools.sbs.measurement.MeasurementSeries
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-import scala.tools.sbs.measurement.OverallHarness
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurementFailure
+import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.measurement.MeasurerFactory
 
 class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Directory) {
 
-  private var _container: ArrayBuffer[MeasurementSeries] = null
-  def container = _container
-  private def container_=(container: ArrayBuffer[MeasurementSeries]) {
-    _container = container
-  }
-
+  private var data: ArrayBuffer[MeasurementResult] = null
+  
   def location(): Directory = location
 
   def this(
-    log: Log, config: Config, benchmark: Benchmark, location: Directory, container: ArrayBuffer[MeasurementSeries]) {
+    log: Log, config: Config, benchmark: Benchmark, location: Directory, data: ArrayBuffer[MeasurementResult]) {
     this(log, config, benchmark, location)
-    this.container = container
+    this.data = data
   }
   /**
-   * Add a `MeasurementSeries` to `container`.
+   * Add a `MeasurementResult` to `data`.
    */
-  def add(result: MeasurementSeries) = {
-    container += result
+  def add(ele: MeasurementResult) = {
+    data += ele
     this
   }
 
-  def apply(i: Int) = container(i)
+  def apply(i: Int) = data(i)
 
-  def foldLeft[B](z: B)(op: (B, MeasurementSeries) => B): B = container.foldLeft[B](z)(op)
+  def foldLeft[B](z: B)(op: (B, MeasurementResult) => B): B = data.foldLeft[B](z)(op)
 
-  def head = container.head
+  def head = data.head
 
-  def last = container.last
+  def last = data.last
 
-  def tail = new Persistor(log, config, benchmark, location, container.tail)
+  def tail = new Persistor(log, config, benchmark, location, data.tail)
 
-  def length = container.length
+  def length = data.length
 
-  def foreach(f: MeasurementSeries => Unit): Unit = container foreach f
+  def foreach(f: MeasurementResult => Unit): Unit = data foreach f
 
-  def forall(op: MeasurementSeries => Boolean) = container forall op
+  def forall(op: MeasurementResult => Boolean) = data forall op
 
   /**
    * Loads previous benchmark result from local directory.
    */
-  def load(metric: BenchmarkType): Persistor = {
+  def load(mode: BenchmarkMode): Persistor = {
     var line: String = null
-    var storedResult: MeasurementSeries = null
+    var storedResult: MeasurementResult = null
 
     log.debug("--Persistor directory--  " + location.path)
 
@@ -78,12 +75,12 @@ class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Direct
         file => try {
           log.verbose("--Read file--	" + file.path)
 
-          storedResult = new MeasurementSeries(log, config, benchmark)
+          storedResult = new MeasurementResult(log, config, benchmark)
           storedResult.load(file.toFile)
 
           log.debug("----Read----	" + storedResult.toString)
 
-          container += storedResult
+          data += storedResult
         } catch {
           case e => {
             log.debug(e.toString)
@@ -99,16 +96,16 @@ class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Direct
    * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
    * with additional information (date and time, main benchmark class name).
    */
-  def store() = container foreach (_.store(true))
+  def store() = data foreach (_.store(true))
 
   /**
    * Generates sample results.
    */
-  def generate(metric: BenchmarkType, num: Int) {
+  def generate(mode: BenchmarkMode, num: Int) {
     var i = 0
-    val harness = new OverallHarness(log, config)
+    val measurer = new MeasurerFactory(log, config) create mode
     while (i < num) {
-      harness run benchmark match {
+      measurer run benchmark match {
         case success: MeasurementSuccess => {
           success.series store true match {
             case Some(_) => {

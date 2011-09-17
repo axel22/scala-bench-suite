@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.measurement.Benchmark
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.regression.Statistic
 
 trait Report {

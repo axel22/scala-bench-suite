@@ -12,7 +12,7 @@ package scala.tools.sbs
 package regression
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.measurement.Benchmark
+import scala.tools.sbs.benchmark.Benchmark
 
 abstract class BenchmarkResult(benchmark: Benchmark, persistor: Persistor)
 

@@ -12,22 +12,23 @@ package scala.tools.sbs
 package measurement
 
 import java.lang.Thread.sleep
-import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.compat.Platform
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.Log
+import scala.tools.sbs.benchmark.Benchmark
 
 abstract class Harness(log: Log, config: Config) extends Measurer {
 
   def run(benchmark: Benchmark): MeasurementResult
 
-  def run(benchmark: Benchmark, FcheckWarm: MeasurementSeries => Boolean, measure: => Long): MeasurementResult = {
+  def run(benchmark: Benchmark, checkWarm: Series => Boolean, measure: => Long): MeasurementResult = {
 
     log.verbose("")
     log.verbose("--Warmup--")
 
-    var series = new MeasurementSeries(log, config, benchmark)
+    var series = new SeriesFactory(log, config) create
 
     val iteratorMax = config.multiplier * 5
     var iteratorCount = 0
