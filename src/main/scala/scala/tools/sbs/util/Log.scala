@@ -8,7 +8,7 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package util
 
 import java.io.{ File => JFile }
@@ -20,39 +20,12 @@ import java.text.SimpleDateFormat
 import scala.collection.mutable.ArrayBuffer
 import java.util.Date
 
-class Log {
+trait Log {
 
-  var logFile: File = null
-  var logLevel: LogLevel = LogLevel.INFO
   var logShow = false
+  var logLevel: LogLevel = _
 
-  def this(logFile: File, logLevel: LogLevel, logShow: Boolean) {
-    this
-    this.logFile = logFile
-    this.logLevel = logLevel
-    this.logShow = logShow
-  }
-
-  def this(args: Array[String]) {
-    this(
-      new File(new JFile(args(Constant.INDEX_LOG_FILE))),
-      if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.DEBUG.toString()) {
-        LogLevel.DEBUG
-      } else if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.VERBOSE.toString()) {
-        LogLevel.VERBOSE
-      } else if (args(Constant.INDEX_LOG_LEVEL) equals LogLevel.ALL.toString()) {
-        LogLevel.ALL
-      } else {
-        LogLevel.INFO
-      },
-      args(Constant.INDEX_SHOW_LOG).toBoolean)
-  }
-
-  private def apply(message: String) {
-    if (logFile != null) {
-      FileUtil.write(logFile.path, message)
-    }
-  }
+  protected def apply(message: String)
 
   def info(message: String) {
     this("[Info]     " + message)
@@ -86,17 +59,19 @@ class Log {
     }
   }
 
-  def toArgument(): Array[String] = {
-    var arr = new Array[String](Constant.MAX_ARGUMENT_LOG)
-    arr(Constant.INDEX_LOG_FILE) = logFile.path
-    arr(Constant.INDEX_LOG_LEVEL) = logLevel.toString
-    arr(Constant.INDEX_SHOW_LOG) = logShow.toString
-    arr
+}
+
+class TextFileLog(logFile: File, logLevel: LogLevel, logShow: Boolean) extends Log {
+
+  def write(message: String) {
+    if (logFile != null) {
+      FileUtil.write(logFile.path, message)
+    }
   }
 
 }
 
-object Log extends Log {
+object TextFileLog {
   /**
    * Creates a new file for logging whose name in the format:
    * YYYYMMDD.hhmmss.BenchmarkClass.log

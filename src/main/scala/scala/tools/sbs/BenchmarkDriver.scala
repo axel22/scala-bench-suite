@@ -8,14 +8,20 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 
-import ndp.scala.tools.sbs.measurement.BenchmarkResult
-import ndp.scala.tools.sbs.measurement.BenchmarkRunner
-import ndp.scala.tools.sbs.regression.Persistor
-import ndp.scala.tools.sbs.regression.Statistic
-import ndp.scala.tools.sbs.util.Constant
-import ndp.scala.tools.sbs.util.Report
+import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.regression.Persistor
+import scala.tools.sbs.regression.Statistic
+import scala.tools.sbs.util.Report
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.Log
+import scala.tools.sbs.measurement.Benchmark
+import scala.tools.sbs.measurement.BenchmarkRunner
+import scala.tools.sbs.measurement.MeasurementSuccess
+import scala.tools.sbs.measurement.MeasurementFailure
+import scala.tools.sbs.measurement.MeasurerFactory
+
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -37,10 +43,7 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = {
 
-    val (c, l, b) = ArgumentParser.parse(args)
-    config = c
-    log = l
-    benchmark = b
+    val (config, log, benchmark) = ArgumentParser.parse(args)
 
     log.debug(config.toString())
 
@@ -52,21 +55,25 @@ object BenchmarkDriver {
       log.verbose("[Measure]")
 
       if (config.sampleNumber > 0) {
-        config.metrics foreach (metric => Persistor.generate(metric, config.sampleNumber))
+        benchmark.metrics foreach (
+          new Persistor(log, config, benchmark, config.persistorLocation) generate (_, config.sampleNumber))
       }
 
-      val report = new Report
+      val report = new Report(log, benchmark)
 
-      config.metrics foreach (
-        metric => BenchmarkRunner.run(metric) match {
-          case Left(ret) => {
-            val passOrFail = detectRegression(ret)
-            ret.store(passOrFail) match {
+      benchmark.metrics foreach (
+        metric => {
+          val measurer = new MeasurerFactory(log, config) create metric
+          measurer run benchmark match {
+          case success: MeasurementSuccess => {
+            val passOrFail = detectRegression(log, config, ret)
+            success.store(passOrFail) match {
               case Some(f) => log.info("Result stored into " + f.path)
               case None => log.info("Cannot stored the result.")
             }
           }
-          case Right(s) => report(Constant.REGRESSION_FAILED, Report dueToReason s)
+          case failure: MeasurementFailure => report(Constant.REGRESSION_FAILED, Report dueToReason s)
+        }
         }
       )
     } catch {
@@ -82,21 +89,19 @@ object BenchmarkDriver {
    *
    * @param result	The benchmark result just measured.
    */
-  def detectRegression(result: BenchmarkResult): Boolean = {
-    val persistor = new Persistor((config.persistorLocation / result.metric.toString).toDirectory)
+  def detectRegression(log: Log, config: Config, result: MeasurementResult): Boolean = {
+    val persistor = new Persistor(log, config, result.benchmark, (config.persistorLocation / result.metric.toString).toDirectory)
     val report = new Report
 
-    persistor += result
-    persistor.load(result.metric)
-    
-    persistor foreach println
+    persistor add result
+    persistor load result.metric
 
     if (persistor.length < 2) {
       report(Constant.REGRESSION_FAILED,
         Report dueToReason "Not enough result files specified at " + persistor.location.path)
-        true
+      true
     } else {
-      Statistic testDifference persistor match {
+      new Statistic(log, config, 0) testDifference persistor match {
         case Left(c) => c match {
           case None => {
             report(Constant.REGRESSION_PASS, null)

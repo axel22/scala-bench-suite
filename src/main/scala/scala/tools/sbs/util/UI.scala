@@ -8,7 +8,7 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package util
 
 /**

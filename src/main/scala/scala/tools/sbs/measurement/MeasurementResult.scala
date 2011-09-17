@@ -8,7 +8,7 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package measurement
 
 import java.text.SimpleDateFormat
@@ -17,18 +17,26 @@ import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source.fromFile
 import scala.tools.nsc.io.File
+import scala.tools.sbs.regression.Statistic
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.Constant
+import scala.tools.sbs.util.FileUtil
+import scala.tools.sbs.util.Log
 
 import BenchmarkType.BenchmarkType
-import ndp.scala.tools.sbs.regression.Statistic
-import ndp.scala.tools.sbs.util.Constant
-import ndp.scala.tools.sbs.util.FileUtil
 
 /**
  * Class represents the result of benchmarking. Allows user to store or load a list of values from file.
  *
  * @author ND P
  */
-class BenchmarkResult extends ArrayBuffer[Long] {
+class MeasurementSeries(log: Log, config: Config, benchmark: Benchmark) {
+
+  /**
+   *
+   */
+  private var _series: ArrayBuffer[Long] = null
+  def series = _series
 
   /**
    *
@@ -48,15 +56,38 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     _metric = metric
   }
 
-  def this(metric: BenchmarkType) {
-    this()
+  def this(log: Log, config: Config, benchmark: Benchmark, metric: BenchmarkType) {
+    this(log, config, benchmark)
     this.metric = metric
   }
 
-  //  def this(confidenceLevel: Int, metric: BenchmarkType) {
-  //    this(metric)
-  //    this.confidenceLevel = confidenceLevel
-  //  }
+  def this(log: Log, config: Config, benchmark: Benchmark, series: ArrayBuffer[Long]) {
+    this(log, config, benchmark)
+    _series = series
+  }
+
+  def head = _series.head
+
+  def tail = new MeasurementSeries(log, config, benchmark, _series.tail)
+
+  def last = _series.last
+
+  def length = _series.length
+
+  def clear() = _series.clear()
+
+  def +=(ele: Long) = _series += ele
+
+  def foldLeft[B](z: B)(op: (B, Long) => B) = _series.foldLeft[B](z)(op)
+
+  def foldRight[B](z: B)(op: (Long, B) => B) = _series.foldRight[B](z)(op)
+
+  def forall(op: Long => Boolean) = _series forall op
+
+  def remove(n: Int) = {
+    _series remove n
+    this
+  }
 
   /**
    * Calculates statistical metrics.
@@ -76,12 +107,12 @@ class BenchmarkResult extends ArrayBuffer[Long] {
       log.debug("--Wrong in measurment length--")
       false
     } else {
-      Statistic.resetConfidenceInterval()
+      val statistic = new Statistic(log, config, 0)
 
-      val mean = Statistic mean this
+      val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))
 
-      val (left, right) = Statistic confidenceInterval this
+      val (left, right) = statistic confidenceInterval this
       log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
         (right formatted "%.2f") + "]")
 
@@ -89,10 +120,10 @@ class BenchmarkResult extends ArrayBuffer[Long] {
       log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
         ((diff / mean * 100) formatted "%.2f") + "%")
 
-      while (Statistic.isConfidenceLevelAcceptable && (diff / mean) >= Constant.CI_PRECISION_THREDSHOLD) {
-        Statistic.reduceConfidenceLevel()
+      while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= Constant.CI_PRECISION_THREDSHOLD) {
+        statistic.reduceConfidenceLevel()
 
-        val (left, right) = Statistic confidenceInterval this
+        val (left, right) = statistic confidenceInterval this
         log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
           (right formatted "%.2f") + "]")
 
@@ -102,11 +133,9 @@ class BenchmarkResult extends ArrayBuffer[Long] {
       }
 
       if ((diff / mean) < Constant.CI_PRECISION_THREDSHOLD) {
-        this.confidenceLevel = Statistic.confidenceLevel.toInt
-        Statistic.resetConfidenceInterval()
+        this.confidenceLevel = statistic.confidenceLevel.toInt
         true
       } else {
-        Statistic.resetConfidenceInterval()
         false
       }
     }
@@ -129,12 +158,12 @@ class BenchmarkResult extends ArrayBuffer[Long] {
         } else if (line startsWith "Confidence") {
           this.confidenceLevel = (line split " ")(2).toInt
         } else {
-          this += line.toLong
+          _series += line.toLong
         }
       } catch {
         case e => {
           log.debug("[Read failed] " + file.path + e.toString)
-          this.clear()
+          clear()
         }
       }
     }
@@ -146,7 +175,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    * with additional information (date and time, main benchmark class name).
    */
   def store(passed: Boolean): Option[File] = {
-    if (array.length == 0) {
+    if (series.length == 0) {
       log.info("Nothing to store")
       return None
     }
@@ -161,7 +190,7 @@ class BenchmarkResult extends ArrayBuffer[Long] {
     FileUtil.createAndStore(
       (config.persistorLocation / metric.toString).path + directory,
       benchmark.name + "." + metric.toString,
-      foldLeft(data) { (data, l) => data + l.toString }
+      series.foldLeft(data) { (data, l) => data + l.toString }
     )
   }
 
@@ -170,6 +199,18 @@ class BenchmarkResult extends ArrayBuffer[Long] {
    */
   override def toString(): String =
     foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
+
+}
+
+class MeasurementResult(benchmark: Benchmark)
+
+case class MeasurementSuccess(benchmark: Benchmark, series: MeasurementSeries)
+  extends MeasurementResult(benchmark) {
+
+}
+
+case class MeasurementFailure(benchmark: Benchmark)
+  extends MeasurementResult(benchmark) {
 
 }
 

@@ -8,7 +8,7 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package util
 
 import java.io.{ File => JFile }
@@ -101,11 +101,7 @@ object FileUtil {
           Some(file)
         } catch {
           case e => {
-            if (log != null) {
-              log.debug(file.path + (System getProperty "line.separator") + e.toString())
-            } else {
-              UI(file.path + (System getProperty "line.separator") + e.toString())
-            }
+            UI(file.path + (System getProperty "line.separator") + e.toString())
             None
           }
         }

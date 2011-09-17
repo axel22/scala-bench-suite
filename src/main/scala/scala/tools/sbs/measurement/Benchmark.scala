@@ -8,7 +8,7 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package measurement
 
 import java.lang.reflect.Method
@@ -23,12 +23,18 @@ import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
+import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.Log
 
 case class Benchmark(name: String,
                      arguments: List[String],
+                     metrics: List[BenchmarkType],
                      classpathURLs: List[URL],
                      src: List[File],
-                     bin: Directory) {
+                     bin: Directory,
+                     log: Log,
+                     config: Config) {
 
   /**
    * Benchmark process.
@@ -104,7 +110,7 @@ case class Benchmark(name: String,
    * Creates the process command for start up benchmarking.
    */
   def initCommand(): Boolean = {
-    val colon = (System getProperty "path.separator")
+    val colon = System getProperty "path.separator"
     val command = arguments.foldLeft(
       Seq(config.JAVACMD,
         "-cp",
@@ -112,9 +118,7 @@ case class Benchmark(name: String,
         config.JAVAPROP,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
-        bin.path + colon +
-          config.SCALALIB + colon +
-          (classpathURLs map (_.toString) mkString colon),
+        bin.path + colon + config.SCALALIB + colon + (classpathURLs map (_.toString) mkString colon),
         name)
     ) { (cmd, arg) => cmd :+ arg }
 

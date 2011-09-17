@@ -1,6 +1,4 @@
-/*
- * Report
- * 
+/* 
  * Version
  * 
  * Created September 5th, 2011
@@ -8,22 +6,29 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package util
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import scala.collection.mutable.ArrayBuffer
-import ndp.scala.tools.sbs.regression.Statistic
 
-class Report {
+import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.measurement.Benchmark
+import scala.tools.sbs.regression.Statistic
+
+trait Report {
+  
+}
+
+
+class TextFileReport(log: Log, benchmark: Benchmark, statistic: Statistic) extends Report {
 
   def apply(result: Boolean, due: String) {
     val date = new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm:ss").format(new Date)
     if (result) {
       log.info("[Test: " + date + " Main class: " + benchmark.name + "]" +
         "    ----------------------------------    [  OK  ]" +
-        (System getProperty "line.separator") + "           at confidence level " + Statistic.confidenceLevel + "%")
+        (System getProperty "line.separator") + "           at confidence level " + statistic.confidenceLevel + "%")
     } else {
       log.info("[Test: " + date + " Main class: " + benchmark.name + "]" +
         "    ----------------------------------    [FAILED]")
@@ -34,7 +39,7 @@ class Report {
 
 }
 
-object Report {
+object TextFileReport {
 
   def endl = System getProperty "line.separator"
 

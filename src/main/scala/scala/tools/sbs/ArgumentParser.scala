@@ -8,24 +8,23 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 
-import java.io.{ File => JFile }
-import scala.collection.mutable.ArrayBuffer
+import java.io.{File => JFile}
+
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-import scala.tools.nsc.io.Path
 import scala.tools.nsc.GenericRunnerSettings
-import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
-import ndp.scala.tools.sbs.measurement.Benchmark
-import ndp.scala.tools.sbs.measurement.BenchmarkType
-import ndp.scala.tools.sbs.util.LogLevel.LogLevel
-import ndp.scala.tools.sbs.util.Config
-import ndp.scala.tools.sbs.util.FileUtil
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.LogLevel
-import ndp.scala.tools.sbs.util.UI
-import java.net.URL
+import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
+import scala.tools.sbs.measurement.Benchmark
+import scala.tools.sbs.measurement.BenchmarkType
+import scala.tools.sbs.util.LogLevel.LogLevel
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.FileUtil
+import scala.tools.sbs.util.Log
+import scala.tools.sbs.util.LogLevel
+import scala.tools.sbs.util.TextFileLog
+import scala.tools.sbs.util.UI
 
 /**
  * Parser for the suite's arguments.
@@ -100,7 +99,7 @@ object ArgumentParser {
     var javahome: Directory = null
     var persistor: Directory = null
 
-    var metrics = ArrayBuffer[BenchmarkType]()
+    var metrics = List[BenchmarkType]()
 
     var clean = false
 
@@ -162,9 +161,9 @@ object ArgumentParser {
       }
 
       def parseUnary(opt: String) = opt match {
-        case Parameter.OPT_STEADY => metrics += BenchmarkType.STEADY
-        case Parameter.OPT_STARTUP => metrics += BenchmarkType.STARTUP
-        case Parameter.OPT_MEMORY => metrics += BenchmarkType.MEMORY
+        case Parameter.OPT_STEADY => metrics ::= BenchmarkType.STEADY
+        case Parameter.OPT_STARTUP => metrics ::= BenchmarkType.STARTUP
+        case Parameter.OPT_MEMORY => metrics ::= BenchmarkType.MEMORY
         case Parameter.OPT_CLEAN => clean = true
         case Parameter.OPT_HELP => {
           UI.printUsage
@@ -262,35 +261,40 @@ object ArgumentParser {
 
     val jars = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (_.path)
     val classpathString = jars.foldLeft(classpath + colon + benchmarkdir.path + slash + "bin")((s, j) => s + colon + j)
-    val settings = new GenericRunnerSettings(log.error)
+    val settings = new GenericRunnerSettings(UI.error)
     settings.processArguments(List("-cp", classpathString), false)
 
     settings.classpathURLs foreach println
 
-    return (
-      new Config(
-        Directory(benchmarkdir),
-        metrics,
-        runs,
-        multiplier,
-        scalahome,
-        javahome,
-        persistor,
-        sampleNumber,
-        compile),
-      new Log(
-        Log.createLog(benchmarkdir, benchmarkName) match {
-          case Some(file) => file
-          case None => null
-        },
-        logLevel,
-        showlog),
-      new Benchmark(
-        benchmarkName,
-        benchmarkArguments,
-        settings.classpathURLs,
-        src,
-        (benchmarkdir / "bin").toDirectory))
+    val config = new Config(
+      Directory(benchmarkdir),
+      runs,
+      multiplier,
+      scalahome,
+      javahome,
+      persistor,
+      sampleNumber,
+      compile)
+
+    val log = new TextFileLog(
+      TextFileLog.createLog(benchmarkdir, benchmarkName) match {
+        case Some(file) => file
+        case None => null
+      },
+      logLevel,
+      showlog)
+
+    val benchmark = new Benchmark(
+      benchmarkName,
+      benchmarkArguments,
+      metrics,
+      settings.classpathURLs,
+      src,
+      (benchmarkdir / "bin").toDirectory,
+      log,
+      config)
+
+    return (config, log, benchmark)
   }
 
   def exitOnError(message: String) {

@@ -1,12 +1,7 @@
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package measurement
 
-import ndp.scala.tools.sbs.util.Config
-import ndp.scala.tools.sbs.util.Constant
-import ndp.scala.tools.sbs.util.Log
-import ndp.scala.tools.sbs.util.UI
-
-trait SubProcessRunner {
+trait SubProcessHarness {
 
   /**
    * Entry point for this measuring sub-process 
@@ -14,7 +9,7 @@ trait SubProcessRunner {
    */
   def main(args: Array[String]): Unit = {
     try {
-      rebuildSettings(args)
+//      rebuildSettings(args)
       reportResult(run())
       System.exit(0)
     } catch {
@@ -24,12 +19,12 @@ trait SubProcessRunner {
     }
   }
   
-  def run(): Either[BenchmarkResult, String]
+  def run(): Either[MeasurementResult, String]
   
   /**
    * Reports the measurement result to the main process.
    */
-  def reportResult(result: Either[BenchmarkResult, String]) {
+  def reportResult(result: Either[MeasurementResult, String]) {
     result match {
       case Left(series) => {
         Console println series.toString()
@@ -43,7 +38,7 @@ trait SubProcessRunner {
   /**
    *
    */
-  def rebuildSettings(args: Array[String]): (Config, Log) = {
+  /*def rebuildSettings(args: Array[String]): (Config, Log) = {
     val confArgs = args take Constant.MAX_ARGUMENT_CONFIG
     val logArgs = args slice (Constant.MAX_ARGUMENT_CONFIG, args.length)
 
@@ -58,6 +53,6 @@ trait SubProcessRunner {
     log = new Log(logArgs)
 
     (config, log)
-  }
+  }*/
   
 }

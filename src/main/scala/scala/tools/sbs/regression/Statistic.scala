@@ -8,22 +8,22 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package regression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.math.sqrt
-
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
-
-import ndp.scala.tools.sbs.measurement.BenchmarkResult
+import scala.tools.sbs.measurement.MeasurementSeries
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.Log
 
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
  */
-object Statistic {
+class Statistic(log: Log, config: Config, var alpha: Double = 0) {
 
   /**
    * Minimum significant level.
@@ -34,15 +34,6 @@ object Statistic {
    * Maximum significant level.
    */
   private val alphaMin: Double = 0.00
-
-  /**
-   * The significant level.
-   */
-  private var _alpha = alphaMin
-  def alpha = _alpha
-  def alpha_=(alpha: Double) {
-    _alpha = alpha
-  }
 
   /**
    * Reduces the confidence level time by time to by 5% each time,
@@ -88,7 +79,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The left and right end points of the confidence interval.
    */
-  def confidenceInterval(series: BenchmarkResult): (Double, Double) = {
+  def confidenceInterval(series: MeasurementSeries): (Double, Double) = {
     val SD = standardDeviation(series)
     var diff: Double = 0
 
@@ -142,13 +133,13 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The minimum value
    */
-  def min(series: BenchmarkResult) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
+  def min(series: MeasurementSeries) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
 
   /**
    * @param series	The result of benchmarking
    * @return	The maximum value
    */
-  def max(series: BenchmarkResult) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
+  def max(series: MeasurementSeries) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
 
   /**
    * Computes the sample mean.
@@ -156,7 +147,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The average
    */
-  def mean(series: BenchmarkResult) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
+  def mean(series: MeasurementSeries) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
 
   /**
    * Computes the standard deviation of a given sample.
@@ -164,7 +155,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The standard deviation
    */
-  def standardDeviation(series: BenchmarkResult): Double = {
+  def standardDeviation(series: MeasurementSeries): Double = {
     val mean = this.mean(series)
     sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
   }
@@ -175,7 +166,7 @@ object Statistic {
    * @param series	The result of benchmarking
    * @return	The coefficient of variation
    */
-  def CoV(series: BenchmarkResult) = standardDeviation(series) / mean(series)
+  def CoV(series: MeasurementSeries) = standardDeviation(series) / mean(series)
 
   /**
    * @return	The significant level alpha

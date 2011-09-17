@@ -8,27 +8,22 @@ transition to sbt
 
 I've taken a look at the code. Good work overall. Here are a couple of comments:
 
-1)
---> it's considered bad style to have global variables as in the case of the package object with config, log and benchmark
---> instead: every module depending on the config, log and benchmark should take these objects as arguments to its constructor
-    --> for example, BenchmarkRunner should not be a singleton object - instead it should be a class with a ctor parameter `config`
-    --> that way you ensure that whenever the BenchmarkRunner is used, the config will be ready for it (its dependency on someone having to create a `config` and set it globally is not hardcoded)
 
 2)
-When using `Either` in BenchmarkRunner.run it can become unclear what the results can be. A better solution is to use a BenchmarkResult base class with to subclasses - 1 for success, 1 for failure:
+When using `Either` in BenchmarkRunner.run it can become unclear what the results can be. A better solution is to use
+ a BenchmarkResult base class with to subclasses - 1 for success, 1 for failure:
 abstract class Result
 case class Success extends Result
 case class Failure(s: String) extends Result
 
 
 3)
-In BenchmarkRunner.run you have a lot of if-then statements. You should convert them into pattern-match clauses, or use an abstract base class for a BenchmarkType, and then just run the appropriate method from there to perform the test.
+In BenchmarkRunner.run you have a lot of if-then statements. You should convert them into pattern-match clauses, 
+  or use an abstract base class for a BenchmarkType, 
+  and then just run the appropriate method from there to perform the test.
 
 4)
 Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
-
-5)
-The main package can be scala.tools.sbs
 
 6)
 Avoid:
@@ -51,7 +46,9 @@ class SimplePersistor extends Persistor {
 Avoid having global getters and setters - Statistic has alpha, but this should be a ctor parameter.
 
 8)
-Factor out interfaces (traits) wherever possible - for instance Log should be a trait. A ConsoleLog should be one of the implementations. Same thing for Report - Report should be a trait, and a SimpleLogReport should be one implementation.
+Factor out interfaces (traits) wherever possible - for instance Log should be a trait. 
+A ConsoleLog should be one of the implementations. 
+Same thing for Report - Report should be a trait, and a SimpleLogReport should be one implementation.
 +The same comment as above - `logLevel` should be a ctor argument.
 
 
@@ -71,8 +68,18 @@ Generate the files that contain old results into a subdir `tmp`, not a top-level
 Remove the `bin` directory from the repository
 Add other stuff from your notes here
 
+5)
+The main package can be scala.tools.sbs
 
-
+1)
+--> it's considered bad style to have global variables as in the case of the package object with 
+  config, log and benchmark
+--> instead: every module depending on the config, log and benchmark should take these objects 
+  as arguments to its constructor
+    --> for example, BenchmarkRunner should not be a singleton object - instead it should be a class 
+      with a ctor parameter `config`
+    --> that way you ensure that whenever the BenchmarkRunner is used, the config will be ready for it 
+      (its dependency on someone having to create a `config` and set it globally is not hardcoded)
 
 
 

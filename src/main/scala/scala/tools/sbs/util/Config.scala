@@ -8,16 +8,12 @@
  * Created by ND P
  */
 
-package ndp.scala.tools.sbs
+package scala.tools.sbs
 package util
 
-import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 
-import ndp.scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
-
 case class Config(benchmarkDirectory: Directory,
-                  metrics: ArrayBuffer[BenchmarkType],
                   runs: Int,
                   multiplier: Int,
                   scalahome: Directory,
