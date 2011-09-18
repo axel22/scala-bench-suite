@@ -20,34 +20,35 @@ import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.measurement.MeasurerFactory
+import scala.tools.sbs.measurement.SeriesFactory
 
 class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Directory) {
 
-  private var data: ArrayBuffer[MeasurementResult] = null
+  private var data: ArrayBuffer[Series] = null
   
   def location(): Directory = location
 
   def this(
-    log: Log, config: Config, benchmark: Benchmark, location: Directory, data: ArrayBuffer[MeasurementResult]) {
+    log: Log, config: Config, benchmark: Benchmark, location: Directory, data: ArrayBuffer[Series]) {
     this(log, config, benchmark, location)
     this.data = data
   }
   /**
-   * Add a `MeasurementResult` to `data`.
+   * Add a `Series` to `data`.
    */
-  def add(ele: MeasurementResult) = {
+  def add(ele: Series) = {
     data += ele
     this
   }
 
   def apply(i: Int) = data(i)
 
-  def foldLeft[B](z: B)(op: (B, MeasurementResult) => B): B = data.foldLeft[B](z)(op)
+  def foldLeft[B](z: B)(op: (B, Series) => B): B = data.foldLeft[B](z)(op)
 
-  def head = data.head
+  def head: Series = data.head
 
   def last = data.last
 
@@ -55,16 +56,16 @@ class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Direct
 
   def length = data.length
 
-  def foreach(f: MeasurementResult => Unit): Unit = data foreach f
+  def foreach(f: Series => Unit): Unit = data foreach f
 
-  def forall(op: MeasurementResult => Boolean) = data forall op
+  def forall(op: Series => Boolean) = data forall op
 
   /**
    * Loads previous benchmark result from local directory.
    */
   def load(mode: BenchmarkMode): Persistor = {
     var line: String = null
-    var storedResult: MeasurementResult = null
+    var storedResult: Series = null
 
     log.debug("--Persistor directory--  " + location.path)
 
@@ -75,7 +76,7 @@ class Persistor(log: Log, config: Config, benchmark: Benchmark, location: Direct
         file => try {
           log.verbose("--Read file--	" + file.path)
 
-          storedResult = new MeasurementResult(log, config, benchmark)
+          storedResult = new SeriesFactory(log, config).create
           storedResult.load(file.toFile)
 
           log.debug("----Read----	" + storedResult.toString)

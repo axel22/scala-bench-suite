@@ -11,18 +11,11 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.regression.Statistic
-import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.util.FileUtil
-import scala.tools.nsc.io.File
+import scala.tools.sbs.regression.Statistic
 import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkMode
-import java.text.SimpleDateFormat
-import java.util.Date
 import scala.tools.sbs.util.Constant
+import scala.tools.sbs.util.Log
 
 /**
  * Class represents the result of benchmarking. Allows user to store or load a list of values from file.
@@ -37,22 +30,21 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
   private var data: ArrayBuffer[Long] = null
 
   /**
-   *
+   * The confidence level that at which, this series' confidence interval is not greater than
+   * 2% of its mean.
    */
   private var _confidenceLevel: Int = 0
   def confidenceLevel = _confidenceLevel
-  def confidenceLevel_=(confidenceLevel: Int) {
-    _confidenceLevel = confidenceLevel
-  }
 
-  def this(log: Log, config: Config, series: ArrayBuffer[Long]) {
+  def this(log: Log, config: Config, series: ArrayBuffer[Long], confidenceLevel: Int) {
     this(log, config)
     data = series
+    _confidenceLevel = confidenceLevel
   }
 
   def head = data.head
 
-  def tail = new ArrayBufferSeries(log, config, data.tail)
+  def tail = new ArrayBufferSeries(log, config, data.tail, _confidenceLevel)
 
   def last = data.last
 
@@ -117,65 +109,12 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
       }
 
       if ((diff / mean) < Constant.CI_PRECISION_THREDSHOLD) {
-        this.confidenceLevel = statistic.confidenceLevel.toInt
+        _confidenceLevel = statistic.confidenceLevel.toInt
         true
       } else {
         false
       }
     }
-  }
-
-  /**
-   *
-   */
-  def load(file: File) {
-    for (line <- fromFile(file.path).getLines) {
-      try {
-        if (line startsWith "Date") {
-
-        } else if (line startsWith "-") {
-
-        } else if (line startsWith "Type") {
-
-        } else if (line startsWith "Main") {
-
-        } else if (line startsWith "Confidence") {
-          this.confidenceLevel = (line split " ")(2).toInt
-        } else {
-          data += line.toLong
-        }
-      } catch {
-        case e => {
-          log.debug("[Read failed] " + file.path + e.toString)
-          clear()
-        }
-      }
-    }
-  }
-
-  /**
-   * Stores result value series in to text files whose name is the default name
-   * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
-   * with additional information (date and time, main benchmark class name).
-   */
-  def store(passed: Boolean): Option[File] = {
-    if (series.length == 0) {
-      log.info("Nothing to store")
-      return None
-    }
-    val directory = if (passed) "" else (System getProperty "file.separator") + "FAILED"
-    val data = new ArrayBuffer[String]
-    data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
-    data += "Main Class:       " + benchmark.name
-    data += "Type:             " + mode
-    data += "Confidence level: " + confidenceLevel + " %"
-    data += "-------------------------------"
-
-    FileUtil.createAndStore(
-      (config.persistorLocation / mode.toString).path + directory,
-      benchmark.name + "." + metric.toString,
-      series.foldLeft(data) { (data, l) => data + l.toString }
-    )
   }
 
   /**

@@ -12,12 +12,12 @@ package scala.tools.sbs
 package measurement
 
 import java.lang.Thread.sleep
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+
 import scala.compat.Platform
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.Log
-import scala.tools.sbs.benchmark.Benchmark
 
 abstract class Harness(log: Log, config: Config) extends Measurer {
 
@@ -29,6 +29,7 @@ abstract class Harness(log: Log, config: Config) extends Measurer {
     log.verbose("--Warmup--")
 
     var series = new SeriesFactory(log, config) create
+    var falureReason = "Benchmark irreliable"
 
     val iteratorMax = config.multiplier * 5
     var iteratorCount = 0
@@ -59,6 +60,7 @@ abstract class Harness(log: Log, config: Config) extends Measurer {
 
       if (iteratorCount == iteratorMax) {
         log.verbose("--Unwarmmable--")
+        falureReason = "Cannot warm the benchmark up"
         series.clear()
       }
 
@@ -69,7 +71,7 @@ abstract class Harness(log: Log, config: Config) extends Measurer {
     benchmark.finallize()
 
     if (iteratorMeasure >= Constant.MAX_MEASUREMENT) {
-      MeasurementFailure(benchmark)
+      MeasurementFailure(benchmark, series, falureReason)
     } else {
       MeasurementSuccess(benchmark, series)
     }
