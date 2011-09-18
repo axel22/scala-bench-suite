@@ -19,6 +19,7 @@ import org.apache.commons.math.distribution.TDistributionImpl
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
+import scala.tools.sbs.benchmark.Benchmark
 
 /**
  * Class stores the significant level and computes statistical arguments for a given sample.
@@ -47,6 +48,6 @@ trait Statistic {
 
   def confidenceLevel: Int
 
-  def testDifference(persistor: Persistor): Either[Option[(Double, Double)], Option[ArrayBuffer[Double]]]
+  def testDifference(benchmark: Benchmark, persistor: Persistor): BenchmarkResult
 
 }

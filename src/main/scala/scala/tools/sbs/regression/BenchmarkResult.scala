@@ -14,20 +14,17 @@ package regression
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
 
-abstract class BenchmarkResult(benchmark: Benchmark, persistor: Persistor)
+abstract class BenchmarkResult(benchmark: Benchmark)
 
-case class BenchmarkSuccess(benchmark: Benchmark, persistor: Persistor)
-  extends BenchmarkResult(benchmark: Benchmark, persistor: Persistor) {
-
-}
+case class BenchmarkSuccess(benchmark: Benchmark, persistor: Persistor, confidenceLevel: Int)
+  extends BenchmarkResult(benchmark: Benchmark)
 
 case class ConfidenceIntervalFailure(benchmark: Benchmark,
                                      persistor: Persistor,
                                      means: ArrayBuffer[Double],
-                                     CI: (Double, Double))
-  extends BenchmarkResult(benchmark: Benchmark, persistor: Persistor) {
-
-}
+                                     CI: (Double, Double),
+                                     confidenceLevel: Int)
+  extends BenchmarkResult(benchmark: Benchmark)
 
 case class ANOVAFailure(benchmark: Benchmark,
                         persistor: Persistor,
@@ -35,7 +32,12 @@ case class ANOVAFailure(benchmark: Benchmark,
                         SSA: Double,
                         SSE: Double,
                         FValue: Double,
-                        F: Double)
-  extends BenchmarkResult(benchmark: Benchmark, persistor: Persistor) {
+                        F: Double,
+                        confidenceLevel: Int)
+  extends BenchmarkResult(benchmark: Benchmark)
 
-}
+case class NoPreviousFailure(benchmark: Benchmark, persistor: Persistor) extends BenchmarkResult(benchmark)
+
+case class ImmeasurableFailure(benchmark: Benchmark) extends BenchmarkResult(benchmark)
+
+case class ExceptionFailure(benchmark: Benchmark, e: Exception) extends BenchmarkResult(benchmark)

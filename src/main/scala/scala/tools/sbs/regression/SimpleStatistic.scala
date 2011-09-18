@@ -16,10 +16,10 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
+import scala.tools.sbs.benchmark.Benchmark
 
 class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends Statistic {
 
@@ -186,14 +186,14 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
-  def testDifference(persistor: Persistor): Either[Option[(Double, Double)], Option[ArrayBuffer[Double]]] = {
+  def testDifference(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
     if (persistor.length < 2) {
       throw new Exception("Not enough result files specified")
     }
     if (persistor.length == 2) {
-      Left(testConfidenceIntervals(persistor))
+      testConfidenceIntervals(benchmark, persistor)
     } else {
-      Right(testANOVA(persistor))
+      testANOVA(benchmark, persistor)
     }
   }
 
@@ -203,7 +203,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
-  private def testConfidenceIntervals(persistor: Persistor): Option[(Double, Double)] = {
+  private def testConfidenceIntervals(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
     var series = persistor.head
 
     val mean1 = mean(series)
@@ -223,7 +223,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     var c2: Double = 0
 
     if (confidenceLevel == 100 && diff == 0) {
-      None
+      BenchmarkSuccess(benchmark, persistor, confidenceLevel)
     } else {
       reduceConfidenceLevel()
       if ((n1 >= 30) && (n2 >= 30)) {
@@ -239,7 +239,11 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
         c2 = diff + inverseStudentDistribution(ndf) * s
       }
 
-      if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) Some(c1, c2) else None
+      if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
+        ConfidenceIntervalFailure(benchmark, persistor, ArrayBuffer(mean1, mean2), (c1, c2), confidenceLevel)
+      } else {
+        BenchmarkSuccess(benchmark, persistor, confidenceLevel)
+      }
     }
   }
 
@@ -249,7 +253,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
-  private def testANOVA(persistor: Persistor): Option[ArrayBuffer[Double]] = {
+  private def testANOVA(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
 
     val sum = persistor.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
@@ -258,34 +262,34 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     var SSA: Double = 0
     var SSE: Double = 0
 
+    var means = ArrayBuffer[Double]()
+
     for (alternative <- persistor) {
       val alternativeMean = mean(alternative)
+      means += alternativeMean
       SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.length
       SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
     if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
-      // Memory case
-      Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+      // TODO: Memory case
+      ANOVAFailure(benchmark, persistor, means, SSA, SSE, 0, 0, confidenceLevel)
     } else if (SSE == 0 && SSA == 0) {
-      None
+      BenchmarkSuccess(benchmark, persistor, confidenceLevel)
     } else {
       // Performance case
       reduceConfidenceLevel()
       val n1 = persistor.length - 1
       val n2 = persistor.foldLeft(0)((s, p) => s + p.length) - persistor.length
       val FValue = SSA * n2 / SSE / n1
+      val F = inverseFDistribution(n1, n2)
 
-      log.debug(
-        "[SSA] " + SSA +
-          "\t[SSE] " + SSE +
-          "\t[FValue] " + FValue +
-          "\t[F(" + n1 + ", " + n2 + ")] " + inverseFDistribution(n1, n2))
+      log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
 
-      if (FValue <= inverseFDistribution(n1, n2)) {
-        None
+      if (FValue <= F) {
+        BenchmarkSuccess(benchmark, persistor, confidenceLevel)
       } else {
-        Some(persistor.foldLeft(new ArrayBuffer[Double]) { (s, p) => s + mean(p) })
+        ANOVAFailure(benchmark, persistor, means, SSA, SSE, FValue, F, confidenceLevel)
       }
     }
   }
