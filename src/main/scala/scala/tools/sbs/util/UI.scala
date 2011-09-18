@@ -14,14 +14,16 @@ package util
 /**
  * User command line interface.
  */
-object UI {
+object UI extends Log {
 
-  def apply(x: Any) = Console println x
+  def logShow = false
   
-  def print(x: Any) = Console println x
-
-  def error(x: Any) = Console println "[Error] " + x
-
+  def logLevel = LogLevel.ALL
+  
+  def apply(message: String) = Console println message
+  
+  def print(message: String) = apply(message)
+  
   def printUsage() {
     this print "Usage: sbs <options> <benchmark class> <benchmark arguments>"
     this print "	Options: [--multiplier <multiplier>] [--noncompile] [--classdir <classdir>] [--help]"

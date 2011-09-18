@@ -16,12 +16,14 @@ import scala.tools.sbs.regression.Statistic
 import scala.tools.sbs.util.Report
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-import scala.tools.sbs.measurement.Benchmark
-import scala.tools.sbs.measurement.BenchmarkRunner
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurerFactory
-
+import scala.tools.sbs.regression.BenchmarkResult
+import scala.tools.sbs.regression.BenchmarkSuccess
+import scala.tools.sbs.regression.ANOVAFailure
+import scala.tools.sbs.regression.ConfidenceIntervalFailure
+import scala.tools.sbs.regression.SimpleFilePersistor
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -43,7 +45,7 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = {
 
-    val (config, log, benchmark) = ArgumentParser.parse(args)
+    val (config, log, benchmark, persistor) = ArgumentParser.parse(args)
 
     log.debug(config.toString())
 
@@ -55,25 +57,36 @@ object BenchmarkDriver {
       log.verbose("[Measure]")
 
       if (config.sampleNumber > 0) {
-        benchmark.metrics foreach (
-          new Persistor(log, config, benchmark, config.persistorLocation) generate (_, config.sampleNumber))
+        benchmark.modes foreach (persistor generate (_, config.sampleNumber))
       }
 
       val report = new Report(log, benchmark)
 
-      benchmark.metrics foreach (
-        metric => {
-          val measurer = new MeasurerFactory(log, config) create metric
+      benchmark.modes foreach (
+        mode => {
+          val measurer = new MeasurerFactory(log, config) create mode
           measurer run benchmark match {
-          case success: MeasurementSuccess => {
-            val passOrFail = detectRegression(log, config, ret)
-            success.store(passOrFail) match {
-              case Some(f) => log.info("Result stored into " + f.path)
-              case None => log.info("Cannot stored the result.")
+            case success: MeasurementSuccess => {
+              detectRegression(log, config, success, persistor) match {
+                case ok: BenchmarkSuccess => report(ok)
+                case ci: ConfidenceIntervalFailure => report(ci)
+                case anova: ANOVAFailure => report(anova)
+              }
+
+              val storerFactory = new LoadStoreManagerFactory(log, config, benchmark, mode)
+              // TODO: passed or failed
+              if (persistor.isInstanceOf[SimpleFilePersistor]) {
+                val storer = storerFactory create (persistor.asInstanceOf[SimpleFilePersistor].location)
+                if (storer.storeMeasurementResult(success)) {
+                  log.info("Result stored OK")
+                }
+                else {
+                  log.info("Cannot storing failed.")
+                }
+              }
             }
+            case failure: MeasurementFailure => report(Constant.REGRESSION_FAILED, Report dueToReason s)
           }
-          case failure: MeasurementFailure => report(Constant.REGRESSION_FAILED, Report dueToReason s)
-        }
         }
       )
     } catch {
@@ -89,8 +102,7 @@ object BenchmarkDriver {
    *
    * @param result	The benchmark result just measured.
    */
-  def detectRegression(log: Log, config: Config, result: MeasurementResult): Boolean = {
-    val persistor = new Persistor(log, config, result.benchmark, (config.persistorLocation / result.metric.toString).toDirectory)
+  def detectRegression(log: Log, config: Config, result: MeasurementResult, persistor: Persistor): BenchmarkResult = {
     val report = new Report
 
     persistor add result

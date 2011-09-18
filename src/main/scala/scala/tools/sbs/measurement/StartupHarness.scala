@@ -12,9 +12,9 @@ package scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-import scala.tools.sbs.benchmark.Benchmark
 
 class StartupHarness(log: Log, config: Config)
   extends Harness(log: Log, config: Config) {
@@ -32,7 +32,7 @@ class StartupHarness(log: Log, config: Config)
         }
       )
     } else {
-      MeasurementFailure("Benchmark process failed.")
+      MeasurementFailure(benchmark, null, "Benchmark process failed.")
     }
   }
 

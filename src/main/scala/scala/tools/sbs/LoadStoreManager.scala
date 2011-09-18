@@ -1,13 +1,12 @@
 package scala.tools.sbs
 
-import scala.tools.sbs.regression.Persistor
-import scala.tools.nsc.io.Directory
 import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.regression.Persistor
 
 trait LoadStoreManager {
 
   def loadPersistor(): Persistor
 
-  def storeMeasurementResult(r: MeasurementResult)
+  def storeMeasurementResult(result: MeasurementResult): Boolean
 
 }

@@ -15,15 +15,19 @@ import java.io.{File => JFile}
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.GenericRunnerSettings
-import scala.tools.sbs.measurement.BenchmarkType.BenchmarkType
-import scala.tools.sbs.measurement.Benchmark
-import scala.tools.sbs.measurement.BenchmarkType
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.benchmark.BenchmarkFactory
+import scala.tools.sbs.benchmark.BenchmarkKind
+import scala.tools.sbs.benchmark.BenchmarkMode
+import scala.tools.sbs.regression.Persistor
+import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.util.LogLevel.LogLevel
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.FileUtil
 import scala.tools.sbs.util.Log
+import scala.tools.sbs.util.LogFactory
 import scala.tools.sbs.util.LogLevel
-import scala.tools.sbs.util.TextFileLog
 import scala.tools.sbs.util.UI
 
 /**
@@ -85,7 +89,7 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String]): (Config, Log, Benchmark) = {
+  def parse(args: Array[String]): (Config, Log, Benchmark, Persistor) = {
 
     val slash = System getProperty "file.separator"
     val colon = System getProperty "path.separator"
@@ -97,9 +101,9 @@ object ArgumentParser {
     var classpath: String = null
     var scalahome: Directory = null
     var javahome: Directory = null
-    var persistor: Directory = null
+    var persistorDir: Directory = null
 
-    var metrics = List[BenchmarkType]()
+    var modes = List[BenchmarkMode]()
 
     var clean = false
 
@@ -141,7 +145,7 @@ object ArgumentParser {
         case Parameter.OPT_CLASSPATH => classpath = arg
         case Parameter.OPT_SCALA_HOME => scalahome = new Directory(new JFile(stripQuotes(arg)))
         case Parameter.OPT_JAVA_HOME => javahome = new Directory(new JFile(stripQuotes(arg)))
-        case Parameter.OPT_PERSISTOR => persistor = new Directory(new JFile(stripQuotes(arg)))
+        case Parameter.OPT_PERSISTOR => persistorDir = new Directory(new JFile(stripQuotes(arg)))
         case Parameter.OPT_CREATE_SAMPLE => sampleNumber = parseInt(arg)
         case Parameter.OPT_RUNS => runs = parseInt(arg)
         case Parameter.OPT_MULTIPLIER => multiplier = parseInt(arg)
@@ -161,9 +165,9 @@ object ArgumentParser {
       }
 
       def parseUnary(opt: String) = opt match {
-        case Parameter.OPT_STEADY => metrics ::= BenchmarkType.STEADY
-        case Parameter.OPT_STARTUP => metrics ::= BenchmarkType.STARTUP
-        case Parameter.OPT_MEMORY => metrics ::= BenchmarkType.MEMORY
+        case Parameter.OPT_STEADY => modes ::= BenchmarkMode.STEADY
+        case Parameter.OPT_STARTUP => modes ::= BenchmarkMode.STARTUP
+        case Parameter.OPT_MEMORY => modes ::= BenchmarkMode.MEMORY
         case Parameter.OPT_CLEAN => clean = true
         case Parameter.OPT_HELP => {
           UI.printUsage
@@ -216,13 +220,13 @@ object ArgumentParser {
       }
     }
 
-    if (persistor == null || !persistor.exists) {
-      persistor = (benchmarkdir / "result").toDirectory
-    } else if (!persistor.isDirectory || !persistor.canRead) {
-      exitOnError("Persistor " + persistor.path + " inaccessible")
+    if (persistorDir == null || !persistorDir.exists) {
+      persistorDir = (benchmarkdir / "result").toDirectory
+    } else if (!persistorDir.isDirectory || !persistorDir.canRead) {
+      exitOnError("Persistor " + persistorDir.path + " inaccessible")
     }
-    metrics foreach (
-      m => FileUtil.mkDir(persistor / m.toString) match {
+    modes foreach (
+      m => FileUtil.mkDir(persistorDir / m.toString) match {
         case Right(err) => exitOnError(err)
         case Left(dir) => FileUtil.mkDir(dir.path + slash + "FAILED") match {
           case Right(err) => exitOnError(err)
@@ -236,8 +240,8 @@ object ArgumentParser {
         case Some(err) => exitOnError(err)
         case _ => ()
       }
-      metrics foreach (
-        m => FileUtil.clean(persistor / m.toString) match {
+      modes foreach (
+        m => FileUtil.clean(persistorDir / m.toString) match {
           case Some(err) => exitOnError(err)
           case _ => ()
         })
@@ -270,31 +274,20 @@ object ArgumentParser {
       Directory(benchmarkdir),
       runs,
       multiplier,
+      sampleNumber,
       scalahome,
       javahome,
-      persistor,
-      sampleNumber,
       compile)
 
-    val log = new TextFileLog(
-      TextFileLog.createLog(benchmarkdir, benchmarkName) match {
-        case Some(file) => file
-        case None => null
-      },
-      logLevel,
-      showlog)
+    val log = new LogFactory(benchmarkName, logLevel, showlog) create benchmarkdir
 
-    val benchmark = new Benchmark(
-      benchmarkName,
-      benchmarkArguments,
-      metrics,
-      settings.classpathURLs,
-      src,
-      (benchmarkdir / "bin").toDirectory,
-      log,
-      config)
+    val benchmark = new BenchmarkFactory(
+      log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(
+      BenchmarkKind.SNIPPET, src, (benchmarkdir / "bin").toDirectory)
 
-    return (config, log, benchmark)
+    val persistor = new PersistorFactory(log, config, benchmark) create (persistorDir)
+
+    return (config, log, benchmark, persistor)
   }
 
   def exitOnError(message: String) {

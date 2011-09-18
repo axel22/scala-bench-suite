@@ -12,7 +12,6 @@ package scala.tools.sbs
 package measurement
 
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 
 abstract class MeasurementResult(benchmark: Benchmark, series: Series) {
 
@@ -22,12 +21,7 @@ abstract class MeasurementResult(benchmark: Benchmark, series: Series) {
 
 }
 
-case class MeasurementSuccess(benchmark: Benchmark, series: Series)
-  extends MeasurementResult(benchmark, series) {
-
-}
+case class MeasurementSuccess(benchmark: Benchmark, series: Series) extends MeasurementResult(benchmark, series)
 
 case class MeasurementFailure(benchmark: Benchmark, series: Series, reason: String)
-  extends MeasurementResult(benchmark, series) {
-
-}
+  extends MeasurementResult(benchmark, series) 

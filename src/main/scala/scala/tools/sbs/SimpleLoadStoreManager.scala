@@ -16,6 +16,7 @@ import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.measurement.SeriesFactory
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.regression.PersistorFactory
 
 class SimpleLoadStoreManager(
   log: Log, config: Config, benchmark: Benchmark, location: Directory, mode: BenchmarkMode) extends LoadStoreManager {
@@ -27,7 +28,7 @@ class SimpleLoadStoreManager(
     
     var line: String = null
     var series: Series = null
-    var persistor = new Persistor(log, config, benchmark, location)
+    var persistor = new PersistorFactory(log, config, benchmark) create location
 
     log.debug("--Persistor directory--  " + location.path)
 
@@ -89,7 +90,7 @@ class SimpleLoadStoreManager(
    * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
    * with additional information (date and time, main benchmark class name).
    */
-  def storeMeasurementResult(result: MeasurementResult, mode: BenchmarkMode): Option[File] = {
+  def storeMeasurementResult(result: MeasurementResult): Option[File] = {
     if (result.series.length == 0) {
       log.info("Nothing to store")
       return None
@@ -106,7 +107,7 @@ class SimpleLoadStoreManager(
     data += "-------------------------------"
 
     FileUtil.createAndStore(
-      (config.persistorLocation / mode.toString).path + directory,
+      (location / mode.toString).path + directory,
       result.benchmark.name + "." + mode.toString,
       result.series.foldLeft(data) { (data, l) => data + l.toString }
     )

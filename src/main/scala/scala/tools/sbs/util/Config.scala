@@ -16,10 +16,9 @@ import scala.tools.nsc.io.Directory
 case class Config(benchmarkDirectory: Directory,
                   runs: Int,
                   multiplier: Int,
+                  sampleNumber: Int,
                   scalahome: Directory,
                   javahome: Directory,
-                  persistorLocation: Directory,
-                  sampleNumber: Int,
                   compile: Boolean) {
 
   val JAVACMD = javahome + System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java"
@@ -45,7 +44,6 @@ case class Config(benchmarkDirectory: Directory,
     arr(Constant.INDEX_MULTIPLIER) = multiplier.toString
     arr(Constant.INDEX_SCALA_HOME) = scalahome.path
     arr(Constant.INDEX_JAVA_HOME) = javahome.path
-    arr(Constant.INDEX_PERSISTOR_LOC) = persistorLocation.path
     arr(Constant.INDEX_SAMPLE_NUMBER) = sampleNumber.toString
     arr(Constant.INDEX_COMPILE) = compile.toString
 
@@ -60,7 +58,6 @@ case class Config(benchmarkDirectory: Directory,
       endl + "        Java home:       " + javahome.path +
       endl + "        Runs:            " + runs +
       endl + "        Multiplier:      " + multiplier +
-      endl + "        Previous result: " + persistorLocation.path +
       endl + "        Sample number:   " + sampleNumber +
       endl + "        Compile:         " + compile +
       endl + "        Java:            " + JAVACMD +

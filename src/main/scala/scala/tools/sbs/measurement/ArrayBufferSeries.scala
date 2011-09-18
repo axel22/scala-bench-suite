@@ -11,8 +11,9 @@
 package scala.tools.sbs
 package measurement
 
+import scala.annotation.implicitNotFound
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.regression.Statistic
+import scala.tools.sbs.regression.StatisticFactory
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.Log
@@ -83,7 +84,7 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
       log.debug("--Wrong in measurment length--")
       false
     } else {
-      val statistic = new Statistic(log, config, 0)
+      val statistic = new StatisticFactory(log, config) create 0
 
       val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))
