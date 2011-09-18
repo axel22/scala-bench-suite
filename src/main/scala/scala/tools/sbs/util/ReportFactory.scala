@@ -11,10 +11,14 @@
 package scala.tools.sbs
 package util
 
-class ReportFactory {
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.regression.Persistor
 
-  def create(): Report = {
-    null
+class ReportFactory(log: Log, config: Config) {
+
+  def create(benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode): Report = {
+    new TextFileReport(log, config, benchmark, persistor, mode)
   }
-  
+
 }

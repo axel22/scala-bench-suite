@@ -36,6 +36,8 @@ trait Series {
   def foldLeft[B](z: B)(op: (B, Long) => B): B
 
   def foldRight[B](z: B)(op: (Long, B) => B): B
+  
+  def foreach[U](f: Long => Unit): Unit
 
   def forall(op: Long => Boolean): Boolean
 

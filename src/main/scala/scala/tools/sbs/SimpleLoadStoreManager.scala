@@ -96,19 +96,19 @@ class SimpleLoadStoreManager(
       return None
     }
     val directory = result match {
-      case MeasurementSuccess(_, _) => ""
+      case MeasurementSuccess(_) => ""
       case _ => (System getProperty "file.separator") + "FAILED"
     }
     val data = new ArrayBuffer[String]
     data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
-    data += "Main Class:       " + result.benchmark.name
+    data += "Main Class:       " + benchmark.name
     data += "Mode:             " + mode
     data += "Confidence level: " + result.series.confidenceLevel + " %"
     data += "-------------------------------"
 
     FileUtil.createAndStore(
       (location / mode.toString).path + directory,
-      result.benchmark.name + "." + mode.toString,
+      benchmark.name + "." + mode.toString,
       result.series.foldLeft(data) { (data, l) => data + l.toString }
     )
   }

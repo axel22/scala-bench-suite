@@ -32,7 +32,7 @@ class StartupHarness(log: Log, config: Config)
         }
       )
     } else {
-      MeasurementFailure(benchmark, null, "Benchmark process failed.")
+      ProcessFailure()
     }
   }
 

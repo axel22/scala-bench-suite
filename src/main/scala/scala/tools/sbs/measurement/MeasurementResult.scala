@@ -13,15 +13,34 @@ package measurement
 
 import scala.tools.sbs.benchmark.Benchmark
 
-abstract class MeasurementResult(benchmark: Benchmark, series: Series) {
-
-  def benchmark(): Benchmark = benchmark
-
+abstract class MeasurementResult(series: Series) {
+  
   def series(): Series = series
+  
+}
+
+case class MeasurementSuccess(override val series: Series) extends MeasurementResult(series)
+
+abstract class MeasurementFailure(override val series: Series) extends MeasurementResult(series) {
+
+  def reason: String
 
 }
 
-case class MeasurementSuccess(benchmark: Benchmark, series: Series) extends MeasurementResult(benchmark, series)
+case class UnwarmableFailure(override val series: Series) extends MeasurementFailure(series) {
 
-case class MeasurementFailure(benchmark: Benchmark, series: Series, reason: String)
-  extends MeasurementResult(benchmark, series) 
+  def reason = "Benchmark could not reach steady state"
+
+}
+
+case class UnreliableFailure(override val series: Series) extends MeasurementFailure(series) {
+
+  def reason = "Measured metric is unreliable"
+
+}
+
+case class ProcessFailure extends MeasurementFailure(null) {
+
+  def reason = "----Benchmark process could not run"
+
+}

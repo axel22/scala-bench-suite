@@ -15,9 +15,9 @@ import BenchmarkMode.BenchmarkMode
 
 trait Benchmark {
 
-  def modes(): List[BenchmarkMode]
-  
   def name(): String
+  
+  def modes(): List[BenchmarkMode]
   
   /**
    * Uses strange named compiler Global to compile.

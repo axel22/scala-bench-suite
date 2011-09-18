@@ -20,6 +20,7 @@ import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.measurement.MeasurementSuccess
 
 class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends Statistic {
 
@@ -43,23 +44,20 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    *
    * @return `true` if success, `false` if the confidence leval is at the minimum value.
    */
-  def reduceConfidenceLevel(): Boolean = {
+  def reduceConfidenceLevel(): Int = {
     if (alpha == 0) {
       alpha = 0.01
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-      true
     } else if (alpha == 0.01) {
       alpha = 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-      true
     } else if (alpha <= alphaMax) {
       alpha += 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-      true
     } else {
       log.verbose("Confidence level is not reducible")
-      false
     }
+    confidenceLevel
   }
 
   /**
@@ -186,14 +184,14 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
-  def testDifference(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
+  def testDifference(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
     if (persistor.length < 2) {
       throw new Exception("Not enough result files specified")
     }
     if (persistor.length == 2) {
-      testConfidenceIntervals(benchmark, persistor)
+      testConfidenceIntervals(measurementResult, persistor)
     } else {
-      testANOVA(benchmark, persistor)
+      testANOVA(measurementResult, persistor)
     }
   }
 
@@ -203,7 +201,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
-  private def testConfidenceIntervals(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
+  private def testConfidenceIntervals(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
     var series = persistor.head
 
     val mean1 = mean(series)
@@ -223,7 +221,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     var c2: Double = 0
 
     if (confidenceLevel == 100 && diff == 0) {
-      BenchmarkSuccess(benchmark, persistor, confidenceLevel)
+      BenchmarkSuccess(confidenceLevel, measurementResult)
     } else {
       reduceConfidenceLevel()
       if ((n1 >= 30) && (n2 >= 30)) {
@@ -240,9 +238,9 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
       }
 
       if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
-        ConfidenceIntervalFailure(benchmark, persistor, ArrayBuffer(mean1, mean2), (c1, c2), confidenceLevel)
+        ConfidenceIntervalFailure(confidenceLevel, measurementResult, ArrayBuffer(mean1, mean2), (c1, c2))
       } else {
-        BenchmarkSuccess(benchmark, persistor, confidenceLevel)
+        BenchmarkSuccess(confidenceLevel, measurementResult)
       }
     }
   }
@@ -253,7 +251,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param persistor	The list of previous results
    * @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
-  private def testANOVA(benchmark: Benchmark, persistor: Persistor): BenchmarkResult = {
+  private def testANOVA(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
 
     val sum = persistor.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
@@ -273,9 +271,9 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
 
     if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
       // TODO: Memory case
-      ANOVAFailure(benchmark, persistor, means, SSA, SSE, 0, 0, confidenceLevel)
+      ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, 0, 0)
     } else if (SSE == 0 && SSA == 0) {
-      BenchmarkSuccess(benchmark, persistor, confidenceLevel)
+      BenchmarkSuccess(confidenceLevel, measurementResult)
     } else {
       // Performance case
       reduceConfidenceLevel()
@@ -287,9 +285,9 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
       log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
 
       if (FValue <= F) {
-        BenchmarkSuccess(benchmark, persistor, confidenceLevel)
+        BenchmarkSuccess(confidenceLevel, measurementResult)
       } else {
-        ANOVAFailure(benchmark, persistor, means, SSA, SSE, FValue, F, confidenceLevel)
+        ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, FValue, F)
       }
     }
   }

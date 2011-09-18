@@ -62,6 +62,8 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
 
   def foldRight[B](z: B)(op: (Long, B) => B) = data.foldRight[B](z)(op)
 
+  def foreach[U](f: Long => Unit): Unit = data foreach f
+
   def forall(op: Long => Boolean) = data forall op
 
   def remove(n: Int) = data remove n
