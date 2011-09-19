@@ -4,7 +4,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_COMPILER_CONTAINER"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/commons-math-2.2.jar"/>
-	<classpathentry kind="lib" path="sbt-launch.jar"/>
+	<classpathentry kind="lib" path="libeclipse/commons-math-2.2.jar"/>
+	<classpathentry kind="lib" path="libeclipse/scalatest_2.9.1-1.6.1.jar" sourcepath="libeclipse/scalatest_2.9.1-1.6.1-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
