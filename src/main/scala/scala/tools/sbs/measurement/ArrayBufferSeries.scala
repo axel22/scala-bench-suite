@@ -86,7 +86,7 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
       log.debug("--Wrong in measurment length--")
       false
     } else {
-      val statistic = new StatisticFactory(log, config) create 0
+      val statistic = new StatisticFactory(log, config).create()
 
       val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))

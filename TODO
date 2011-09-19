@@ -9,17 +9,8 @@ transition to sbt
 I've taken a look at the code. Good work overall. Here are a couple of comments:
 
 
-
 4)
 Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
-
-
-
-8)
-Factor out interfaces (traits) wherever possible - for instance Log should be a trait. 
-A ConsoleLog should be one of the implementations. 
-Same thing for Report - Report should be a trait, and a SimpleLogReport should be one implementation.
-+The same comment as above - `logLevel` should be a ctor argument.
 
 
 DONE:
@@ -82,3 +73,9 @@ class SimplePersistor extends Persistor {
 
 7)
 Avoid having global getters and setters - Statistic has alpha, but this should be a ctor parameter.
+
+8)
+Factor out interfaces (traits) wherever possible - for instance Log should be a trait. 
+A ConsoleLog should be one of the implementations. 
+Same thing for Report - Report should be a trait, and a SimpleLogReport should be one implementation.
++The same comment as above - `logLevel` should be a ctor argument.

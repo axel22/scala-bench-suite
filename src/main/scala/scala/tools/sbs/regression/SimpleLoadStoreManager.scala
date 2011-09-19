@@ -1,4 +1,15 @@
+/*
+ * SimpleLoadStoreManager
+ * 
+ * Version
+ * 
+ * Created on Septemer 18th, 2011
+ * 
+ * Created by ND P
+ */
+
 package scala.tools.sbs
+package regression
 
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -12,10 +23,6 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.measurement.SeriesFactory
-import scala.tools.sbs.regression.BenchmarkResult
-import scala.tools.sbs.regression.BenchmarkSuccess
-import scala.tools.sbs.regression.Persistor
-import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.FileUtil
 import scala.tools.sbs.util.Log

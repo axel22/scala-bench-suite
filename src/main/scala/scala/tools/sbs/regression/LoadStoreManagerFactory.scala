@@ -9,11 +9,10 @@
  */
 
 package scala.tools.sbs
+package regression
 
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.regression.Persistor
-import scala.tools.sbs.regression.SimpleFilePersistor
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 

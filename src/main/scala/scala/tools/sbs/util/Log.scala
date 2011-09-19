@@ -15,9 +15,9 @@ import LogLevel.LogLevel
 
 trait Log {
 
-  def logShow(): Boolean
+  def logShow: Boolean
   
-  def logLevel(): LogLevel
+  def logLevel: LogLevel
 
   def apply(message: String)
 

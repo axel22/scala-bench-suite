@@ -18,6 +18,7 @@ import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.regression.BenchmarkResult
 import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.ImmeasurableFailure
+import scala.tools.sbs.regression.LoadStoreManagerFactory
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.StatisticFactory

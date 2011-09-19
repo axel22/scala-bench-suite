@@ -13,24 +13,25 @@ package regression
 
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
+
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.MeasurementSuccess
 
 class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends Statistic {
 
   /**
-   * Minimum significant level.
+   * Maximum significant level.
    */
+
   private val alphaMax: Double = 0.1
 
   /**
-   * Maximum significant level.
+   * Minimum significant level.
    */
   private val alphaMin: Double = 0.00
 
@@ -215,15 +216,16 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     val n2 = series.length
 
     val diff = mean1 - mean2
-    val s = sqrt(s1 * s1 / n1 + s2 * s2 / n2)
-
-    var c1: Double = 0
-    var c2: Double = 0
 
     if (confidenceLevel == 100 && diff == 0) {
       BenchmarkSuccess(confidenceLevel, measurementResult)
     } else {
       reduceConfidenceLevel()
+
+      val s = sqrt(s1 * s1 / n1 + s2 * s2 / n2)
+      var c1: Double = 0
+      var c2: Double = 0
+
       if ((n1 >= 30) && (n2 >= 30)) {
         c1 = diff - inverseGaussianDistribution * s
         c2 = diff + inverseGaussianDistribution * s
@@ -269,11 +271,13 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
       SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
-    if (confidenceLevel == 100 && SSE == 0 && SSA != 0) {
-      // TODO: Memory case
-      ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, 0, 0)
-    } else if (SSE == 0 && SSA == 0) {
-      BenchmarkSuccess(confidenceLevel, measurementResult)
+    if (confidenceLevel == 100 && SSE == 0) {
+      // Memory case
+      if (SSA != 0) {
+        ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, Double.PositiveInfinity, Double.NaN)
+      } else {
+        BenchmarkSuccess(confidenceLevel, measurementResult)
+      }
     } else {
       // Performance case
       reduceConfidenceLevel()

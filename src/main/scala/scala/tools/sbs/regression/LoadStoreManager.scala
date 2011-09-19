@@ -9,11 +9,10 @@
  */
 
 package scala.tools.sbs
+package regression
 
 import scala.tools.nsc.io.File
 import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.regression.BenchmarkResult
-import scala.tools.sbs.regression.Persistor
 
 trait LoadStoreManager {
 
