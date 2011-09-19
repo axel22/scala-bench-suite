@@ -28,13 +28,13 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
   /**
    *
    */
-  private var data: ArrayBuffer[Long] = null
+  private var data = ArrayBuffer[Long]()
 
   /**
    * The confidence level that at which, this series' confidence interval is not greater than
    * 2% of its mean.
    */
-  private var _confidenceLevel: Int = 0
+  private var _confidenceLevel: Int = 100
   def confidenceLevel = _confidenceLevel
 
   def this(log: Log, config: Config, series: ArrayBuffer[Long], confidenceLevel: Int) {

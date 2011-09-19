@@ -15,12 +15,12 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-class MemoryHarness(log: Log, config: Config) extends Harness(log: Log, config: Config) {
+class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime
-    run(
+    benchmarkRunner run (
       benchmark,
       series => series forall (_ == series.head),
       {

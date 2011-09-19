@@ -1,8 +1,19 @@
+/*
+ * SeriesFactory
+ * 
+ * Version
+ * 
+ * Created on September 18th, 2011
+ * 
+ * Created by ND P
+ */
+
 package scala.tools.sbs
 package measurement
+
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-import scala.collection.mutable.ArrayBuffer
 
 class SeriesFactory(log: Log, config: Config) {
 

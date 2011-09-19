@@ -10,7 +10,7 @@
 
 package scala.tools.sbs
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
@@ -268,8 +268,6 @@ object ArgumentParser {
     val settings = new GenericRunnerSettings(UI.error)
     settings.processArguments(List("-cp", classpathString), false)
 
-    settings.classpathURLs foreach println
-
     val config = new Config(
       Directory(benchmarkdir),
       runs,
@@ -285,7 +283,7 @@ object ArgumentParser {
       log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(
       BenchmarkKind.SNIPPET, src, (benchmarkdir / "bin").toDirectory)
 
-    val persistor = new PersistorFactory(log, config, benchmark) create (persistorDir)
+    val persistor = new PersistorFactory(log, config).create(benchmark, persistorDir)
 
     return (config, log, benchmark, persistor)
   }

@@ -18,14 +18,13 @@ import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.Log
 
-class SteadyHarness(log: Log, config: Config)
-  extends Harness(log: Log, config: Config) {
+class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     val statistic = new StatisticFactory(log, config) create 0
     log.info("[Benchmarking steady state]")
     benchmark.init()
-    run(
+    benchmarkRunner run (
       benchmark,
       series => (statistic CoV series) < Constant.STEADY_THREDSHOLD,
       {

@@ -57,18 +57,6 @@ trait Series {
   /**
    *
    */
-  def load(file: File)
-
-  /**
-   * Stores result value series in to text files whose name is the default name
-   * in the format: YYYYMMDD.hhmmss.BenchmarkClass.BenchmarkType
-   * with additional information (date and time, main benchmark class name).
-   */
-  def store(passed: Boolean): Option[File]
-
-  /**
-   *
-   */
   override def toString(): String
 
 }

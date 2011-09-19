@@ -18,13 +18,13 @@ import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-class PersistorFactory(log: Log, config: Config, benchmark: Benchmark) {
+class PersistorFactory(log: Log, config: Config) {
 
-  def create(location: Directory): Persistor = {
+  def create(benchmark: Benchmark, location: Directory): Persistor = {
     new ArrayBufferPersistor(log, config, benchmark, location, ArrayBuffer[Series]())
   }
 
-  def create(location: Directory, data: ArrayBuffer[Series]): Persistor = {
+  def create(benchmark: Benchmark, location: Directory, data: ArrayBuffer[Series]): Persistor = {
     new ArrayBufferPersistor(log, config, benchmark, location, data)
   }
 

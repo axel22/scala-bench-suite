@@ -10,31 +10,31 @@
 
 package scala.tools.sbs
 package regression
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.util.Log
+
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.measurement.MeasurementFailure
+import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.measurement.MeasurementFailure
-import scala.tools.sbs.benchmark.BenchmarkMode
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.measurement.SeriesFactory
+import scala.tools.sbs.util.Config
+import scala.tools.sbs.util.Log
 
 class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) extends Persistor with SimpleFilePersistor {
 
   private var data: ArrayBuffer[Series] = null
-  
+
   private var _location: Directory = null
   def location() = _location
 
   def this(log: Log, config: Config, benchmark: Benchmark, location: Directory, data: ArrayBuffer[Series]) {
     this(log, config, benchmark)
+    this._location = location
     this.data = data
   }
-  
+
   /**
    * Add a `Series` to `data`.
    */
@@ -68,7 +68,9 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) exten
     while (i < num) {
       measurer run benchmark match {
         case success: MeasurementSuccess => {
-          success.series store true match {
+
+          val storer = new LoadStoreManagerFactory(log, config).create(benchmark, this, mode)
+          storer.storeMeasurementResult(success, BenchmarkSuccess(success.series.confidenceLevel, success)) match {
             case Some(_) => {
               log.debug("--Stored--")
               i += 1
