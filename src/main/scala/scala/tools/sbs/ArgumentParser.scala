@@ -198,11 +198,14 @@ object ArgumentParser {
 
     loop(args.toList)
 
-    if (benchmarkName == null) {
+    if ((benchmarkName == null) || (benchmarkName equals "")) {
       exitOnError("No benchmark specified.")
     }
-    if (scalahome == null) {
+    if ((scalahome == null) || (scalahome equals "")) {
       exitOnError("No scala home specified.")
+    }
+    if (modes.length == 0) {
+      exitOnError("No benchmark mode specified.")
     }
 
     val benchmarkdir = FileUtil.createBenchmarkDir(root, benchmarkName) match {
@@ -257,11 +260,6 @@ object ArgumentParser {
     if (javahome == null) {
       javahome = new Directory(new JFile(System getProperty "java.home"))
     }
-
-    //    val libs = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
-    //    val bins = Directory(benchmarkdir / "bin").files filter (_.hasExtension("jar")) map (File(_).toURL) toList
-    //    val userClasspath = if (classpath != null) (classpath split colon).toList map (Path(_) toURL) else Nil
-    //    val classpathURLs = libs ++ bins ++ userClasspath ++ List(new URL("file:" + benchmarkdir.path + slash + "bin"))
 
     val jars = Directory(benchmarkdir / "lib").files filter (_.hasExtension("jar")) map (_.path)
     val classpathString = jars.foldLeft(classpath + colon + benchmarkdir.path + slash + "bin")((s, j) => s + colon + j)
