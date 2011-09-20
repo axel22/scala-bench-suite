@@ -11,7 +11,6 @@
 package scala.tools.sbs
 package measurement
 
-import scala.annotation.implicitNotFound
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.regression.StatisticFactory
 import scala.tools.sbs.util.Config
@@ -42,6 +41,8 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
     data = series
     _confidenceLevel = confidenceLevel
   }
+
+  def apply(idx: Int) = data.apply(idx)
 
   def head = data.head
 

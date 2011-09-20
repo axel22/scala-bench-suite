@@ -20,7 +20,7 @@ package object test {
   val testScalahome = Directory("D:/University/5thYear/Internship/Working/scala-2.9.1.final")
   val testJavahome = Directory(System getProperty "java.home")
   val testLog = new LogFactory(testBenchmarkName, LogLevel.ALL, true) create testBenchmarkDir
-  val testConfig = new Config(testBenchmarkDir, 1, 1, 0, testScalahome, testJavahome, false)
+  val testConfig = new Config(testBenchmarkDir, 1, 11, 0, testScalahome, testJavahome, false)
   val testBenchmark = new BenchmarkFactory(
     testLog, testConfig, testBenchmarkName, List(), List(testBinDir.toURL), List(BenchmarkMode.STEADY)).
     create(BenchmarkKind.SNIPPET, testSrc, testBinDir)
