@@ -144,7 +144,8 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @param series	The result of benchmarking
    * @return	The average
    */
-  def mean(series: Series) = series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
+  def mean(series: Series) =
+    if (series.length == 0) 0 else series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
 
   /**
    * Computes the standard deviation of a given sample.
@@ -153,8 +154,12 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
    * @return	The standard deviation
    */
   def standardDeviation(series: Series): Double = {
-    val mean = this.mean(series)
-    sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
+    if (series.length == 0) {
+      0
+    } else {
+      val mean = this.mean(series)
+      sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
+    }
   }
 
   /**

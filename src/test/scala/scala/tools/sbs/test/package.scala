@@ -8,10 +8,16 @@ import scala.tools.sbs.util.LogFactory
 import scala.tools.sbs.util.LogLevel
 import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.tools.sbs.benchmark.BenchmarkKind
+import scala.collection.mutable.ArrayBuffer
 
 package object test {
 
-  val testBenchmarkName = "test.benchmark"
+  val about5k5Series = ArrayBuffer[Long](5527, 5549, 5601, 5566, 5481, 5487, 5547, 5484, 5542, 5485, 5587)
+  val about1kSeries1 = ArrayBuffer[Long](1054, 1044, 1043, 1045, 1045, 1046, 1066, 1048, 1051, 1050, 1050)
+  val about1kSeries2 = ArrayBuffer[Long](1050, 1048, 1044, 1045, 1044, 1049, 1053, 1051, 1048, 1052, 1102)
+  val about1kSeries3 = ArrayBuffer[Long](1059, 1045, 1052, 1043, 1046, 1049, 1066, 1044, 1046, 1047, 1058)
+
+  val testBenchmarkName = "test.Benchmark"
   val testDir = Directory("sbs.test") createDirectory ()
   val testBenchmarkDir = (testDir / "benchmark") createDirectory ()
   val testBinDir = (testBenchmarkDir / "bin") createDirectory ()

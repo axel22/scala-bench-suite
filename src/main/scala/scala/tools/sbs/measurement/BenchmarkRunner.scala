@@ -78,7 +78,7 @@ class BenchmarkRunner(log: Log, config: Config) {
 
     benchmark.finallize()
 
-    if (iteratorMeasure >= Constant.MAX_MEASUREMENT) {
+    if (iteratorMeasure >= Constant.MAX_MEASUREMENT && !series.isReliable) {
       if (unwarmable) {
         UnwarmableFailure(series)
       } else {

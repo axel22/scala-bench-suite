@@ -41,7 +41,7 @@ object Constant {
   /**
    * Maximum counter for measurements of a series.
    */
-  val MAX_MEASUREMENT = 10
+  val MAX_MEASUREMENT = 1
 
   val MAX_ARGUMENT_CONFIG = 14
   val INDEX_CLASSNAME = 0

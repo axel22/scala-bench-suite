@@ -96,7 +96,7 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
       log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
         (right formatted "%.2f") + "]")
 
-      var diff = (right - left)
+      var diff = right - left
       log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
         ((diff / mean * 100) formatted "%.2f") + "%")
 
@@ -107,7 +107,7 @@ class ArrayBufferSeries(log: Log, config: Config) extends Series {
         log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
           (right formatted "%.2f") + "]")
 
-        diff = (right - left)
+        diff = right - left
         log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
           ((diff / mean * 100) formatted "%.2f") + "%")
       }
