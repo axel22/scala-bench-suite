@@ -67,7 +67,7 @@ object BenchmarkDriver {
           measurer run benchmark match {
             case success: MeasurementSuccess => {
               val result = detectRegression(log, config, benchmark, success, persistor, mode)
-              val report = new ReportFactory(log, config) create (benchmark, persistor, mode)
+              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
               report(result)
 
               val storer = new LoadStoreManagerFactory(log, config).create(benchmark, persistor, mode)
@@ -108,9 +108,11 @@ object BenchmarkDriver {
 
     persistor add result.series
 
-    if (persistor.length <= 0) {
+    if (persistor.length == 1) {
       val storer = new LoadStoreManagerFactory(log, config).create(benchmark, persistor, mode)
-      storer.loadPersistor()
+      // TODO: fix this
+      val tmp = storer.loadPersistor()
+      tmp foreach (t => persistor add t)
     }
     if (persistor.length < 2) {
       NoPreviousFailure(result)

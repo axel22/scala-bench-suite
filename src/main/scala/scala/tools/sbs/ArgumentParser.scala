@@ -44,6 +44,7 @@ object ArgumentParser {
     val OPT_STARTUP = "--startup-performance"
     val OPT_MEMORY = "--memory-usage"
     val OPT_CLEAN = "--clean"
+    val OPT_RUN_ALL = "--run-all"
     val OPT_NONCOMPILE = "--noncompile"
     val OPT_SHOWLOG = "--show-log"
     val OPT_HELP = "--help"
@@ -64,6 +65,7 @@ object ArgumentParser {
         (opt equals OPT_STARTUP) ||
         (opt equals OPT_MEMORY) ||
         (opt equals OPT_CLEAN) ||
+        (opt equals OPT_RUN_ALL) ||
         (opt equals OPT_NONCOMPILE) ||
         (opt equals OPT_SHOWLOG) ||
         (opt equals OPT_HELP)

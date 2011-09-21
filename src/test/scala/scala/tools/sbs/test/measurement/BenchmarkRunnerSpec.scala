@@ -15,7 +15,7 @@ import org.scalatest.Spec
 class BenchmarkRunnerSpec extends Spec {
 
   object DummyBenchmark extends Benchmark {
-    def name() = "AnDummyBenchmark"
+    def name() = "ADummyBenchmark"
     def modes() = List(BenchmarkMode.STEADY)
     def compile() = true
     def init() = ()
@@ -33,7 +33,7 @@ class BenchmarkRunnerSpec extends Spec {
       assert((runner.run(DummyBenchmark, _ => false, 0)).isInstanceOf[UnwarmableFailure])
     }
 
-    it("should return a UnreliableFailure when the benchmark cannot be warmed up") {
+    it("should return a UnreliableFailure when the benchmark measurement results are not reliable") {
       val runner = new BenchmarkRunner(testLog, testConfig)
       val result = runner.run(DummyBenchmark, _ => true, Random.nextInt(1000))
       assert(result.isInstanceOf[UnreliableFailure])

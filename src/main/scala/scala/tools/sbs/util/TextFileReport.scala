@@ -82,7 +82,7 @@ class TextFileReport(
       case ci: ConfidenceIntervalFailure => {
         write("----New approach sample mean:  " + ci.means.head)
         write("----Persistor sample mean:")
-        ci.means.tail foreach (m => println("                               " + m))
+        write("                               " + ci.means.last) 
         write("----Confidence interval:       [" + ci.CI._1.formatted("%.2f") + "; " + ci.CI._2.formatted("%.2f") + "]")
       }
       case anova: ANOVAFailure => {

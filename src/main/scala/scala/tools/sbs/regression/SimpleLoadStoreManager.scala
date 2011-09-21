@@ -38,13 +38,15 @@ class SimpleLoadStoreManager(
     var line: String = null
     var series: Series = null
     var persistor = new PersistorFactory(log, config).create(benchmark, location)
+    
+    val loadDir = (location / mode.toString).toDirectory
 
-    log.debug("--Persistor directory--  " + location.path)
+    log.debug("--Persistor directory--  " + loadDir.path)
 
     if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-      location walkFilter (path => path.isFile && path.canRead) foreach (
+       loadDir walkFilter (path => path.isFile && path.canRead) foreach (
         file => try {
           log.verbose("--Read file--	" + file.path)
 
@@ -74,7 +76,7 @@ class SimpleLoadStoreManager(
 
         } else if (line startsWith "-") {
 
-        } else if (line startsWith "Type") {
+        } else if (line startsWith "Mode") {
 
         } else if (line startsWith "Main") {
 
