@@ -12,6 +12,29 @@ I've taken a look at the code. Good work overall. Here are a couple of comments:
 4)
 Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
 
+5) Add comments.
+
+6) Take a look at partest and their directory layout
+
+7) Take a look at .check files for partest - we want .args files which contain:
+--runs 11 --multiplier 11
+
+8) --scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
+
+9) Persistor
+
+10) case class Series(times: ArrayBuffer[Long])
+
+11) ResultHistory
+
+12) Measure steady state in a separate JVM
+
+13) snippet identifier format
+
+14) jdi
+
+
+
 
 DONE:
 -----
