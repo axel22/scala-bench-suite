@@ -17,15 +17,16 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 
 class PersistorFactory(log: Log, config: Config) {
 
-  def create(benchmark: Benchmark, location: Directory): Persistor = {
-    new ArrayBufferPersistor(log, config, benchmark, location, ArrayBuffer[Series]())
+  def create(benchmark: Benchmark, mode: BenchmarkMode): Persistor = {
+    new ArrayBufferPersistor(log, config, benchmark, mode: BenchmarkMode, ArrayBuffer[Series]())
   }
 
-  def create(benchmark: Benchmark, location: Directory, data: ArrayBuffer[Series]): Persistor = {
-    new ArrayBufferPersistor(log, config, benchmark, location, data)
+  def create(benchmark: Benchmark, mode: BenchmarkMode, data: ArrayBuffer[Series]): Persistor = {
+    new ArrayBufferPersistor(log, config, benchmark, mode: BenchmarkMode, data)
   }
 
 }

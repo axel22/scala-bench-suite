@@ -11,14 +11,13 @@
 package scala.tools.sbs
 
 import java.io.{ File => JFile }
-
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.GenericRunnerSettings
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
-import scala.tools.sbs.benchmark.BenchmarkKind
+import scala.tools.sbs.benchmark.BenchmarkKind.BenchmarkKind
 import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
@@ -29,6 +28,7 @@ import scala.tools.sbs.util.Log
 import scala.tools.sbs.util.LogFactory
 import scala.tools.sbs.util.LogLevel
 import scala.tools.sbs.util.UI
+import scala.tools.sbs.benchmark.BenchmarkKind
 
 /**
  * Parser for the suite's arguments.
@@ -91,7 +91,7 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String]): (Config, Log, Benchmark, Persistor) = {
+  def parse(args: Array[String]): (Config, Log, Benchmark) = {
 
     val slash = System getProperty "file.separator"
     val colon = System getProperty "path.separator"
@@ -281,11 +281,9 @@ object ArgumentParser {
 
     val benchmark = new BenchmarkFactory(
       log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(
-      BenchmarkKind.SNIPPET, src, (benchmarkdir / "bin").toDirectory)
+      BenchmarkKind.SNIPPET, benchmarkdir)
 
-    val persistor = new PersistorFactory(log, config).create(benchmark, persistorDir)
-
-    return (config, log, benchmark, persistor)
+    return (config, log, benchmark)
   }
 
   def exitOnError(message: String) {

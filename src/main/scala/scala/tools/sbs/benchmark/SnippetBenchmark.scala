@@ -29,13 +29,12 @@ import scala.tools.sbs.util.Log
 import BenchmarkMode.BenchmarkMode
 
 case class SnippetBenchmark(name: String,
-                     arguments: List[String],
-                     modes: List[BenchmarkMode],
-                     classpathURLs: List[URL],
-                     src: List[File],
-                     bin: Directory,
-                     log: Log,
-                     config: Config) extends Benchmark {
+                            arguments: List[String],
+                            modes: List[BenchmarkMode],
+                            classpathURLs: List[URL],
+                            directory: Directory,
+                            log: Log,
+                            config: Config) extends Benchmark {
 
   /**
    * Benchmark process.
@@ -51,6 +50,12 @@ case class SnippetBenchmark(name: String,
    * Current class loader context.
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
+
+  private def src: List[File] = 
+    (directory / "src").toDirectory.deepFiles.filter(_.hasExtension("scala"))
+    .foldLeft(List[File]())((src, f) => f :: src)
+
+  private def bin: Directory = (directory / "bin").toDirectory
 
   /**
    * Uses strange named compiler Global to compile.

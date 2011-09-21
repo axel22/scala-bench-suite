@@ -26,8 +26,8 @@ class BenchmarkFactory(log: Log,
                        classpath: List[URL],
                        modes: List[BenchmarkMode]) {
 
-  def create(kind: BenchmarkKind, src: List[File], bin: Directory): Benchmark = {
-    new SnippetBenchmark(name, arguments, modes, classpath, src, bin, log, config)
+  def create(kind: BenchmarkKind, directory: Directory): Benchmark = {
+    new SnippetBenchmark(name, arguments, modes, classpath, directory, log, config)
   }
 
 }

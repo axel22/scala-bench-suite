@@ -20,7 +20,7 @@ class LoadStoreManagerFactory(log: Log, config: Config) {
   
   def create(benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode): LoadStoreManager = {
     persistor match {
-      case sfp: SimpleFilePersistor => new SimpleLoadStoreManager(log, config, benchmark, sfp.location, mode)
+      case sfp: FilePersistor => new SimpleLoadStoreManager(log, config, benchmark, sfp.location, mode)
       case _ => null
     }
   }

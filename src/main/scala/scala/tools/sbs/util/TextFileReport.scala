@@ -13,7 +13,6 @@ package util
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.tools.nsc.io.File
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
@@ -27,7 +26,7 @@ import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
-import scala.tools.sbs.regression.SimpleFilePersistor
+import scala.tools.sbs.regression.FilePersistor
 
 class TextFileReport(
   log: Log, config: Config, benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode) extends Report {
@@ -64,7 +63,7 @@ class TextFileReport(
     }
     write(endl + "Persistor:                     " + persistor.getClass.getName)
     persistor match {
-      case sfp: SimpleFilePersistor => write("--from:                        " + sfp.location.path)
+      case sfp: FilePersistor => write("--from:                        " + sfp.location.path)
       case _ => () // TODO
     }
     write(endl + "At confidence level:           " + result.confidenceLevel + "%" + endl)

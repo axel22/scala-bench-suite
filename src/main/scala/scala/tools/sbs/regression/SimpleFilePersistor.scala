@@ -13,8 +13,10 @@ package regression
 
 import scala.tools.nsc.io.Directory
 
-trait SimpleFilePersistor {
+trait FilePersistor {
 
   def location(): Directory
+
+  def loadFromFile(): FilePersistor
 
 }

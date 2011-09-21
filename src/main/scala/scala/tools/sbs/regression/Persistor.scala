@@ -18,6 +18,10 @@ import scala.tools.sbs.measurement.Series
 trait Persistor {
 
   def add(ele: Series): Unit
+  
+  def mode: BenchmarkMode
+  
+  def concat(that: Persistor): Persistor
 
   def apply(i: Int): Series
 
@@ -35,6 +39,8 @@ trait Persistor {
 
   def forall(op: Series => Boolean): Boolean
 
-  def generate(mode: BenchmarkMode, num: Int): Persistor
+  def generate(num: Int): Persistor
+  
+  def load(): Persistor
 
 }

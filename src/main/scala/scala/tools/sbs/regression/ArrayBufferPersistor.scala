@@ -21,25 +21,38 @@ import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
+import scala.tools.sbs.measurement.SeriesFactory
+import scala.tools.nsc.io.File
+import scala.io.Source.fromFile
 
-class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) extends Persistor with SimpleFilePersistor {
+class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode)
+  extends Persistor with FilePersistor {
 
   private var data: ArrayBuffer[Series] = null
 
-  private var _location: Directory = null
-  def location() = _location
-
-  def this(log: Log, config: Config, benchmark: Benchmark, location: Directory, data: ArrayBuffer[Series]) {
-    this(log, config, benchmark)
-    this._location = location
+  def this(log: Log,
+           config: Config,
+           benchmark: Benchmark,
+           mode: BenchmarkMode,
+           data: ArrayBuffer[Series]) {
+    this(log, config, benchmark, mode)
     this.data = data
   }
 
+  def location = (benchmark.directory / "result" / mode.toString).toDirectory
+  
+  def mode(): BenchmarkMode = mode
+  
   /**
    * Add a `Series` to `data`.
    */
   def add(ele: Series) = {
     data += ele
+    this
+  }
+
+  def concat(that: Persistor): Persistor = {
+    that foreach (this add _)
     this
   }
 
@@ -51,7 +64,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) exten
 
   def last = data.last
 
-  def tail = new ArrayBufferPersistor(log, config, benchmark, location, data.tail)
+  def tail = new ArrayBufferPersistor(log, config, benchmark, mode, data.tail)
 
   def length = data.length
 
@@ -62,7 +75,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) exten
   /**
    * Generates sample results.
    */
-  def generate(mode: BenchmarkMode, num: Int): Persistor = {
+  def generate(num: Int): Persistor = {
     var i = 0
     val measurer = new MeasurerFactory(log, config) create mode
     while (i < num) {
@@ -88,6 +101,71 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark) exten
       }
     }
     this
+  }
+
+  def load(): Persistor = {
+    loadFromFile
+    this
+  }
+  
+  def loadFromFile(): FilePersistor = {
+
+    var line: String = null
+    var series: Series = null
+    
+    log.debug("--Persistor directory--  " + location.path)
+
+    if (!location.isDirectory || !location.canRead) {
+      log.info("--Cannot find previous results--")
+    } else {
+       location walkFilter (path => path.isFile && path.canRead) foreach (
+        file => try {
+          log.verbose("--Read file--	" + file.path)
+
+          series = loadSeries(file.toFile)
+
+          log.debug("----Read----	" + series.toString)
+
+          if (series != null && series.length > 0) {
+            this add series
+          }
+        } catch {
+          case e => {
+            log.debug(e.toString)
+          }
+        }
+      )
+    }
+    this
+  }
+  
+  def loadSeries(file: File): Series = {
+    var dataSeries = ArrayBuffer[Long]()
+    var confidenceLevel = 0
+    for (line <- fromFile(file.path).getLines) {
+      try {
+        if (line startsWith "Date") {
+
+        } else if (line startsWith "-") {
+
+        } else if (line startsWith "Mode") {
+
+        } else if (line startsWith "Main") {
+
+        } else if (line startsWith "Confidence") {
+          confidenceLevel = (line split " ")(2).toInt
+        } else {
+          dataSeries += line.toLong
+        }
+      } catch {
+        case e => {
+          log.debug("[Read failed] " + file.path + e.toString)
+          dataSeries.clear()
+          return null
+        }
+      }
+    }
+    new SeriesFactory(log, config).create(dataSeries, confidenceLevel)
   }
 
 }

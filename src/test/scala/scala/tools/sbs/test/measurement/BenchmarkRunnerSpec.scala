@@ -16,6 +16,7 @@ class BenchmarkRunnerSpec extends Spec {
 
   object DummyBenchmark extends Benchmark {
     def name() = "ADummyBenchmark"
+    def directory = testBenchmarkDir
     def modes() = List(BenchmarkMode.STEADY)
     def compile() = true
     def init() = ()

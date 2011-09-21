@@ -33,39 +33,9 @@ class SimpleLoadStoreManager(
   /**
    *
    */
-  def loadPersistor(): Persistor = {
-
-    var line: String = null
-    var series: Series = null
-    var persistor = new PersistorFactory(log, config).create(benchmark, location)
-    
-    val loadDir = (location / mode.toString).toDirectory
-
-    log.debug("--Persistor directory--  " + loadDir.path)
-
-    if (!location.isDirectory || !location.canRead) {
-      log.info("--Cannot find previous results--")
-    } else {
-       loadDir walkFilter (path => path.isFile && path.canRead) foreach (
-        file => try {
-          log.verbose("--Read file--	" + file.path)
-
-          series = loadSeries(file.toFile)
-
-          log.debug("----Read----	" + series.toString)
-
-          if (series != null && series.length > 0) {
-            persistor add series
-          }
-        } catch {
-          case e => {
-            log.debug(e.toString)
-          }
-        }
-      )
-    }
-    persistor
-  }
+  def loadFromFile(): FilePersistor = {null}
+  
+  def loadPersistor(): Persistor = null
 
   def loadSeries(file: File): Series = {
     var dataSeries = ArrayBuffer[Long]()
@@ -118,7 +88,7 @@ class SimpleLoadStoreManager(
     data += "-------------------------------"
 
     FileUtil.createAndStore(
-      (location / mode.toString).path + directory,
+      location.path + directory,
       benchmark.name + "." + mode.toString,
       result.series.foldLeft(data) { (data, l) => data + l.toString }
     )

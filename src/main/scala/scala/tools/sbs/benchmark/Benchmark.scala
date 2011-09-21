@@ -12,12 +12,15 @@ package scala.tools.sbs
 package benchmark
 
 import BenchmarkMode.BenchmarkMode
+import scala.tools.nsc.io.Directory
 
 trait Benchmark {
 
-  def name(): String
+  def name: String
   
-  def modes(): List[BenchmarkMode]
+  def directory: Directory
+  
+  def modes: List[BenchmarkMode]
   
   /**
    * Uses strange named compiler Global to compile.
