@@ -24,6 +24,9 @@ import scala.tools.sbs.util.Log
 import scala.tools.sbs.measurement.SeriesFactory
 import scala.tools.nsc.io.File
 import scala.io.Source.fromFile
+import scala.tools.sbs.util.FileUtil
+import java.text.SimpleDateFormat
+import java.util.Date
 
 class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode)
   extends Persistor with FilePersistor {
@@ -40,9 +43,9 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
   }
 
   def location = (benchmark.directory / "result" / mode.toString).toDirectory
-  
+
   def mode(): BenchmarkMode = mode
-  
+
   /**
    * Add a `Series` to `data`.
    */
@@ -82,8 +85,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
       measurer run benchmark match {
         case success: MeasurementSuccess => {
 
-          val storer = new LoadStoreManagerFactory(log, config).create(benchmark, this, mode)
-          storer.storeMeasurementResult(success, BenchmarkSuccess(success.series.confidenceLevel, success)) match {
+          storeToFile(success, BenchmarkSuccess(success.series.confidenceLevel, success)) match {
             case Some(_) => {
               log.debug("--Stored--")
               i += 1
@@ -107,18 +109,18 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
     loadFromFile
     this
   }
-  
+
   def loadFromFile(): FilePersistor = {
 
     var line: String = null
     var series: Series = null
-    
+
     log.debug("--Persistor directory--  " + location.path)
 
     if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-       location walkFilter (path => path.isFile && path.canRead) foreach (
+      location walkFilter (path => path.isFile && path.canRead) foreach (
         file => try {
           log.verbose("--Read file--	" + file.path)
 
@@ -138,7 +140,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
     }
     this
   }
-  
+
   def loadSeries(file: File): Series = {
     var dataSeries = ArrayBuffer[Long]()
     var confidenceLevel = 0
@@ -166,6 +168,42 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
       }
     }
     new SeriesFactory(log, config).create(dataSeries, confidenceLevel)
+  }
+
+  def store(measurement: MeasurementSuccess, result: BenchmarkResult): Boolean = {
+    storeToFile(measurement, result) match {
+      case Some(file) => {
+        log.info("Result stored OK into " + file.path)
+        true
+      }
+      case _ => {
+        log.info("Cannot store measurement result")
+        false
+      }
+    }
+  }
+
+  def storeToFile(measurement: MeasurementSuccess, result: BenchmarkResult): Option[File] = {
+    if (measurement.series.length == 0) {
+      log.info("Nothing to store")
+      return None
+    }
+    val directory = result match {
+      case BenchmarkSuccess(_, result) => ""
+      case _ => (System getProperty "file.separator") + "FAILED"
+    }
+    val data = new ArrayBuffer[String]
+    data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
+    data += "Main Class:       " + benchmark.name
+    data += "Mode:             " + mode
+    data += "Confidence level: " + measurement.series.confidenceLevel + " %"
+    data += "-------------------------------"
+
+    FileUtil.createAndStore(
+      location.path + directory,
+      benchmark.name + "." + mode.toString,
+      measurement.series.foldLeft(data) { (data, l) => data + l.toString }
+    )
   }
 
 }

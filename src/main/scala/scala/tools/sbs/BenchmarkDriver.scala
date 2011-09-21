@@ -10,15 +10,12 @@
 
 package scala.tools.sbs
 
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.regression.BenchmarkResult
 import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.ImmeasurableFailure
-import scala.tools.sbs.regression.LoadStoreManagerFactory
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
@@ -72,15 +69,10 @@ object BenchmarkDriver {
           measurer run benchmark match {
             case success: MeasurementSuccess => {
               val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-              val result = detectRegression(log, config, benchmark, success, persistor, mode)
+              val result = detectRegression(log, config, success, persistor)
               val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
               report(result)
-
-              val storer = new LoadStoreManagerFactory(log, config).create(benchmark, persistor, mode)
-              storer.storeMeasurementResult(success, result) match {
-                case Some(file) => log.info("Result stored OK into " + file.path)
-                case None => log.info("Cannot store measurement result")
-              }
+              persistor.store(success, result)
             }
             case failure: MeasurementFailure => {
               val persistor = new PersistorFactory(log, config).create(benchmark, mode)
@@ -109,10 +101,8 @@ object BenchmarkDriver {
    */
   def detectRegression(log: Log,
                        config: Config,
-                       benchmark: Benchmark,
                        result: MeasurementSuccess,
-                       persistor: Persistor,
-                       mode: BenchmarkMode): BenchmarkResult = {
+                       persistor: Persistor): BenchmarkResult = {
 
     persistor add result.series
 
