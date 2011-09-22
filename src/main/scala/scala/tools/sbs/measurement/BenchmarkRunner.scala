@@ -34,7 +34,7 @@ class BenchmarkRunner(log: Log, config: Config) {
     log.verbose("")
     log.verbose("--Warmup--")
 
-    var series = new SeriesFactory(log, config) create
+    var series = new Series(log, config)
     var unwarmable = false
 
     val iteratorMax = config.multiplier * 5
@@ -80,9 +80,9 @@ class BenchmarkRunner(log: Log, config: Config) {
 
     if (iteratorMeasure >= Constant.MAX_MEASUREMENT && !series.isReliable) {
       if (unwarmable) {
-        UnwarmableFailure(series)
+        UnwarmableFailure()
       } else {
-        UnreliableFailure(series)
+        UnreliableFailure()
       }
     } else {
       MeasurementSuccess(series)

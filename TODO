@@ -2,36 +2,42 @@ TODO:
 -----
 
 
-introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
-check if regression detection works for time based tests
-transition to sbt
-
 I've taken a look at the code. Good work overall. Here are a couple of comments:
 
 
 4)
 Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
 
-5) Add comments.
+11)
+Add comments.
 
-6) Take a look at partest and their directory layout
+12)
+Take a look at partest and their directory layout
 
-7) Take a look at .check files for partest - we want .args files which contain:
+13)
+Take a look at .check files for partest - we want .args files which contain:
 --runs 11 --multiplier 11
 
-8) --scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
+14)
+--scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
 
-9) Persistor
+15)
+Persistor
 
-10) case class Series(times: ArrayBuffer[Long])
+16)
+case class Series(times: ArrayBuffer[Long])
 
-11) ResultHistory
+17)
+ResultHistory
 
-12) Measure steady state in a separate JVM
+18)
+Measure steady state in a separate JVM
 
-13) snippet identifier format
+19)
+snippet identifier format
 
-14) jdi
+20)
+jdi - introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
 
 
 
@@ -102,3 +108,9 @@ Factor out interfaces (traits) wherever possible - for instance Log should be a 
 A ConsoleLog should be one of the implementations. 
 Same thing for Report - Report should be a trait, and a SimpleLogReport should be one implementation.
 +The same comment as above - `logLevel` should be a ctor argument.
+
+9)
+transition to sbt
+
+10)
+check if regression detection works for time based tests

@@ -15,7 +15,7 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-class MemoryHarness(log: Log, config: Config) extends Harness(log, config) {
+class MemoryHarness extends SubProcessHarness {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")

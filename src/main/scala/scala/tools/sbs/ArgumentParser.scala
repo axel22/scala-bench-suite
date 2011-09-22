@@ -277,7 +277,7 @@ object ArgumentParser {
       javahome,
       compile)
 
-    val log = new LogFactory(benchmarkName, logLevel, showlog) create benchmarkdir
+    val log = (new LogFactory).create(benchmarkName, benchmarkdir, logLevel, showlog)
 
     val benchmark = new BenchmarkFactory(
       log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(

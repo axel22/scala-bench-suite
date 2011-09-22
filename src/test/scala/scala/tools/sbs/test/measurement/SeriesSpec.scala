@@ -3,13 +3,12 @@ package test
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.measurement.ArrayBufferSeries
-
 import org.scalatest.Spec
+import scala.tools.sbs.measurement.Series
 
 class ArrayBufferSeriesSpec extends Spec {
 
-  private var s: ArrayBufferSeries = _
+  private var s: Series = _
 
   describe("ArrayBufferSeries") {
 
@@ -110,7 +109,7 @@ class ArrayBufferSeriesSpec extends Spec {
   }
 
   def init(arr: ArrayBuffer[Long]) {
-    s = new ArrayBufferSeries(testLog, testConfig, arr, 100)
+    s = new Series(testLog, testConfig, arr, 100)
   }
 
 }

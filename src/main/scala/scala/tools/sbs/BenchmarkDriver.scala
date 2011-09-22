@@ -23,6 +23,9 @@ import scala.tools.sbs.regression.StatisticFactory
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 import scala.tools.sbs.util.ReportFactory
+import scala.sys.process.ProcessIO
+import scala.tools.sbs.measurement.MemoryHarness
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Object controls the runtime of benchmark classes to do measurements.
@@ -63,30 +66,58 @@ object BenchmarkDriver {
         )
       }
 
-      benchmark.modes foreach (
-        mode => try {
-          val measurer = new MeasurerFactory(log, config) create mode
-          measurer run benchmark match {
-            case success: MeasurementSuccess => {
-              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-              val result = detectRegression(log, config, success, persistor)
-              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-              report(result)
-              persistor.store(success, result)
-            }
-            case failure: MeasurementFailure => {
-              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-              report(new ImmeasurableFailure(failure))
-            }
+      benchmark.modes foreach (mode => try {
+
+        val measurer = new MeasurerFactory(log, config) create mode
+        val command = Seq(
+          config.JAVACMD,
+          "-cp",
+          config.SCALALIB,
+          config.JAVAPROP,
+          "scala.tools.nsc.MainGenericRunner",
+          "-classpath",
+          measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
+            (System.getProperty("path.separator")) +
+            benchmark.bin.path +
+            (System.getProperty("path.separator")) +
+            classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
+          measurer.getClass.getName replace ("$", ""))
+
+        for (c <- command) {
+          log.verbose("[Command]  " + c)
+        }
+
+        var subProcessOutput = ArrayBuffer[String]()
+        val processBuilder = Process(command)
+        val processIO = new ProcessIO(
+          _ => (),
+          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(subProcessOutput += _),
+          _ => ())
+
+        val process = processBuilder.run(processIO)
+        val success = process.exitValue
+
+        rebuildResult(subProcessOutput) match {
+          case success: MeasurementSuccess => {
+            val persistor = new PersistorFactory(log, config).create(benchmark, mode)
+            val result = detectRegression(log, config, success, persistor)
+            val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
+            report(result)
+            persistor.store(success, result)
           }
-        } catch {
-          case e: Exception => {
+          case failure: MeasurementFailure => {
             val persistor = new PersistorFactory(log, config).create(benchmark, mode)
             val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-            report(new ExceptionFailure(e))
+            report(new ImmeasurableFailure(failure))
           }
         }
+      } catch {
+        case e: Exception => {
+          val persistor = new PersistorFactory(log, config).create(benchmark, mode)
+          val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
+          report(new ExceptionFailure(e))
+        }
+      }
       )
     } catch {
       // TODO

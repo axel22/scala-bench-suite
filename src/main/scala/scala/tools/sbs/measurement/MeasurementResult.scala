@@ -13,34 +13,37 @@ package measurement
 
 import scala.tools.sbs.benchmark.Benchmark
 
-abstract class MeasurementResult(series: Series) {
-  
-  def series(): Series = series
-  
-}
+abstract class MeasurementResult
 
-case class MeasurementSuccess(override val series: Series) extends MeasurementResult(series)
+case class MeasurementSuccess(series: Series) extends MeasurementResult
 
-abstract class MeasurementFailure(override val series: Series) extends MeasurementResult(series) {
+abstract class MeasurementFailure extends MeasurementResult {
 
   def reason: String
 
 }
 
-case class UnwarmableFailure(override val series: Series) extends MeasurementFailure(series) {
+case class UnwarmableFailure extends MeasurementFailure {
 
-  def reason = "Benchmark could not reach steady state"
-
-}
-
-case class UnreliableFailure(override val series: Series) extends MeasurementFailure(series) {
-
-  def reason = "Measured metric is unreliable"
+  def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNWARMABLE
 
 }
 
-case class ProcessFailure extends MeasurementFailure(null) {
+case class UnreliableFailure extends MeasurementFailure {
 
-  def reason = "----Benchmark process could not run"
+  def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNRELIABLE
 
+}
+
+case class ProcessFailure extends MeasurementFailure {
+
+  def reason = MeasurementSignal.MEASUREMENT_FAILURE_PROCESS_FAIL
+
+}
+
+case class ExceptionFailure(e: Exception) extends MeasurementFailure {
+  
+  def reason = MeasurementSignal.MEASUREMENT_FAILURE_EXCEPTION
+  
+  def exception = e
 }

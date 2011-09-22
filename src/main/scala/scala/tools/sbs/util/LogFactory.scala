@@ -14,14 +14,19 @@ package util
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.LogLevel.LogLevel
 import scala.tools.nsc.io.Directory
+import scala.tools.sbs.benchmark.Benchmark
 
-class LogFactory(benchmarkName: String, logLevel: LogLevel, logShow: Boolean) {
+class LogFactory {
 
-  def create(benchmarkDir: Directory): Log = {
-    TextFileLog createLog (benchmarkDir, benchmarkName) match {
+  def create(benchmarkName: String, benchmarkDir: Directory, logLevel: LogLevel, logShow: Boolean): Log = {
+    TextFileLog.createLog(benchmarkDir, benchmarkName) match {
       case Some(logFile) => new TextFileLog(logFile, logLevel, logShow)
       case None => UI
     }
+  }
+
+  def create(logLevel: LogLevel): Log = {
+    new SubProcessLog(logLevel)
   }
 
 }

@@ -87,7 +87,7 @@ class TextFileReport(
       case anova: ANOVAFailure => {
         write("----New approach sample mean:  " + anova.means.head)
         write("----Persistor sample mean:")
-        anova.means.tail foreach (m => println("                               " + m))
+        anova.means.tail foreach (m => write("                               " + m))
         write("----F-test:")
         write("                        SSA:   " + anova.SSA)
         write("                        SSE:   " + anova.SSE)

@@ -16,11 +16,12 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-class StartupHarness(log: Log, config: Config) extends Harness(log, config) {
+class StartupHarness(log: Log, config: Config) extends Measurer {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking startup state]")
     if (benchmark.initCommand()) {
+      val benchmarkRunner = new BenchmarkRunner(log, config)
       benchmarkRunner run (
         benchmark,
         _ => true,

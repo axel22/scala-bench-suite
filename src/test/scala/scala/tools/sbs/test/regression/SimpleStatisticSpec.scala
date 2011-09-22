@@ -2,12 +2,12 @@ package scala.tools.sbs
 package test
 package regression
 
-import org.scalatest.Spec
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.measurement.ArrayBufferSeries
-import scala.tools.sbs.regression.StatisticFactory
 import scala.tools.sbs.regression.Statistic
+import scala.tools.sbs.regression.StatisticFactory
+
+import org.scalatest.Spec
 
 class SimpleStatisticSpec extends Spec {
 
@@ -15,7 +15,7 @@ class SimpleStatisticSpec extends Spec {
   private var statistic: Statistic = _
 
   def init(arr: ArrayBuffer[Long]) {
-    s = new ArrayBufferSeries(testLog, testConfig, arr, 99)
+    s = new Series(testLog, testConfig, arr, 99)
     statistic = new StatisticFactory(testLog, testConfig).create()
   }
 

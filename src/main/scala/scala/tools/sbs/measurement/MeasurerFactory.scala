@@ -21,8 +21,8 @@ import scala.tools.sbs.util.Log
 class MeasurerFactory(log: Log, config: Config) {
 
   def create(mode: BenchmarkMode): Measurer = mode match {
-    case STEADY => new SteadyHarness(log, config)
-    case MEMORY => new MemoryHarness(log, config)
+    case STEADY => new SteadyHarness
+    case MEMORY => new MemoryHarness
     case STARTUP => new StartupHarness(log, config)
   }
 

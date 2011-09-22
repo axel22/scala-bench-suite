@@ -18,7 +18,7 @@ import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.Log
 
-class SteadyHarness(log: Log, config: Config) extends Harness(log, config) {
+class SteadyHarness extends SubProcessHarness {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     val statistic = new StatisticFactory(log, config) create 0

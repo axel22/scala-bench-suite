@@ -21,7 +21,6 @@ import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
-import scala.tools.sbs.measurement.SeriesFactory
 import scala.tools.nsc.io.File
 import scala.io.Source.fromFile
 import scala.tools.sbs.util.FileUtil
@@ -167,7 +166,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
         }
       }
     }
-    new SeriesFactory(log, config).create(dataSeries, confidenceLevel)
+    new Series(log, config, dataSeries, confidenceLevel)
   }
 
   def store(measurement: MeasurementSuccess, result: BenchmarkResult): Boolean = {
