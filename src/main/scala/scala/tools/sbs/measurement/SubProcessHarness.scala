@@ -33,19 +33,17 @@ trait SubProcessHarness extends Measurer {
    * Entry point of the new process.
    */
   def main(args: Array[String]): Unit = {
-    
+
     val settings = rebuildSettings(args)
-    
+
     config = settings._1
     val benchmark = settings._2
     log = new LogFactory create settings._3
     benchmarkRunner = new BenchmarkRunner(log, config)
-    
+
     try {
       reportResult(this run benchmark)
-    } catch {
-      case e: Exception => reportResult(new ExceptionFailure(e))
-    }
+    } catch { case e: Exception => reportResult(new ExceptionFailure(e)) }
   }
 
   /**

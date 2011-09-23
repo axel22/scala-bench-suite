@@ -13,79 +13,40 @@ package benchmark
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.ClassNotFoundException
+import java.lang.NoSuchMethodException
+import java.lang.System
+import java.lang.Thread
 import java.net.URL
 
 import scala.sys.process.Process
 import scala.sys.process.ProcessBuilder
-import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
-import scala.tools.nsc.Global
-import scala.tools.nsc.Settings
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-import BenchmarkMode.BenchmarkMode
-
-case class SnippetBenchmark(name: String,
+case class SnipperBenchmark(src: Path,
                             arguments: List[String],
-                            modes: List[BenchmarkMode],
                             classpathURLs: List[URL],
-                            directory: Directory,
                             log: Log,
                             config: Config) extends Benchmark {
 
-  /**
-   * Benchmark process.
+  /** Benchmark process.
    */
   private var process: ProcessBuilder = null
 
-  /**
-   * Benchmark `main` method.
+  /** Benchmark `main` method.
    */
   private var method: Method = null
 
-  /**
-   * Current class loader context.
+  /** Current class loader context.
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
 
-  private def src: List[File] = 
-    (directory / "src").toDirectory.deepFiles.filter(_.hasExtension("scala"))
-    .foldLeft(List[File]())((src, f) => f :: src)
-
-  private def bin: Directory = (directory / "bin").toDirectory
-
-  /**
-   * Uses strange named compiler Global to compile.
-   */
-  def compile(): Boolean = {
-    log.verbose("[Compile]")
-
-    val settings = new Settings(log.error)
-    val (ok, errArgs) = settings.processArguments(
-      List(
-        "-classpath",
-        (classpathURLs map (_.toString) mkString (System getProperty "path.separator")),
-        "-d",
-        bin.path),
-      false)
-
-    log.debug(settings.d.value)
-    settings.outdir.value = bin.path
-
-    if (ok) {
-      val compiler = new Global(settings)
-      (new compiler.Run) compile (src map (_.path))
-    } else {
-      errArgs map (err => log.error(err))
-    }
-    ok
-  }
-
-  /**
-   * Sets the running context and load benchmark classes.
+  /** Sets the running context and load benchmark classes.
    */
   def init() {
     try {
@@ -102,21 +63,19 @@ case class SnippetBenchmark(name: String,
     }
   }
 
-  /**
-   * Runs the benchmark object and throws Exceptions (if any).
+  /** Runs the benchmark object and throws Exceptions (if any).
    */
   def run() = method.invoke(null, Array(arguments.toArray: AnyRef): _*)
 
-  /**
-   * Resets the context.
+  /** Resets the context.
    */
-  def finallize() = Thread.currentThread.setContextClassLoader(oldContext)
+  def reset() = Thread.currentThread.setContextClassLoader(oldContext)
 
-  /**
-   * Creates the process command for start up benchmarking.
+  /** Creates the process command for start up benchmarking.
    */
   def initCommand(): Boolean = {
     val colon = System getProperty "path.separator"
+    val bin = config.benchmarkDirectory / "bin" createDirectory ()
     val command = arguments.foldLeft(
       Seq(config.JAVACMD,
         "-cp",
@@ -125,8 +84,7 @@ case class SnippetBenchmark(name: String,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
         bin.path + colon + config.SCALALIB + colon + (classpathURLs map (_.toString) mkString colon),
-        name)
-    ) { (cmd, arg) => cmd :+ arg }
+        name))((cmd, arg) => cmd :+ arg)
 
     log.debug(command.toString)
 
@@ -136,11 +94,8 @@ case class SnippetBenchmark(name: String,
     process.! == 0
   }
 
-  /**
-   * Runs the benchmark process.
+  /** Runs the benchmark process.
    */
   def runCommand() = process !
-
-  override def toString = "Benchmark [" + name + "] [" + arguments mkString " "
 
 }

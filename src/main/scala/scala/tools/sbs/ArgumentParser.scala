@@ -17,7 +17,6 @@ import scala.tools.nsc.GenericRunnerSettings
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
-import scala.tools.sbs.benchmark.BenchmarkKind.BenchmarkKind
 import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
@@ -28,7 +27,6 @@ import scala.tools.sbs.util.Log
 import scala.tools.sbs.util.LogFactory
 import scala.tools.sbs.util.LogLevel
 import scala.tools.sbs.util.UI
-import scala.tools.sbs.benchmark.BenchmarkKind
 
 /**
  * Parser for the suite's arguments.
@@ -91,7 +89,7 @@ object ArgumentParser {
    *
    * @return	The `Config` object conresponding for the parsed values
    */
-  def parse(args: Array[String]): (Config, Log, Benchmark) = {
+  def parse(args: Array[String]): (Config, Log, List[Benchmark]) = {
 
     val slash = System getProperty "file.separator"
     val colon = System getProperty "path.separator"
@@ -283,7 +281,7 @@ object ArgumentParser {
       log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(
       BenchmarkKind.SNIPPET, benchmarkdir)
 
-    return (config, log, benchmark)
+    return (config, log, List(benchmark))
   }
 
   def exitOnError(message: String) {

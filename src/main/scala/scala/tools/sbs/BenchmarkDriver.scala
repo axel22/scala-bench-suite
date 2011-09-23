@@ -27,108 +27,82 @@ import scala.sys.process.ProcessIO
 import scala.tools.sbs.measurement.MemoryHarness
 import scala.collection.mutable.ArrayBuffer
 
-/**
- * Object controls the runtime of benchmark classes to do measurements.
+/** Object controls the runtime of benchmark classes to do measurements.
  *
- * @author ND P
+ *  @author ND P
  */
 object BenchmarkDriver {
 
-  /**
-   * Start point of the benchmark driver
-   * Does the following:
-   * <ul>
-   * <li>Parse input parameters
-   * <li>Compile the sources of the benchmarks if necessary
-   * <li>Run all the benchmarks with the specified parameters
-   * <li>Run comparisons to previous results
-   * <li>Stores the benchmark result into file
-   * </ul>
+  /** Start point of the benchmark driver
+   *  Does the following:
+   *  <ul>
+   *  <li>Parse input parameters
+   *  <li>Compile the sources of the benchmarks if necessary
+   *  <li>Run all the benchmarks with the specified parameters
+   *  <li>Run comparisons to previous results
+   *  <li>Stores the benchmark result into file
+   *  </ul>
    */
   def main(args: Array[String]): Unit = {
 
-    val (config, log, benchmark) = ArgumentParser.parse(args)
+    val (config, log, benchmarks) = ArgumentParser.parse(args)
 
     log.debug(config.toString())
 
     try {
-      if (config.compile && !benchmark.compile()) {
-        System.exit(1)
+      if (config.compile) {
+        if (new BenchmarkCompilerFactory(log, config).create() compile benchmark) ()
+        else System.exit(1)
       }
 
       log.verbose("[Measure]")
 
       if (config.sampleNumber > 0) {
-        benchmark.modes foreach (mode => {
+        config.modes foreach (mode => {
           val persistor = new PersistorFactory(log, config).create(benchmark, mode)
           persistor generate config.sampleNumber
-        }
-        )
+        })
       }
 
-      benchmark.modes foreach (mode => try {
+      config.modes foreach (mode => try {
 
         val measurer = new MeasurerFactory(log, config) create mode
-        val command = Seq(
-          config.JAVACMD,
-          "-cp",
-          config.SCALALIB,
-          config.JAVAPROP,
-          "scala.tools.nsc.MainGenericRunner",
-          "-classpath",
-          measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
-            (System.getProperty("path.separator")) +
-            benchmark.bin.path +
-            (System.getProperty("path.separator")) +
-            classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-          measurer.getClass.getName replace ("$", ""))
 
-        for (c <- command) {
-          log.verbose("[Command]  " + c)
-        }
+        benchmarks foreach (benchmark => {
 
-        var subProcessOutput = ArrayBuffer[String]()
-        val processBuilder = Process(command)
-        val processIO = new ProcessIO(
-          _ => (),
-          stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(subProcessOutput += _),
-          _ => ())
+          // TODO: invoke new JVM
 
-        val process = processBuilder.run(processIO)
-        val success = process.exitValue
-
-        rebuildResult(subProcessOutput) match {
-          case success: MeasurementSuccess => {
-            val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-            val result = detectRegression(log, config, success, persistor)
-            val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-            report(result)
-            persistor.store(success, result)
+          rebuildResult(subProcessOutput) match {
+            case success: MeasurementSuccess => {
+              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
+              val result = detectRegression(log, config, success, persistor)
+              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
+              report(result)
+              persistor.store(success, result)
+            }
+            case failure: MeasurementFailure => {
+              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
+              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
+              report(new ImmeasurableFailure(failure))
+            }
           }
-          case failure: MeasurementFailure => {
-            val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-            val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-            report(new ImmeasurableFailure(failure))
-          }
-        }
+        })
       } catch {
         case e: Exception => {
           val persistor = new PersistorFactory(log, config).create(benchmark, mode)
           val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
           report(new ExceptionFailure(e))
         }
-      }
-      )
+      })
     } catch {
       // TODO
       case e: Exception => throw e
     }
   }
 
-  /**
-   * Loads previous results and uses statistically rigorous method to detect regression.
+  /** Loads previous results and uses statistically rigorous method to detect regression.
    *
-   * @param result	The benchmark result just measured.
+   *  @param result	The benchmark result just measured.
    */
   def detectRegression(log: Log,
                        config: Config,

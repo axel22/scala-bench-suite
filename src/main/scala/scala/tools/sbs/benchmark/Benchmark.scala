@@ -11,47 +11,55 @@
 package scala.tools.sbs
 package benchmark
 
-import BenchmarkMode.BenchmarkMode
-import scala.tools.nsc.io.Directory
+import java.net.URL
+
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.File
+import scala.tools.nsc.io.Path
 
 trait Benchmark {
 
-  def name: String
-  
-  def directory: Directory
-  
-  def modes: List[BenchmarkMode]
-  
-  /**
-   * Uses strange named compiler Global to compile.
-   */
-  def compile(): Boolean
+  lazy val name: String = src.stripExtension
 
-  /**
-   * Sets the running context and load benchmark classes.
+  /** Path to the benchmark source file / directory.
+   */
+  def src: Path
+  
+  /** Arguments of the benchmark.
+   */
+  def arguments: List[String] = Nil
+  
+  /** Classpath of the benchmark.
+   */
+  def classpathURLs: List[URL] = Nil
+
+  /** Logging file for each benchmark's running.
+   */
+  def logFile =
+    if (src.isFile) {
+      File(src.path stripSuffix src.extension) addExtension "log"
+    } else {
+      File(src.path) addExtension "log"
+    } createFile ()
+
+  /** Sets the running context and load benchmark classes.
    */
   def init()
 
-  /**
-   * Runs the benchmark object and throws Exceptions (if any).
+  /** Runs the benchmark object and throws Exceptions (if any).
    */
   def run()
 
-  /**
-   * Resets the context.
+  /** Resets the context.
    */
-  def finallize()
+  def reset()
 
-  /**
-   * Creates the process command for start up benchmarking.
+  /** Creates the process command for start up benchmarking.
    */
   def initCommand(): Boolean
 
-  /**
-   * Runs the benchmark process.
+  /** Runs the benchmark process.
    */
   def runCommand()
-
-  override def toString(): String
 
 }
