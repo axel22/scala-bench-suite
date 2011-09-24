@@ -11,10 +11,8 @@
 package scala.tools.sbs
 package io
 
-import scala.tools.nsc.io.File
-import scala.tools.sbs.util.LogLevel.LogLevel
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.LogLevel.LogLevel
 
 class LogFactory {
 

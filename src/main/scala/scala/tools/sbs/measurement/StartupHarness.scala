@@ -13,8 +13,7 @@ package measurement
 
 import scala.compat.Platform
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
+import scala.tools.sbs.io.Log
 
 class StartupHarness(log: Log, config: Config) extends Harness {
 
@@ -29,8 +28,7 @@ class StartupHarness(log: Log, config: Config) extends Harness {
           val start = Platform.currentTime
           benchmark.runCommand()
           Platform.currentTime - start
-        }
-      )
+        })
     } else {
       ProcessFailure()
     }

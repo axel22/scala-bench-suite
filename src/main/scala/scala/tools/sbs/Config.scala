@@ -10,8 +10,12 @@
 
 package scala.tools.sbs
 
+import java.lang.System
+
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.util.Constant
 
 case class Config(benchmarkDirectory: Directory,
                   runs: Int,
@@ -20,7 +24,7 @@ case class Config(benchmarkDirectory: Directory,
                   scalahome: Directory,
                   javahome: Directory,
                   compile: Boolean) {
-  
+
   def bin: Directory
   def modes: List[BenchmarkMode]
 

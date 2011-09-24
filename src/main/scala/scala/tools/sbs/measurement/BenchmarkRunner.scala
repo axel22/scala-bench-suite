@@ -12,22 +12,21 @@ package scala.tools.sbs
 package measurement
 
 import java.lang.Thread.sleep
+import java.lang.System
 
 import scala.compat.Platform
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.util.Config
+import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant
-import scala.tools.sbs.util.Log
 
 class BenchmarkRunner(log: Log, config: Config) {
 
-  /**
-   * Warms the benchmark up if necessary and measures the desired metric.
+  /** Warms the benchmark up if necessary and measures the desired metric.
    *
-   * @param	checkWarm	The function checking whether the benchmark has reached steady state
-   * @param measure	The thunk to calculate the desired metric
+   *  @param	checkWarm	The function checking whether the benchmark has reached steady state
+   *  @param measure	The thunk to calculate the desired metric
    *
-   * @return	The result if success, otherwies a `String` describes the reason.
+   *  @return	The result if success, otherwies a `String` describes the reason.
    */
   def run(benchmark: Benchmark, checkWarm: Series => Boolean, measure: => Long): MeasurementResult = {
 
@@ -76,7 +75,7 @@ class BenchmarkRunner(log: Log, config: Config) {
       log.verbose("[End measurement]")
     }
 
-    benchmark.finallize()
+    benchmark.reset()
 
     if (iteratorMeasure >= Constant.MAX_MEASUREMENT && !series.isReliable) {
       if (unwarmable) {
@@ -89,8 +88,7 @@ class BenchmarkRunner(log: Log, config: Config) {
     }
   }
 
-  /**
-   * Forces the Java gc to clean up the heap.
+  /** Forces the Java gc to clean up the heap.
    */
   def cleanUp() {
     Platform.collectGarbage

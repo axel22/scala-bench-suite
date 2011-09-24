@@ -11,20 +11,23 @@
 package scala.tools.sbs
 package util
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
 import java.io.FileWriter
 import java.lang.Thread.sleep
+import java.lang.System
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
-import scala.tools.nsc.io.Directory
+import scala.tools.sbs.io.UI
 
 object FileUtil {
 
-  /**
-   * Writes the given message to the given file.
+  /** Writes the given message to the given file.
    */
   def write(filename: String, message: String) {
     val writer = new FileWriter(filename, true)
@@ -33,14 +36,13 @@ object FileUtil {
     writer.close()
   }
 
-  /**
-   * Tries to create a new file whose name in the format:
-   * <path><slash>YYYYMMDD.hhmmss.<last>
+  /** Tries to create a new file whose name in the format:
+   *  <path><slash>YYYYMMDD.hhmmss.<last>
    *
-   * @param path	The path to the directory containing the file
-   * @param last	The true name of the file (excludes the time prefix)
+   *  @param path	The path to the directory containing the file
+   *  @param last	The true name of the file (excludes the time prefix)
    *
-   * @return	`Some` file if success, `None` otherwises
+   *  @return	`Some` file if success, `None` otherwises
    */
   def createFile(path: String, last: String): Option[File] = {
     var filename: String = null
@@ -66,12 +68,11 @@ object FileUtil {
     }
   }
 
-  /**
-   * Tries to get the file with the given name.
+  /** Tries to get the file with the given name.
    *
-   * @param filename	The file name
+   *  @param filename	The file name
    *
-   * @return	`true` if success, `false` otherwise
+   *  @return	`true` if success, `false` otherwise
    */
   def createFile(filename: String): Boolean = {
     val file = new JFile(filename)
@@ -87,8 +88,7 @@ object FileUtil {
     }
   }
 
-  /**
-   * Tries to create a file and write some data to it.
+  /** Tries to create a file and write some data to it.
    */
   def createAndStore(path: String, last: String, whatToWrite: ArrayBuffer[String]): Option[File] = {
     val maybeAFile = FileUtil.createFile(path, last)
@@ -110,8 +110,7 @@ object FileUtil {
     }
   }
 
-  /**
-   * Creates directory structure for benchmarking.
+  /** Creates directory structure for benchmarking.
    */
   def createBenchmarkDir(root: String, name: String): Either[Directory, String] = {
     val slash = System getProperty "file.separator"
@@ -143,10 +142,9 @@ object FileUtil {
     }
   }
 
-  /**
-   * Clean all contents of a directory.
+  /** Clean all contents of a directory.
    *
-   * @param dir	The desired directory
+   *  @param dir	The desired directory
    */
   def clean(dir: Path): Option[String] = {
     try {
@@ -157,10 +155,9 @@ object FileUtil {
     }
   }
 
-  /**
-   * Creates new directory.
+  /** Creates new directory.
    *
-   * @param path	The path of the desired directory
+   *  @param path	The path of the desired directory
    */
   def mkDir(path: Path): Either[Directory, String] = {
     try {

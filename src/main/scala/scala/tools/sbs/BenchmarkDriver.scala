@@ -64,7 +64,7 @@ object BenchmarkDriver {
       }
 
       config.modes foreach (mode => {
-        val measurer = MeasurerFactory(log, config)
+        val measurer = MeasurerFactory(log, config, mode)
         benchmarks foreach (benchmark => try {
           val persistor = PersistorFactory(log, config, benchmark, mode)
           measurer measure benchmark match {

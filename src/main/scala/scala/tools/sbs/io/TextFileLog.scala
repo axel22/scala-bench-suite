@@ -17,14 +17,16 @@ import java.util.Date
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-import scala.tools.sbs.util.LogLevel.LogLevel
+import scala.tools.sbs.util.FileUtil
+
+import LogLevel.LogLevel
 
 class TextFileLog(logFile: File, logLevel: LogLevel, logShow: Boolean) extends Log {
 
   def logShow() = logShow
-  
+
   def logLevel() = logLevel
-  
+
   def apply(message: String) {
     if (logFile != null) {
       FileUtil.write(logFile.path, message)
@@ -34,9 +36,8 @@ class TextFileLog(logFile: File, logLevel: LogLevel, logShow: Boolean) extends L
 }
 
 object TextFileLog {
-  /**
-   * Creates a new file for logging whose name in the format:
-   * YYYYMMDD.hhmmss.BenchmarkClass.log
+  /** Creates a new file for logging whose name in the format:
+   *  YYYYMMDD.hhmmss.BenchmarkClass.log
    */
   def createLog(benchmarkDir: Directory, classname: String): Option[File] = {
     var logInit = new ArrayBuffer[String]

@@ -27,13 +27,11 @@ import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogLevel.LogLevel
 
-/**
- * Parser for the suite's arguments.
+/** Parser for the suite's arguments.
  */
 object ArgumentParser {
 
-  /**
-   * Holds string contants for parameters.
+  /** Holds string contants for parameters.
    */
   private object Parameter {
 
@@ -83,10 +81,9 @@ object ArgumentParser {
 
   }
 
-  /**
-   * Parses the arguments from command line.
+  /** Parses the arguments from command line.
    *
-   * @return	The `Config` object conresponding for the parsed values
+   *  @return	The `Config` object conresponding for the parsed values
    */
   def parse(args: Array[String]): (Config, Log, List[Benchmark]) = {
 
@@ -114,9 +111,8 @@ object ArgumentParser {
     var logLevel: LogLevel = LogLevel.INFO
     var showlog = false
 
-    /**
-     * Loop through a `List[String]` containing the arguments.
-     * Gets the first argument and recursive loop through the rest.
+    /** Loop through a `List[String]` containing the arguments.
+     *  Gets the first argument and recursive loop through the rest.
      */
     def loop(args: List[String]) {
       args match {
@@ -234,9 +230,7 @@ object ArgumentParser {
           case Right(err) => exitOnError(err)
           case _ => ()
         }
-      }
-
-    )
+      })
     if (clean) {
       FileUtil.clean(benchmarkdir / "bin") match {
         case Some(err) => exitOnError(err)
@@ -276,9 +270,7 @@ object ArgumentParser {
 
     val log = (new LogFactory).create(benchmarkName, benchmarkdir, logLevel, showlog)
 
-    val benchmark = new BenchmarkFactory(
-      log, config, benchmarkName, benchmarkArguments, settings.classpathURLs, modes).create(
-      BenchmarkKind.SNIPPET, benchmarkdir)
+    val benchmark = BenchmarkFactory(benchmarkdir, benchmarkArguments, settings.classpathURLs, log, config)
 
     return (config, log, List(benchmark))
   }

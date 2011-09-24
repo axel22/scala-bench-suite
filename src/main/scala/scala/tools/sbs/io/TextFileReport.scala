@@ -11,8 +11,10 @@
 package scala.tools.sbs
 package io
 
+import java.lang.System
 import java.text.SimpleDateFormat
 import java.util.Date
+
 import scala.tools.nsc.io.File
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.benchmark.Benchmark
@@ -23,10 +25,11 @@ import scala.tools.sbs.regression.BenchmarkResult
 import scala.tools.sbs.regression.BenchmarkSuccess
 import scala.tools.sbs.regression.ConfidenceIntervalFailure
 import scala.tools.sbs.regression.ExceptionFailure
+import scala.tools.sbs.regression.FilePersistor
 import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
-import scala.tools.sbs.regression.FilePersistor
+import scala.tools.sbs.util.FileUtil
 
 class TextFileReport(
   log: Log, config: Config, benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode) extends Report {
@@ -81,7 +84,7 @@ class TextFileReport(
       case ci: ConfidenceIntervalFailure => {
         write("----New approach sample mean:  " + ci.means.head)
         write("----Persistor sample mean:")
-        write("                               " + ci.means.last) 
+        write("                               " + ci.means.last)
         write("----Confidence interval:       [" + ci.CI._1.formatted("%.2f") + "; " + ci.CI._2.formatted("%.2f") + "]")
       }
       case anova: ANOVAFailure => {

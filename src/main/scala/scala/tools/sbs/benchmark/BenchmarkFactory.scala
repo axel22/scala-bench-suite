@@ -12,21 +12,14 @@ package scala.tools.sbs
 package benchmark
 
 import java.net.URL
-
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
+import scala.tools.sbs.io.Log
+import scala.tools.nsc.io.Path
 
-class BenchmarkFactory(log: Log,
-                       config: Config,
-                       name: String,
-                       arguments: List[String],
-                       classpath: List[URL],
-                       modes: List[BenchmarkMode]) {
+object BenchmarkFactory {
 
-  def create(directory: Directory): Benchmark = {
-    new SnippetBenchmark(name, arguments, modes, classpath, directory, log, config)
-  }
+  def apply(src: Path, arguments: List[String], classpathURLs: List[URL], log: Log, config: Config): Benchmark =
+    new SnippetBenchmark(src, arguments, classpathURLs, log, config)
 
 }

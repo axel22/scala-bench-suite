@@ -11,9 +11,8 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 trait Measurer {
@@ -24,6 +23,6 @@ trait Measurer {
 
 object MeasurerFactory {
 
-  def apply(log: Log, config: Config): Measurer = new SubJVMMeasurer(log, config)
+  def apply(log: Log, config: Config, mode: BenchmarkMode): Measurer = new SubJVMMeasurer(log, config, mode)
 
 }

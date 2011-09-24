@@ -25,10 +25,9 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
+import scala.tools.sbs.io.Log
 
-case class SnipperBenchmark(src: Path,
+case class SnippetBenchmark(src: Path,
                             arguments: List[String],
                             classpathURLs: List[URL],
                             log: Log,

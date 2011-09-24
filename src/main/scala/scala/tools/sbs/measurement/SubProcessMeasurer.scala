@@ -11,14 +11,12 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.regression.PersistorFactory
-import scala.tools.sbs.io.LogLevel
-import scala.tools.sbs.io.LogFactory
-import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.LogLevel.LogLevel
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkMode
+import scala.tools.sbs.io.LogLevel.LogLevel
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.LogFactory
 
 /** Driver for measurement in a separated JVM.
  *  Choose the harness to run and write the result to output stream.
@@ -82,4 +80,5 @@ object SubProcessMeasurerFactory {
     case BenchmarkMode.MEMORY => new MemoryHarness
     case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
+
 }

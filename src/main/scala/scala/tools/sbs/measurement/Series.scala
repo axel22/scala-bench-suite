@@ -12,26 +12,22 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.regression.StatisticFactory
-import scala.tools.sbs.util.Config
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant
-import scala.tools.sbs.util.Log
 
-/**
- * Class represents the result of benchmarking. Allows user to store or load a list of values from file.
+/** Class represents the result of benchmarking. Allows user to store or load a list of values from file.
  *
- * @author ND P
+ *  @author ND P
  */
 class Series(log: Log, config: Config) {
 
   /**
-   *
    */
   private var data = ArrayBuffer[Long]()
 
-  /**
-   * The confidence level that at which, this series' confidence interval is not greater than
-   * 2% of its mean.
+  /** The confidence level that at which, this series' confidence interval is not greater than
+   *  2% of its mean.
    */
   private var _confidenceLevel: Int = 100
   def confidenceLevel = _confidenceLevel
@@ -41,7 +37,7 @@ class Series(log: Log, config: Config) {
     data = series
     _confidenceLevel = confidenceLevel
   }
-  
+
   def apply(idx: Int) = data.apply(idx)
 
   def head = data.head
@@ -69,14 +65,13 @@ class Series(log: Log, config: Config) {
 
   def remove(n: Int) = data remove n
 
-  /**
-   * Calculates statistical metrics.
+  /** Calculates statistical metrics.
    *
-   * @return
-   * <ul>
-   * <li>`true` if the ration between the confidence interval and the mean is less than the thredshold
-   * <li>`false` otherwise
-   * </ul>
+   *  @return
+   *  <ul>
+   *  <li>`true` if the ration between the confidence interval and the mean is less than the thredshold
+   *  <li>`false` otherwise
+   *  </ul>
    */
   def isReliable: Boolean = {
 
@@ -87,7 +82,7 @@ class Series(log: Log, config: Config) {
       log.debug("--Wrong in measurment length--")
       false
     } else {
-      val statistic = new StatisticFactory(log, config).create()
+      val statistic = StatisticsFactory(log, config)
 
       val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))
@@ -122,7 +117,6 @@ class Series(log: Log, config: Config) {
   }
 
   /**
-   *
    */
   override def toString(): String =
     data.foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }

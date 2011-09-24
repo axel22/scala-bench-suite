@@ -9,6 +9,7 @@
  */
 
 package scala.tools.sbs
+package measurement
 
 import java.lang.System
 
@@ -17,7 +18,6 @@ import scala.sys.process.Process
 import scala.sys.process.ProcessIO
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.Measurer
 
 import org.apache.commons.math.MathException
 
@@ -28,9 +28,9 @@ trait JVMInvoker {
 }
 
 object JVMInvokerFactory {
-  
+
   def apply(log: Log, config: Config) = new JVMCommandInvoker(log, config)
-  
+
 }
 
 class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
