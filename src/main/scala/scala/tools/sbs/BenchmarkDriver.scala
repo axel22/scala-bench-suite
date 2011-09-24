@@ -10,6 +10,10 @@
 
 package scala.tools.sbs
 
+import java.lang.System
+
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
@@ -19,13 +23,7 @@ import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
-import scala.tools.sbs.regression.StatisticFactory
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
-import scala.tools.sbs.util.ReportFactory
-import scala.sys.process.ProcessIO
-import scala.tools.sbs.measurement.MemoryHarness
-import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.regression.StatisticsFactory
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -51,48 +49,43 @@ object BenchmarkDriver {
 
     try {
       if (config.compile) {
-        if (new BenchmarkCompilerFactory(log, config).create() compile benchmark) ()
-        else System.exit(1)
+        val compiler = new BenchmarkCompilerFactory(log, config).create()
+        if (!(benchmarks forall (compiler compile _))) System.exit(1)
       }
 
       log.verbose("[Measure]")
 
       if (config.sampleNumber > 0) {
-        config.modes foreach (mode => {
-          val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-          persistor generate config.sampleNumber
-        })
+        config.modes foreach (mode =>
+          benchmarks foreach (benchmark => {
+            val persistor = PersistorFactory(log, config, benchmark, mode)
+            persistor generate config.sampleNumber
+          }))
       }
 
-      config.modes foreach (mode => try {
-
-        val measurer = new MeasurerFactory(log, config) create mode
-
-        benchmarks foreach (benchmark => {
-
-          // TODO: invoke new JVM
-
-          rebuildResult(subProcessOutput) match {
+      config.modes foreach (mode => {
+        val measurer = MeasurerFactory(log, config)
+        benchmarks foreach (benchmark => try {
+          val persistor = PersistorFactory(log, config, benchmark, mode)
+          measurer measure benchmark match {
             case success: MeasurementSuccess => {
-              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
               val result = detectRegression(log, config, success, persistor)
               val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
               report(result)
               persistor.store(success, result)
             }
             case failure: MeasurementFailure => {
-              val persistor = new PersistorFactory(log, config).create(benchmark, mode)
               val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
               report(new ImmeasurableFailure(failure))
             }
           }
+        } catch {
+          case e: Exception => {
+            val persistor = PersistorFactory(log, config, benchmark, mode)
+            val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
+            report(new ExceptionFailure(e))
+          }
         })
-      } catch {
-        case e: Exception => {
-          val persistor = new PersistorFactory(log, config).create(benchmark, mode)
-          val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-          report(new ExceptionFailure(e))
-        }
       })
     } catch {
       // TODO
@@ -104,10 +97,7 @@ object BenchmarkDriver {
    *
    *  @param result	The benchmark result just measured.
    */
-  def detectRegression(log: Log,
-                       config: Config,
-                       result: MeasurementSuccess,
-                       persistor: Persistor): BenchmarkResult = {
+  def detectRegression(log: Log, config: Config, result: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
 
     persistor add result.series
 
@@ -117,7 +107,7 @@ object BenchmarkDriver {
     if (persistor.length < 2) {
       NoPreviousFailure(result)
     } else {
-      val statistic = new StatisticFactory(log, config).create()
+      val statistic = StatisticsFactory(log, config)
       statistic testDifference (result, persistor)
     }
   }

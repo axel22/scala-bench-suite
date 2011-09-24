@@ -9,9 +9,9 @@
  */
 
 package scala.tools.sbs
-package util
 
 import scala.tools.nsc.io.Directory
+import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 
 case class Config(benchmarkDirectory: Directory,
                   runs: Int,
@@ -20,6 +20,9 @@ case class Config(benchmarkDirectory: Directory,
                   scalahome: Directory,
                   javahome: Directory,
                   compile: Boolean) {
+  
+  def bin: Directory
+  def modes: List[BenchmarkMode]
 
   val JAVACMD = javahome + System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java"
   val JAVAPROP = "-Dscala.home=" + scalahome

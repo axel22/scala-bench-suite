@@ -13,15 +13,13 @@ package measurement
 
 import scala.compat.Platform
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.regression.StatisticFactory
-import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Constant
-import scala.tools.sbs.util.Log
+import scala.tools.sbs.regression.StatisticsFactory
 
-class SteadyHarness extends SubProcessHarness {
+class SteadyHarness extends Harness with SubProcessMeasurer {
 
   def run(benchmark: Benchmark): MeasurementResult = {
-    val statistic = new StatisticFactory(log, config) create 0
+    val statistic = new StatisticsFactory(log, config)(0)
     log.info("[Benchmarking steady state]")
     benchmark.init()
     benchmarkRunner run (
@@ -29,10 +27,13 @@ class SteadyHarness extends SubProcessHarness {
       series => (statistic CoV series) < Constant.STEADY_THREDSHOLD,
       {
         val start = Platform.currentTime
-        (1 to config.runs) map (_ => benchmark.run)
+        var i = 0
+        while (i < config.runs) {
+          benchmark.run()
+          i += 1
+        }
         Platform.currentTime - start
-      }
-    )
+      })
   }
 
 }

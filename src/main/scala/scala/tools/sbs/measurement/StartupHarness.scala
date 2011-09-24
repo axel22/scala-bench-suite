@@ -16,7 +16,7 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.Log
 
-class StartupHarness(log: Log, config: Config) extends Measurer {
+class StartupHarness(log: Log, config: Config) extends Harness {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking startup state]")

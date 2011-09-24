@@ -20,13 +20,12 @@ import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.benchmark.BenchmarkMode
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
-import scala.tools.sbs.util.LogLevel.LogLevel
-import scala.tools.sbs.util.Config
 import scala.tools.sbs.util.FileUtil
-import scala.tools.sbs.util.Log
-import scala.tools.sbs.util.LogFactory
-import scala.tools.sbs.util.LogLevel
-import scala.tools.sbs.util.UI
+import scala.tools.sbs.io.LogLevel
+import scala.tools.sbs.io.UI
+import scala.tools.sbs.io.LogFactory
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.LogLevel.LogLevel
 
 /**
  * Parser for the suite's arguments.

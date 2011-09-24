@@ -9,7 +9,7 @@
  */
 
 package scala.tools.sbs
-package util
+package io
 
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode

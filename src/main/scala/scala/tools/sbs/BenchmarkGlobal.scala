@@ -10,12 +10,14 @@
 
 package scala.tools.sbs
 
+import java.lang.System
+
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.File
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
-import scala.tools.nsc.io.File
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
 
 class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 

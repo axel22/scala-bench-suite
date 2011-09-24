@@ -9,7 +9,7 @@
  */
 
 package scala.tools.sbs
-package util
+package io
 
 import java.text.SimpleDateFormat
 import java.util.Date

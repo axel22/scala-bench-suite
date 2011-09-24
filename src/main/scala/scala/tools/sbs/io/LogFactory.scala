@@ -9,7 +9,7 @@
  */
 
 package scala.tools.sbs
-package util
+package io
 
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.LogLevel.LogLevel

@@ -11,8 +11,7 @@
 package scala.tools.sbs
 
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
+import scala.tools.sbs.io.Log
 
 trait BenchmarkCompiler {
 

@@ -9,7 +9,7 @@
  */
 
 package scala.tools.sbs
-package util
+package io
 
 import scala.tools.sbs.util.LogLevel.LogLevel
 import scala.tools.sbs.measurement.MeasurementSignal

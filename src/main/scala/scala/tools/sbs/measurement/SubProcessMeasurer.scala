@@ -11,26 +11,25 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.util.Config
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.regression.PersistorFactory
-import scala.tools.sbs.util.ReportFactory
-import scala.tools.sbs.util.LogLevel.LogLevel
-import scala.tools.sbs.util.LogFactory
-import scala.tools.sbs.util.Log
-/**
- * Driver for measurement in a separated JVM.
- * Choose the harness to run and write the result to output stream.
+import scala.tools.sbs.io.LogLevel
+import scala.tools.sbs.io.LogFactory
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.LogLevel.LogLevel
+import scala.tools.sbs.benchmark.BenchmarkMode
+
+/** Driver for measurement in a separated JVM.
+ *  Choose the harness to run and write the result to output stream.
  */
-trait SubProcessHarness extends Measurer {
+trait SubProcessMeasurer extends Measurer {
 
   protected var benchmarkRunner: BenchmarkRunner = _
   protected var log: Log = _
   protected var config: Config = _
 
-  /**
-   * Entry point of the new process.
+  /** Entry point of the new process.
    */
   def main(args: Array[String]): Unit = {
 
@@ -41,23 +40,19 @@ trait SubProcessHarness extends Measurer {
     log = new LogFactory create settings._3
     benchmarkRunner = new BenchmarkRunner(log, config)
 
-    try {
-      reportResult(this run benchmark)
-    } catch { case e: Exception => reportResult(new ExceptionFailure(e)) }
+    try reportResult(this measure benchmark)
+    catch { case e: Exception => reportResult(new ExceptionFailure(e)) }
   }
 
-  /**
-   * Rebuild the measuring config from command arguments.
+  /** Rebuild the measuring config from command arguments.
    *
-   * @return	The tuple of the rebuilt `Config` and `Benchmark`
+   *  @return	The tuple of the rebuilt `Config` and `Benchmark`
    */
   def rebuildSettings(args: Array[String]): (Config, Benchmark, LogLevel) = {
-
     (null, null, null)
   }
 
-  /**
-   * Reports the measurement result to the main process.
+  /** Reports the measurement result to the main process.
    */
   def reportResult(result: MeasurementResult) {
     Console println MeasurementSignal.RESULT_START
@@ -78,4 +73,13 @@ trait SubProcessHarness extends Measurer {
     }
   }
 
+}
+
+object SubProcessMeasurerFactory {
+
+  def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
+    case BenchmarkMode.STEADY => new SteadyHarness
+    case BenchmarkMode.MEMORY => new MemoryHarness
+    case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
+  }
 }

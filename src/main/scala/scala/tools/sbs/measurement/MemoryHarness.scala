@@ -11,11 +11,11 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
+import java.lang.Runtime
 
-class MemoryHarness extends SubProcessHarness {
+import scala.tools.sbs.benchmark.Benchmark
+
+class MemoryHarness extends Harness with SubProcessMeasurer {
 
   def run(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
@@ -28,8 +28,7 @@ class MemoryHarness extends SubProcessHarness {
         benchmark.init()
         benchmark.run()
         start - runtime.freeMemory
-      }
-    )
+      })
   }
 
 }

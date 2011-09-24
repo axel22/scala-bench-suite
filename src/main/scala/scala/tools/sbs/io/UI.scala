@@ -9,7 +9,7 @@
  */
 
 package scala.tools.sbs
-package util
+package io
 
 /**
  * User command line interface.

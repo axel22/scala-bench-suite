@@ -12,21 +12,18 @@ package scala.tools.sbs
 package regression
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.nsc.io.Directory
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
 import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.measurement.Series
 
-class PersistorFactory(log: Log, config: Config) {
+object PersistorFactory {
 
-  def create(benchmark: Benchmark, mode: BenchmarkMode): Persistor = {
+  def apply(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode): Persistor =
     new ArrayBufferPersistor(log, config, benchmark, mode: BenchmarkMode, ArrayBuffer[Series]())
-  }
 
-  def create(benchmark: Benchmark, mode: BenchmarkMode, data: ArrayBuffer[Series]): Persistor = {
+  def apply(
+    log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode, data: ArrayBuffer[Series]): Persistor =
     new ArrayBufferPersistor(log, config, benchmark, mode: BenchmarkMode, data)
-  }
 
 }

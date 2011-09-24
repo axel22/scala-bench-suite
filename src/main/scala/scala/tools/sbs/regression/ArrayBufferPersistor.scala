@@ -19,13 +19,14 @@ import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
 import scala.tools.nsc.io.File
 import scala.io.Source.fromFile
 import scala.tools.sbs.util.FileUtil
 import java.text.SimpleDateFormat
 import java.util.Date
+import scala.tools.sbs.measurement.MeasurerFactory
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.measurement.MeasurerFactory
 
 class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode)
   extends Persistor with FilePersistor {
@@ -79,9 +80,9 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
    */
   def generate(num: Int): Persistor = {
     var i = 0
-    val measurer = new MeasurerFactory(log, config) create mode
+    val measurer = MeasurerFactory(log, config)
     while (i < num) {
-      measurer run benchmark match {
+      measurer measure benchmark match {
         case success: MeasurementSuccess => {
 
           storeToFile(success, BenchmarkSuccess(success.series.confidenceLevel, success)) match {

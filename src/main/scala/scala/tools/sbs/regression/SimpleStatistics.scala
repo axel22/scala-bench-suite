@@ -13,37 +13,32 @@ package regression
 
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.util.Config
-import scala.tools.sbs.util.Log
 
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 
-class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends Statistic {
+class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends Statistics {
 
-  /**
-   * Maximum significant level.
+  /** Maximum significant level.
    */
-
   private val alphaMax: Double = 0.1
 
-  /**
-   * Minimum significant level.
+  /** Minimum significant level.
    */
   private val alphaMin: Double = 0.00
 
-  /**
-   * Reduces the confidence level time by time to by 5% each time,
-   * except 2 cases:
-   * <ul>
-   * <li>From 100% to 99%
-   * <li>From 99% to 95%
-   * </ul>
+  /** Reduces the confidence level time by time to by 5% each time,
+   *  except 2 cases:
+   *  <ul>
+   *  <li>From 100% to 99%
+   *  <li>From 99% to 95%
+   *  </ul>
    *
-   * @return `true` if success, `false` if the confidence leval is at the minimum value.
+   *  @return `true` if success, `false` if the confidence leval is at the minimum value.
    */
   def reduceConfidenceLevel(): Int = {
     if (alpha == 0) {
@@ -61,8 +56,7 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     confidenceLevel
   }
 
-  /**
-   * @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
+  /** @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
    */
   def isConfidenceLevelAcceptable = if (alpha <= alphaMax) true else false
 
@@ -70,11 +64,10 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     alpha = alphaMin
   }
 
-  /**
-   * Computes the confidence interval for the given sample.
+  /** Computes the confidence interval for the given sample.
    *
-   * @param series	The result of benchmarking
-   * @return	The left and right end points of the confidence interval.
+   *  @param series	The result of benchmarking
+   *  @return	The left and right end points of the confidence interval.
    */
   def confidenceInterval(series: Series): (Double, Double) = {
     val SD = standardDeviation(series)
@@ -90,68 +83,61 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     (mean(series) - diff, mean(series) + diff)
   }
 
-  /**
-   * Computes z value of the standard normal distribution with mean 0 and variance 1.
+  /** Computes z value of the standard normal distribution with mean 0 and variance 1.
    *
-   * @param alpha	The significant level
-   * @return	The z value
+   *  @param alpha	The significant level
+   *  @return	The z value
    */
   private def inverseGaussianDistribution() =
     new NormalDistributionImpl(0, 1).inverseCumulativeProbability(1 - alpha / 2)
 
-  /**
-   * Computes the t value of the Student distribution using:
-   * <ul>
-   * <li>A given degree of freedom
-   * <li>The pre-defined significant level
-   * </ul>
+  /** Computes the t value of the Student distribution using:
+   *  <ul>
+   *  <li>A given degree of freedom
+   *  <li>The pre-defined significant level
+   *  </ul>
    *
-   * @param df	The degree of freedom
-   * @return	The t value
+   *  @param df	The degree of freedom
+   *  @return	The t value
    */
   private def inverseStudentDistribution(df: Int) =
     new TDistributionImpl(df).inverseCumulativeProbability(1 - alpha / 2)
 
-  /**
-   * Computes the F value of the Fisher F distribution using:
-   * <ul>
-   * <li>Given degrees of freedom
-   * <li>The pre-defined significant level
-   * </ul>
+  /** Computes the F value of the Fisher F distribution using:
+   *  <ul>
+   *  <li>Given degrees of freedom
+   *  <li>The pre-defined significant level
+   *  </ul>
    *
-   * @param n1	The first degree of freedom
-   * @param n2	The second degree of freedom
-   * @return	The F value
+   *  @param n1	The first degree of freedom
+   *  @param n2	The second degree of freedom
+   *  @return	The F value
    */
   private def inverseFDistribution(n1: Int, n2: Int) =
     new FDistributionImpl(n1, n2).inverseCumulativeProbability(1 - alpha)
 
-  /**
-   * @param series	The result of benchmarking
-   * @return	The minimum value
+  /** @param series	The result of benchmarking
+   *  @return	The minimum value
    */
   def min(series: Series) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
 
-  /**
-   * @param series	The result of benchmarking
-   * @return	The maximum value
+  /** @param series	The result of benchmarking
+   *  @return	The maximum value
    */
   def max(series: Series) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
 
-  /**
-   * Computes the sample mean.
+  /** Computes the sample mean.
    *
-   * @param series	The result of benchmarking
-   * @return	The average
+   *  @param series	The result of benchmarking
+   *  @return	The average
    */
   def mean(series: Series) =
     if (series.length == 0) 0 else series.foldLeft(0: Double) { (sum: Double, s) => sum + s } / series.length
 
-  /**
-   * Computes the standard deviation of a given sample.
+  /** Computes the standard deviation of a given sample.
    *
-   * @param series	The result of benchmarking
-   * @return	The standard deviation
+   *  @param series	The result of benchmarking
+   *  @return	The standard deviation
    */
   def standardDeviation(series: Series): Double = {
     if (series.length == 0) {
@@ -162,33 +148,29 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     }
   }
 
-  /**
-   * Computes the coefficient of variation of a given sample.
+  /** Computes the coefficient of variation of a given sample.
    *
-   * @param series	The result of benchmarking
-   * @return	The coefficient of variation
+   *  @param series	The result of benchmarking
+   *  @return	The coefficient of variation
    */
   def CoV(series: Series) = standardDeviation(series) / mean(series)
 
-  /**
-   * @return	The significant level alpha
+  /** @return	The significant level alpha
    */
   def significantLevel = alpha
 
-  /**
-   * @return	The confident level
+  /** @return	The confident level
    */
   def confidenceLevel: Int = (1 - alpha) * 100 toInt
 
-  /**
-   * Statistically rigorously compares means of samples using statistically rigorous evaluation method:
-   * <ul>
-   * <li>Confidence intervals for comparing 2 alternatives.
-   * <li>ANOVA for comparing 3 or more alternatives.
-   * </ul>
+  /** Statistically rigorously compares means of samples using statistically rigorous evaluation method:
+   *  <ul>
+   *  <li>Confidence intervals for comparing 2 alternatives.
+   *  <li>ANOVA for comparing 3 or more alternatives.
+   *  </ul>
    *
-   * @param persistor	The list of previous results
-   * @return	`true` if there is statistically significant difference among the means, `false` otherwise
+   *  @param persistor	The list of previous results
+   *  @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
   def testDifference(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
     if (persistor.length < 2) {
@@ -201,11 +183,10 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     }
   }
 
-  /**
-   * Statistically rigorously compares means of two samples using confidence intervals.
+  /** Statistically rigorously compares means of two samples using confidence intervals.
    *
-   * @param persistor	The list of previous results
-   * @return	The confidence interval if there is statistically significant difference, `None` otherwise
+   *  @param persistor	The list of previous results
+   *  @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
   private def testConfidenceIntervals(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
     var series = persistor.head
@@ -252,11 +233,10 @@ class SimpleStatistic(log: Log, config: Config, var alpha: Double = 0) extends S
     }
   }
 
-  /**
-   * Statistically rigorously compares means of three or more samples using ANOVA.
+  /** Statistically rigorously compares means of three or more samples using ANOVA.
    *
-   * @param persistor	The list of previous results
-   * @return	Array of the means if there is statistically significant difference, `None` otherwise
+   *  @param persistor	The list of previous results
+   *  @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
   private def testANOVA(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
 
