@@ -11,8 +11,7 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 
 trait Measurer {

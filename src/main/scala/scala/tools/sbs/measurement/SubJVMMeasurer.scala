@@ -12,8 +12,7 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 
 class SubJVMMeasurer(log: Log, config: Config, mode: BenchmarkMode) extends Measurer {

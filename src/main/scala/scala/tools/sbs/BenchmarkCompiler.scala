@@ -10,7 +10,6 @@
 
 package scala.tools.sbs
 
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 trait BenchmarkCompiler {

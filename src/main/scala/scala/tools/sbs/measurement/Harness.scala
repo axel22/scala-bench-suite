@@ -11,9 +11,7 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkMode
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.regression.BenchmarkResult
 

@@ -15,7 +15,6 @@ import java.lang.Thread.sleep
 import java.lang.System
 
 import scala.compat.Platform
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant
 

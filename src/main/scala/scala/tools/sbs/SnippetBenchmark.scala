@@ -9,7 +9,6 @@
  */
 
 package scala.tools.sbs
-package benchmark
 
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier

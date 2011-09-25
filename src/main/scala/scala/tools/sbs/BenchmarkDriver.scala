@@ -11,7 +11,6 @@
 package scala.tools.sbs
 
 import java.lang.System
-
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.measurement.MeasurementFailure
@@ -24,6 +23,7 @@ import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.regression.StatisticsFactory
+import scala.tools.sbs.regression.History
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -55,18 +55,14 @@ object BenchmarkDriver {
 
       log.verbose("[Measure]")
 
-      if (config.sampleNumber > 0) {
-        config.modes foreach (mode =>
-          benchmarks foreach (benchmark => {
-            val persistor = PersistorFactory(log, config, benchmark, mode)
-            persistor generate config.sampleNumber
-          }))
-      }
-
       config.modes foreach (mode => {
+
         val measurer = MeasurerFactory(log, config, mode)
+
         benchmarks foreach (benchmark => try {
+
           val persistor = PersistorFactory(log, config, benchmark, mode)
+
           measurer measure benchmark match {
             case success: MeasurementSuccess => {
               val result = detectRegression(log, config, success, persistor)
@@ -99,16 +95,16 @@ object BenchmarkDriver {
    */
   def detectRegression(log: Log, config: Config, result: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
 
-    persistor add result.series
-
-    if (persistor.length == 1) {
-      persistor.load()
-    }
-    if (persistor.length < 2) {
+    val history: History =
+      if (config.sampleNumber > 0) persistor generate config.sampleNumber
+      else persistor.load()
+    history add result.series
+    
+    if (history.length < 2) {
       NoPreviousFailure(result)
     } else {
       val statistic = StatisticsFactory(log, config)
-      statistic testDifference (result, persistor)
+      statistic testDifference (result, history)
     }
   }
 

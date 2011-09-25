@@ -1,5 +1,5 @@
 /*
- * ArrayBufferPersistor
+ * SimpleFilePersistor
  * 
  * Version
  * 
@@ -11,76 +11,33 @@
 package scala.tools.sbs
 package regression
 
+import java.lang.System
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.nsc.io.File
+import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
-import scala.tools.nsc.io.File
-import scala.io.Source.fromFile
 import scala.tools.sbs.util.FileUtil
-import java.text.SimpleDateFormat
-import java.util.Date
-import scala.tools.sbs.measurement.MeasurerFactory
-import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.MeasurerFactory
 
-class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode)
-  extends Persistor with FilePersistor {
+import BenchmarkMode.BenchmarkMode
 
-  private var data: ArrayBuffer[Series] = null
+class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
-  def this(log: Log,
-           config: Config,
-           benchmark: Benchmark,
-           mode: BenchmarkMode,
-           data: ArrayBuffer[Series]) {
-    this(log, config, benchmark, mode)
-    this.data = data
-  }
+  def location(): Directory
 
-  def location = (benchmark.directory / "result" / mode.toString).toDirectory
-
-  def mode(): BenchmarkMode = mode
-
-  /**
-   * Add a `Series` to `data`.
+  /** Generates sample results.
    */
-  def add(ele: Series) = {
-    data += ele
-    this
-  }
-
-  def concat(that: Persistor): Persistor = {
-    that foreach (this add _)
-    this
-  }
-
-  def apply(i: Int) = data(i)
-
-  def foldLeft[B](z: B)(op: (B, Series) => B): B = data.foldLeft[B](z)(op)
-
-  def head: Series = data.head
-
-  def last = data.last
-
-  def tail = new ArrayBufferPersistor(log, config, benchmark, mode, data.tail)
-
-  def length = data.length
-
-  def foreach(f: Series => Unit): Unit = data foreach f
-
-  def forall(op: Series => Boolean) = data forall op
-
-  /**
-   * Generates sample results.
-   */
-  def generate(num: Int): Persistor = {
+  def generate(num: Int): History = {
     var i = 0
-    val measurer = MeasurerFactory(log, config)
+    val measurer = MeasurerFactory(log, config, mode)
+    var justCreated = HistoryFactory(log, config, benchmark, mode)
     while (i < num) {
       measurer measure benchmark match {
         case success: MeasurementSuccess => {
@@ -95,25 +52,25 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
               log.debug("--Cannot store--")
             }
           }
-          this add success.series
+          justCreated add success.series
         }
         case failure: MeasurementFailure => {
           log.debug("--Generation error at " + i + ": " + failure.reason + "--")
         }
       }
     }
-    this
+    justCreated
   }
 
-  def load(): Persistor = {
+  def load(): History = {
     loadFromFile
-    this
   }
 
-  def loadFromFile(): FilePersistor = {
+  def loadFromFile(): History = {
 
     var line: String = null
     var series: Series = null
+    var justLoaded = HistoryFactory(log, config, benchmark, mode)
 
     log.debug("--Persistor directory--  " + location.path)
 
@@ -129,22 +86,21 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
           log.debug("----Read----	" + series.toString)
 
           if (series != null && series.length > 0) {
-            this add series
+            justLoaded add series
           }
         } catch {
           case e => {
             log.debug(e.toString)
           }
-        }
-      )
+        })
     }
-    this
+    justLoaded
   }
 
   def loadSeries(file: File): Series = {
     var dataSeries = ArrayBuffer[Long]()
     var confidenceLevel = 0
-    for (line <- fromFile(file.path).getLines) {
+    for (line <- Source.fromFile(file.path).getLines) {
       try {
         if (line startsWith "Date") {
 
@@ -202,8 +158,7 @@ class ArrayBufferPersistor(log: Log, config: Config, benchmark: Benchmark, mode:
     FileUtil.createAndStore(
       location.path + directory,
       benchmark.name + "." + mode.toString,
-      measurement.series.foldLeft(data) { (data, l) => data + l.toString }
-    )
+      measurement.series.foldLeft(data) { (data, l) => data + l.toString })
   }
 
 }

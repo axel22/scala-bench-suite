@@ -14,7 +14,7 @@ import java.lang.System
 
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.util.Constant
 
 case class Config(benchmarkDirectory: Directory,

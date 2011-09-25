@@ -172,14 +172,14 @@ class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends 
    *  @param persistor	The list of previous results
    *  @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
-  def testDifference(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
-    if (persistor.length < 2) {
+  def testDifference(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
+    if (history.length < 2) {
       throw new Exception("Not enough result files specified")
     }
-    if (persistor.length == 2) {
-      testConfidenceIntervals(measurementResult, persistor)
+    if (history.length == 2) {
+      testConfidenceIntervals(measurementResult, history)
     } else {
-      testANOVA(measurementResult, persistor)
+      testANOVA(measurementResult, history)
     }
   }
 
@@ -188,14 +188,14 @@ class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends 
    *  @param persistor	The list of previous results
    *  @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
-  private def testConfidenceIntervals(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
-    var series = persistor.head
+  private def testConfidenceIntervals(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
+    var series = history.head
 
     val mean1 = mean(series)
     val s1 = standardDeviation(series)
     val n1 = series.length
 
-    series = persistor.last
+    series = history.last
 
     val mean2 = mean(series)
     val s2 = standardDeviation(series)
@@ -238,18 +238,18 @@ class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends 
    *  @param persistor	The list of previous results
    *  @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
-  private def testANOVA(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
+  private def testANOVA(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
 
-    val sum = persistor.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
+    val sum = history.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
-    val overall: Double = sum / (persistor.length * persistor.head.length)
+    val overall: Double = sum / (history.length * history.head.length)
 
     var SSA: Double = 0
     var SSE: Double = 0
 
     var means = ArrayBuffer[Double]()
 
-    for (alternative <- persistor) {
+    for (alternative <- history) {
       val alternativeMean = mean(alternative)
       means += alternativeMean
       SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.length
@@ -266,8 +266,8 @@ class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends 
     } else {
       // Performance case
       reduceConfidenceLevel()
-      val n1 = persistor.length - 1
-      val n2 = persistor.foldLeft(0)((s, p) => s + p.length) - persistor.length
+      val n1 = history.length - 1
+      val n2 = history.foldLeft(0)((s, p) => s + p.length) - history.length
       val FValue = SSA * n2 / SSE / n1
       val F = inverseFDistribution(n1, n2)
 

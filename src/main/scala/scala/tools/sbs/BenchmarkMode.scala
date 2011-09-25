@@ -9,7 +9,6 @@
  */
 
 package scala.tools.sbs
-package benchmark
 
 object BenchmarkMode extends Enumeration {
   type BenchmarkMode = Value

@@ -16,8 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.tools.nsc.io.File
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.UnwarmableFailure
 import scala.tools.sbs.regression.ANOVAFailure
@@ -25,7 +24,7 @@ import scala.tools.sbs.regression.BenchmarkResult
 import scala.tools.sbs.regression.BenchmarkSuccess
 import scala.tools.sbs.regression.ConfidenceIntervalFailure
 import scala.tools.sbs.regression.ExceptionFailure
-import scala.tools.sbs.regression.FilePersistor
+import scala.tools.sbs.regression.FileBasedPersistor
 import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
@@ -66,7 +65,7 @@ class TextFileReport(
     }
     write(endl + "Persistor:                     " + persistor.getClass.getName)
     persistor match {
-      case sfp: FilePersistor => write("--from:                        " + sfp.location.path)
+      case sfp: FileBasedPersistor => write("--from:                        " + sfp.location.path)
       case _ => () // TODO
     }
     write(endl + "At confidence level:           " + result.confidenceLevel + "%" + endl)

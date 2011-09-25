@@ -41,7 +41,7 @@ trait Statistics {
 
   def confidenceLevel: Int
 
-  def testDifference(measurementResult: MeasurementSuccess, persistor: Persistor): BenchmarkResult
+  def testDifference(measurementResult: MeasurementSuccess, history: History): BenchmarkResult
 
 }
 

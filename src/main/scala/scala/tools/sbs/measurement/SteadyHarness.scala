@@ -12,7 +12,6 @@ package scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant
 

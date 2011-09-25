@@ -14,10 +14,7 @@ import java.io.{ File => JFile }
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.GenericRunnerSettings
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkFactory
-import scala.tools.sbs.benchmark.BenchmarkMode
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.util.FileUtil

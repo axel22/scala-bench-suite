@@ -9,13 +9,13 @@
  */
 
 package scala.tools.sbs
-package benchmark
 
 import java.net.URL
 
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
+import scala.tools.sbs.io.Log
 
 trait Benchmark {
 
@@ -24,11 +24,11 @@ trait Benchmark {
   /** Path to the benchmark source file / directory.
    */
   def src: Path
-  
+
   /** Arguments of the benchmark.
    */
   def arguments: List[String] = Nil
-  
+
   /** Classpath of the benchmark.
    */
   def classpathURLs: List[URL] = Nil
@@ -61,5 +61,12 @@ trait Benchmark {
   /** Runs the benchmark process.
    */
   def runCommand()
+
+}
+
+object BenchmarkFactory {
+
+  def apply(src: Path, arguments: List[String], classpathURLs: List[URL], log: Log, config: Config): Benchmark =
+    new SnippetBenchmark(src, arguments, classpathURLs, log, config)
 
 }

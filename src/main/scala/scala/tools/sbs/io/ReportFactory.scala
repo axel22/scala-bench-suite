@@ -11,8 +11,7 @@
 package scala.tools.sbs
 package io
 
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkMode.BenchmarkMode
+import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.regression.Persistor
 
 class ReportFactory(log: Log, config: Config) {

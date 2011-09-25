@@ -16,7 +16,6 @@ import java.lang.System
 import scala.collection.mutable.ArrayBuffer
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 import org.apache.commons.math.MathException

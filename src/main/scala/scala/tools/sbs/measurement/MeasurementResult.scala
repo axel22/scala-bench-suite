@@ -11,13 +11,11 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.benchmark.Benchmark
-
-abstract class MeasurementResult
+trait MeasurementResult
 
 case class MeasurementSuccess(series: Series) extends MeasurementResult
 
-abstract class MeasurementFailure extends MeasurementResult {
+trait MeasurementFailure extends MeasurementResult {
 
   def reason: String
 

@@ -13,8 +13,6 @@ package measurement
 
 import java.lang.Runtime
 
-import scala.tools.sbs.benchmark.Benchmark
-
 class MemoryHarness extends Harness with SubProcessMeasurer {
 
   def run(benchmark: Benchmark): MeasurementResult = {
