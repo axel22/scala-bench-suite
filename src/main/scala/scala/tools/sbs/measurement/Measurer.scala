@@ -15,6 +15,8 @@ import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 
 trait Measurer {
+  
+  protected var log: Log
 
   def measure(benchmark: Benchmark): MeasurementResult
 
@@ -22,6 +24,9 @@ trait Measurer {
 
 object MeasurerFactory {
 
-  def apply(log: Log, config: Config, mode: BenchmarkMode): Measurer = new SubJVMMeasurer(log, config, mode)
+  def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {
+    case BenchmarkMode.STARTUP => new StartupMeasurer(config)
+    case _ => new SubJVMMeasurer(config, mode)
+  }
 
 }

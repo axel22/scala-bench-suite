@@ -18,7 +18,7 @@ import scala.tools.sbs.util.Constant
 class SteadyHarness extends Harness with SubProcessMeasurer {
 
   def run(benchmark: Benchmark): MeasurementResult = {
-    val statistic = StatisticsFactory(log, config)
+    val statistic = StatisticsFactory(log)
     log.info("[Benchmarking steady state]")
     benchmark.init()
     benchmarkRunner run (
@@ -27,7 +27,7 @@ class SteadyHarness extends Harness with SubProcessMeasurer {
       {
         val start = Platform.currentTime
         var i = 0
-        while (i < config.runs) {
+        while (i < benchmark.runs) {
           benchmark.run()
           i += 1
         }

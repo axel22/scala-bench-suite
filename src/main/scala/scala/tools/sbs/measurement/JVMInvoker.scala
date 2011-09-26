@@ -14,6 +14,7 @@ package measurement
 import java.lang.System
 
 import scala.collection.mutable.ArrayBuffer
+import scala.io.Source
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
 import scala.tools.sbs.io.Log
@@ -34,8 +35,8 @@ object JVMInvokerFactory {
 
 class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): ArrayBuffer[String] = {
-    val command = Seq(
+  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
+    val command = Seq[String](
       config.JAVACMD,
       "-cp",
       config.SCALALIB,
@@ -47,22 +48,25 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
         config.bin.path +
         (System.getProperty("path.separator")) +
         classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-      measurer.getClass.getName replace ("$", ""))
+      measurer.getClass.getName replace ("$", ""),
+      config.toXML.toString,
+      benchmark.toXML.toString)
 
     for (c <- command) {
       log.verbose("[Command]  " + c)
     }
 
-    var output = ArrayBuffer[String]()
+    var result = ""
+    var error = ArrayBuffer[String]()
     val processBuilder = Process(command)
     val processIO = new ProcessIO(
       _ => (),
-      stdout => scala.io.Source.fromInputStream(stdout).getLines.foreach(output += _),
-      _ => ())
+      stdout => Source.fromInputStream(stdout).getLines.foreach(result += _),
+      stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
 
     val process = processBuilder.run(processIO)
     val success = process.exitValue
-    output
+    (result, error)
   }
 
 }

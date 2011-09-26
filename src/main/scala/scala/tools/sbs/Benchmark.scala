@@ -33,14 +33,15 @@ trait Benchmark {
    */
   def classpathURLs: List[URL] = Nil
 
-  /** Logging file for each benchmark's running.
-   */
-  def logFile =
-    if (src.isFile) {
-      File(src.path stripSuffix src.extension) addExtension "log"
-    } else {
-      File(src.path) addExtension "log"
-    } createFile ()
+  def runs: Int
+
+  def multiplier: Int
+
+  def sampleNumber: Int
+
+  def shouldCompile: Boolean
+
+  def log: Log
 
   /** Sets the running context and load benchmark classes.
    */
@@ -62,11 +63,22 @@ trait Benchmark {
    */
   def runCommand()
 
+  /** Produces a XML element representing this benchmark.
+   */
+  def toXML: scala.xml.Elem
+
 }
 
 object BenchmarkFactory {
 
-  def apply(src: Path, arguments: List[String], classpathURLs: List[URL], log: Log, config: Config): Benchmark =
-    new SnippetBenchmark(src, arguments, classpathURLs, log, config)
+  def apply(src: Path,
+            arguments: List[String],
+            classpathURLs: List[URL],
+            runs: Int,
+            multiplier: Int,
+            sampleNumber: Int,
+            shouldCompile: Boolean,
+            config: Config): Benchmark =
+    new SnippetBenchmark(src, arguments, classpathURLs, runs, multiplier, sampleNumber, shouldCompile, config)
 
 }

@@ -17,7 +17,6 @@ import java.lang.NoSuchMethodException
 import java.lang.System
 import java.lang.Thread
 import java.net.URL
-
 import scala.sys.process.Process
 import scala.sys.process.ProcessBuilder
 import scala.tools.nsc.io.Path.string2path
@@ -25,11 +24,15 @@ import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.LogFactory
 
 case class SnippetBenchmark(src: Path,
                             arguments: List[String],
                             classpathURLs: List[URL],
-                            log: Log,
+                            runs: Int,
+                            multiplier: Int,
+                            sampleNumber: Int,
+                            shouldCompile: Boolean,
                             config: Config) extends Benchmark {
 
   /** Benchmark process.
@@ -43,6 +46,8 @@ case class SnippetBenchmark(src: Path,
   /** Current class loader context.
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
+  
+  lazy val log: Log = LogFactory(name, config.benchmarkDirectory, config)
 
   /** Sets the running context and load benchmark classes.
    */
@@ -95,5 +100,20 @@ case class SnippetBenchmark(src: Path,
   /** Runs the benchmark process.
    */
   def runCommand() = process !
+
+  def toXML =
+    <Benchmark>
+      <src>{ src.path }</src>
+      <arguments>
+        { for (arg <- arguments) yield <arg>{ arg }</arg> }
+      </arguments>
+      <classpath>
+        { for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }
+      </classpath>
+      <runs>{ runs.toString }</runs>
+      <multiplier>{ multiplier.toString }</multiplier>
+      <sampleNumber>{ sampleNumber.toString }</sampleNumber>
+      <shouldCompile>{ shouldCompile.toString }</shouldCompile>
+    </Benchmark>
 
 }

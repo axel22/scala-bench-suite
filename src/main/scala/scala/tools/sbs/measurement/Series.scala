@@ -78,11 +78,8 @@ class Series(log: Log, config: Config) {
     if (data.length == 0) {
       log.debug("--Cleared result--")
       false
-    } else if (data.length != config.multiplier) {
-      log.debug("--Wrong in measurment length--")
-      false
     } else {
-      val statistic = StatisticsFactory(log, config)
+      val statistic = StatisticsFactory(log)
 
       val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))
@@ -120,5 +117,11 @@ class Series(log: Log, config: Config) {
    */
   override def toString(): String =
     data.foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
+
+  def toXML =
+    <Series>
+      <confidenceLevel>{ confidenceLevel }</confidenceLevel>
+      <data>{ for (l <- data) yield <value>{ l.toString }</value> }</data>
+    </Series>
 
 }

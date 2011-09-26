@@ -19,13 +19,7 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.FileUtil
 
-import LogLevel.LogLevel
-
-class TextFileLog(logFile: File, logLevel: LogLevel, logShow: Boolean) extends Log {
-
-  def logShow() = logShow
-
-  def logLevel() = logLevel
+class TextFileLog(logFile: File, config: Config) extends Log {
 
   def apply(message: String) {
     if (logFile != null) {
@@ -33,19 +27,34 @@ class TextFileLog(logFile: File, logLevel: LogLevel, logShow: Boolean) extends L
     }
   }
 
+  def toXML = <logFile>{ logFile.path } </logFile>
+
 }
 
 object TextFileLog {
+
   /** Creates a new file for logging whose name in the format:
-   *  YYYYMMDD.hhmmss.BenchmarkClass.log
+   *  YYYYMMDD.hhmmss.log
    */
-  def createLog(benchmarkDir: Directory, classname: String): Option[File] = {
+  def createLog(benchmarkDir: Directory): Option[File] = {
     var logInit = new ArrayBuffer[String]
     val date = new Date
-    logInit += "Logging for " + classname + " on " +
+    logInit += "Logging on " +
       new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
     logInit += "-------------------------------"
-    FileUtil.createAndStore(benchmarkDir.path, classname + ".log", logInit)
+    FileUtil.createAndStore(benchmarkDir.path, ".log", logInit)
+  }
+
+  /** Creates a new file for logging whose name in the format:
+   *  YYYYMMDD.hhmmss.Benchmark.log
+   */
+  def createLog(benchmarkName: String, benchmarkDir: Directory): Option[File] = {
+    var logInit = new ArrayBuffer[String]
+    val date = new Date
+    logInit += "Logging for " + benchmarkName + " on " +
+      new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
+    logInit += "-------------------------------"
+    FileUtil.createAndStore(benchmarkDir.path, benchmarkName + ".log", logInit)
   }
 
 }

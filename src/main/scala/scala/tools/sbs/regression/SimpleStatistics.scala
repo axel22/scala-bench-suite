@@ -21,7 +21,7 @@ import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 
-class SimpleStatistics(log: Log, config: Config, var alpha: Double = 0) extends Statistics {
+class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** Maximum significant level.
    */

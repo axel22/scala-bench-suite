@@ -47,8 +47,8 @@ trait Statistics {
 
 object StatisticsFactory {
 
-  def apply(log: Log, config: Config, alpha: Double = 0): Statistics = {
-    new SimpleStatistics(log, config, alpha)
+  def apply(log: Log, alpha: Double = 0): Statistics = {
+    new SimpleStatistics(log, alpha)
   }
 
 }

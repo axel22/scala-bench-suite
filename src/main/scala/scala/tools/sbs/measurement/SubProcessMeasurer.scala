@@ -11,10 +11,11 @@
 package scala.tools.sbs
 package measurement
 
-import BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.io.LogLevel.LogLevel
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.LogFactory
+import scala.tools.sbs.util.XMLUtil
+import scala.xml.XML
+
+import BenchmarkMode.BenchmarkMode
 
 /** Driver for measurement in a separated JVM.
  *  Choose the harness to run and write the result to output stream.
@@ -22,7 +23,6 @@ import scala.tools.sbs.io.LogFactory
 trait SubProcessMeasurer extends Measurer {
 
   protected var benchmarkRunner: BenchmarkRunner = _
-  protected var log: Log = _
   protected var config: Config = _
 
   /** Entry point of the new process.
@@ -33,7 +33,8 @@ trait SubProcessMeasurer extends Measurer {
 
     config = settings._1
     val benchmark = settings._2
-    log = new LogFactory create settings._3
+    log = benchmark.log
+
     benchmarkRunner = new BenchmarkRunner(log, config)
 
     try reportResult(this measure benchmark)
@@ -44,30 +45,15 @@ trait SubProcessMeasurer extends Measurer {
    *
    *  @return	The tuple of the rebuilt `Config` and `Benchmark`
    */
-  def rebuildSettings(args: Array[String]): (Config, Benchmark, LogLevel) = {
-    (null, null, null)
+  def rebuildSettings(args: Array[String]): (Config, Benchmark) = {
+    val config = XMLUtil.XMLToConfig(XML loadString args(0))
+    val benchmark = XMLUtil.XMLToBenchmark(XML loadString args(1), config)
+    (config, benchmark)
   }
 
   /** Reports the measurement result to the main process.
    */
-  def reportResult(result: MeasurementResult) {
-    Console println MeasurementSignal.RESULT_START
-    result match {
-      case success: MeasurementSuccess => {
-        Console println MeasurementSignal.MEASUREMENT_SUCCESS
-        success.series foreach (Console println _)
-      }
-      case failure: MeasurementFailure => {
-        Console println failure.reason
-        failure match {
-          case ext: ExceptionFailure => {
-            Console println ext.e
-            Console println ext.e.getStackTraceString
-          }
-        }
-      }
-    }
-  }
+  def reportResult(result: MeasurementResult) = Console println result.toXML
 
 }
 

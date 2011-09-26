@@ -256,16 +256,9 @@ object ArgumentParser {
     val settings = new GenericRunnerSettings(UI.error)
     settings.processArguments(List("-cp", classpathString), false)
 
-    val config = new Config(
-      Directory(benchmarkdir),
-      runs,
-      multiplier,
-      sampleNumber,
-      scalahome,
-      javahome,
-      compile)
+    val config = new Config(Directory(benchmarkdir), modes, scalahome, javahome, showlog, logLevel)
 
-    val log = (new LogFactory).create(benchmarkName, benchmarkdir, logLevel, showlog)
+    val log = LogFactory(benchmarkdir, config)
 
     val benchmark = BenchmarkFactory(benchmarkdir, benchmarkArguments, settings.classpathURLs, log, config)
 

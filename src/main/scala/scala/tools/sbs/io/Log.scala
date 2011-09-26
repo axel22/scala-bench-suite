@@ -11,27 +11,28 @@
 package scala.tools.sbs
 package io
 
-import LogLevel.LogLevel
+import scala.tools.nsc.io.Directory
+import scala.tools.nsc.io.File
 
 trait Log {
 
-  def logShow: Boolean
-  
-  def logLevel: LogLevel
+  protected val config: Config
+
+  def logFile: File
 
   def apply(message: String)
 
   def info(message: String) {
     this("[Info]     " + message)
-    if (logShow) {
+    if (config.showLog) {
       UI("[Info]     " + message)
     }
   }
 
   def debug(message: String) {
-    if (logLevel == LogLevel.DEBUG || logLevel == LogLevel.ALL) {
+    if (config.logLevel == LogLevel.DEBUG || config.logLevel == LogLevel.ALL) {
       this("[Debug]    " + message)
-      if (logShow) {
+      if (config.showLog) {
         UI("[Debug]    " + message)
       }
     }
@@ -39,23 +40,43 @@ trait Log {
 
   def error(message: String) {
     this("[Error]    " + message)
-    if (logShow) {
+    if (config.showLog) {
       UI("[Error]    " + message)
     }
   }
 
   def verbose(message: String) {
-    if (logLevel == LogLevel.VERBOSE || logLevel == LogLevel.ALL) {
+    if (config.logLevel == LogLevel.VERBOSE || config.logLevel == LogLevel.ALL) {
       this("[Verbose]  " + message)
-      if (logShow) {
+      if (config.showLog) {
         UI("[Verbose]  " + message)
       }
     }
   }
+
+  def toXML: scala.xml.Elem
 
 }
 
 object LogLevel extends Enumeration {
   type LogLevel = Value
   val INFO, DEBUG, VERBOSE, ALL = Value
+}
+
+object LogFactory {
+
+  def apply(benchmarkDir: Directory, config: Config): Log = {
+    TextFileLog.createLog(benchmarkDir) match {
+      case Some(logFile) => new TextFileLog(logFile, config)
+      case None => UI
+    }
+  }
+
+  def apply(benchmarkName: String, benchmarkDir: Directory, config: Config): Log = {
+    TextFileLog.createLog(benchmarkName, benchmarkDir) match {
+      case Some(logFile) => new TextFileLog(logFile, config)
+      case None => UI
+    }
+  }
+
 }

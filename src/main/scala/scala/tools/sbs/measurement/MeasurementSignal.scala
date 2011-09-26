@@ -16,7 +16,7 @@ package measurement
  */
 object MeasurementSignal {
 
-  val LOG_SIGNAL = ""
+  val LOG_SIGNAL = "[Log]"
 
   val RESULT_START = "[----]"
 

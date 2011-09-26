@@ -35,7 +35,7 @@ class BenchmarkRunner(log: Log, config: Config) {
     var series = new Series(log, config)
     var unwarmable = false
 
-    val iteratorMax = config.multiplier * 5
+    val iteratorMax = benchmark.multiplier * 5
     var iteratorCount = 0
     var iteratorMeasure = 0
 
@@ -46,12 +46,12 @@ class BenchmarkRunner(log: Log, config: Config) {
       log.verbose("")
       log.verbose("--Start getting a series--")
 
-      for (mul <- 1 to config.multiplier) {
+      for (mul <- 1 to benchmark.multiplier) {
         cleanUp()
         series += measure
         log.verbose("----Measured----  " + series.last)
       }
-      iteratorCount = config.multiplier
+      iteratorCount = benchmark.multiplier
 
       while (iteratorCount < iteratorMax && !checkWarm(series)) {
         log.verbose("----Measured----  " + series.last)
