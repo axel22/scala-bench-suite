@@ -13,9 +13,9 @@ package measurement
 
 import java.lang.Runtime
 
-class MemoryHarness extends Harness with SubProcessMeasurer {
+class MemoryHarness extends SubProcessMeasurer {
 
-  def run(benchmark: Benchmark): MeasurementResult = {
+  def measure(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime
     benchmarkRunner run (

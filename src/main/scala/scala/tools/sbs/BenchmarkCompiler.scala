@@ -14,8 +14,6 @@ import scala.tools.sbs.io.Log
 
 trait BenchmarkCompiler {
 
-  def compile(args: List[String]): Boolean
-
   def compile(benchmark: Benchmark): Boolean
 
 }

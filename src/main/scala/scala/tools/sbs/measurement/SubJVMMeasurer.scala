@@ -12,10 +12,9 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.io.Log
-import BenchmarkMode.BenchmarkMode
 import scala.xml.XML
-import scala.xml.Elem
+
+import BenchmarkMode.BenchmarkMode
 
 /** Measures benchmark metric by invoking a new clean JVM
  */
@@ -41,11 +40,16 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
                  <data>{ valueNodeSeq@_* }</data>
                </Series>
              </MeasurementSuccess> => try {
-          val data = (for (valueNode <- valueNodeSeq) yield valueNode match {
-            case <value>{ value }</value> => value.text.toLong
-            case _ => 0
-          }).foldLeft(ArrayBuffer[Long]())((arr, l) => arr + l)
-          MeasurementSuccess(new Series(log, config, data, confidenceLevel.text.toInt))
+          val data = ArrayBuffer(
+            (for (valueNode <- valueNodeSeq) yield valueNode match {
+              case <value>{ value }</value> => value.text.toLong
+              case _ => -1
+            }): _*)
+          if (data forall (_ != -1)) {
+            MeasurementSuccess(new Series(log, config, data, confidenceLevel.text.toInt))
+          } else {
+            ProcessFailure()
+          }
         } catch {
           case e: Exception => {
             log.error("Malformed XML: " + xml)

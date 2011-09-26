@@ -30,13 +30,13 @@ import BenchmarkMode.BenchmarkMode
 
 class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
-  def location(): Directory
+  def location(): Directory = config.benchmarkDirectory
 
   /** Generates sample results.
    */
   def generate(num: Int): History = {
     var i = 0
-    val measurer = MeasurerFactory(log, config, mode)
+    val measurer = MeasurerFactory(config, mode)
     var justCreated = HistoryFactory(log, config, benchmark, mode)
     while (i < num) {
       measurer measure benchmark match {

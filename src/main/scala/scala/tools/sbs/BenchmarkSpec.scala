@@ -61,10 +61,11 @@ object BenchmarkSpec extends BenchmarkSpec with Property  {
   lazy val propMapper = new PropertyMapper(BenchmarkSpec) {
     override def isPassThrough(key: String) = key == "sbs.options"
   }
-
+  
+  type ThisCommandLine = BenchmarkCommandLine
   class BenchmarkCommandLine(args: List[String]) extends SpecCommandLine(args) {
     def propertyArgs = BenchmarkSpec.propertyArgs
   }
 
-  override def creator(args: List[String]): BenchmarkCommandLine = new BenchmarkCommandLine(args)
+  def creator(args: List[String]): ThisCommandLine = new BenchmarkCommandLine(args)
 }

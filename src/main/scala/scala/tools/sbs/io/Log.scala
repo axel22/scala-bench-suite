@@ -12,13 +12,10 @@ package scala.tools.sbs
 package io
 
 import scala.tools.nsc.io.Directory
-import scala.tools.nsc.io.File
 
 trait Log {
 
-  protected val config: Config
-
-  def logFile: File
+  protected var config: Config
 
   def apply(message: String)
 
@@ -53,8 +50,6 @@ trait Log {
       }
     }
   }
-
-  def toXML: scala.xml.Elem
 
 }
 

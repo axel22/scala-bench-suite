@@ -59,7 +59,7 @@ object BenchmarkDriver {
 
       config.modes foreach (mode => {
 
-        val measurer = MeasurerFactory(log, config, mode)
+        val measurer = MeasurerFactory(config, mode)
 
         compiled foreach (benchmark => try {
 

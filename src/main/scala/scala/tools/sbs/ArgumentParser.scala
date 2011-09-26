@@ -104,7 +104,7 @@ object ArgumentParser {
     var multiplier = 0
     var runs = 0
 
-    var compile = true
+    var shouldCompile = true
     var logLevel: LogLevel = LogLevel.INFO
     var showlog = false
 
@@ -169,7 +169,7 @@ object ArgumentParser {
           showlog = true
         }
         case Parameter.OPT_NONCOMPILE => {
-          compile = false
+          shouldCompile = false
         }
       }
 
@@ -207,7 +207,7 @@ object ArgumentParser {
         null
       }
     }
-    if (compile) {
+    if (shouldCompile) {
       val srcdir = (benchmarkdir / "src").toDirectory
       src = srcdir.deepFiles.filter(_.hasExtension("scala")).foldLeft(src)((src, f) => f :: src)
       if (src.length == 0) {
@@ -260,7 +260,15 @@ object ArgumentParser {
 
     val log = LogFactory(benchmarkdir, config)
 
-    val benchmark = BenchmarkFactory(benchmarkdir, benchmarkArguments, settings.classpathURLs, log, config)
+    val benchmark = BenchmarkFactory(
+        benchmarkdir,
+        benchmarkArguments, 
+        settings.classpathURLs,
+        runs,
+        multiplier,
+        sampleNumber,
+        shouldCompile,
+        config)
 
     return (config, log, List(benchmark))
   }

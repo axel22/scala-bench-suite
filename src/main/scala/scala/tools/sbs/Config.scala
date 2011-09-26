@@ -25,7 +25,7 @@ case class Config(benchmarkDirectory: Directory,
                   showLog: Boolean,
                   logLevel: LogLevel) {
 
-  def bin: Directory
+  def bin: Directory = benchmarkDirectory / "bin" createDirectory ()
 
   val JAVACMD = javahome + System.getProperty("file.separator") + "bin" + System.getProperty("file.separator") + "java"
   val JAVAPROP = "-Dscala.home=" + scalahome

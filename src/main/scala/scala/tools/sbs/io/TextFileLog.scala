@@ -19,15 +19,13 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.FileUtil
 
-class TextFileLog(logFile: File, config: Config) extends Log {
+case class TextFileLog(logFile: File, override var config: Config) extends Log {
 
   def apply(message: String) {
     if (logFile != null) {
       FileUtil.write(logFile.path, message)
     }
   }
-
-  def toXML = <logFile>{ logFile.path } </logFile>
 
 }
 

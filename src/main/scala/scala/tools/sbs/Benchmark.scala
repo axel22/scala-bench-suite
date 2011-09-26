@@ -27,11 +27,11 @@ trait Benchmark {
 
   /** Arguments of the benchmark.
    */
-  def arguments: List[String] = Nil
+  def arguments: List[String]
 
   /** Classpath of the benchmark.
    */
-  def classpathURLs: List[URL] = Nil
+  def classpathURLs: List[URL]
 
   def runs: Int
 

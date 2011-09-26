@@ -11,12 +11,13 @@
 package scala.tools.sbs
 package measurement
 
-import BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 
+import BenchmarkMode.BenchmarkMode
+
 trait Measurer {
-  
-  protected var log: Log
+
+  protected var log: Log = null
 
   def measure(benchmark: Benchmark): MeasurementResult
 

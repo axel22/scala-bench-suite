@@ -23,7 +23,7 @@ import org.apache.commons.math.MathException
 
 trait JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): ArrayBuffer[String]
+  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String])
 
 }
 
