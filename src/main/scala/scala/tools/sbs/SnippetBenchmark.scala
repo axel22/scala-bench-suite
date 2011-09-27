@@ -14,17 +14,17 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.ClassNotFoundException
 import java.lang.NoSuchMethodException
-import java.lang.System
 import java.lang.Thread
 import java.net.URL
+
 import scala.sys.process.Process
 import scala.sys.process.ProcessBuilder
-import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
+import scala.tools.sbs.util.Constant.COLON
 
 case class SnippetBenchmark(src: Path,
                             arguments: List[String],
@@ -46,8 +46,8 @@ case class SnippetBenchmark(src: Path,
   /** Current class loader context.
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
-  
-  lazy val log: Log = LogFactory(name, config.benchmarkDirectory, config)
+
+  lazy val log: Log = LogFactory(name, config)
 
   /** Sets the running context and load benchmark classes.
    */
@@ -77,16 +77,14 @@ case class SnippetBenchmark(src: Path,
   /** Creates the process command for start up benchmarking.
    */
   def initCommand(): Boolean = {
-    val colon = System getProperty "path.separator"
-    val bin = config.benchmarkDirectory / "bin" createDirectory ()
     val command = arguments.foldLeft(
-      Seq(config.JAVACMD,
+      Seq(config.javacmd,
         "-cp",
-        config.SCALALIB,
-        config.JAVAPROP,
+        config.scalaLib,
+        config.javaProp,
         "scala.tools.nsc.MainGenericRunner",
         "-classpath",
-        bin.path + colon + config.SCALALIB + colon + (classpathURLs map (_.toString) mkString colon),
+        config.bin.path + COLON + config.scalaLib + COLON + (classpathURLs map (_.toString) mkString COLON),
         name))((cmd, arg) => cmd :+ arg)
 
     log.debug(command.toString)
@@ -104,12 +102,8 @@ case class SnippetBenchmark(src: Path,
   def toXML =
     <Benchmark>
       <src>{ src.path }</src>
-      <arguments>
-        { for (arg <- arguments) yield <arg>{ arg }</arg> }
-      </arguments>
-      <classpath>
-        { for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }
-      </classpath>
+      <arguments>{ for (arg <- arguments) yield <arg>{ arg }</arg> }</arguments>
+      <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>
       <runs>{ runs.toString }</runs>
       <multiplier>{ multiplier.toString }</multiplier>
       <sampleNumber>{ sampleNumber.toString }</sampleNumber>

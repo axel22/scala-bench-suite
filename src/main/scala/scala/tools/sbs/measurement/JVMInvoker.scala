@@ -37,10 +37,10 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
 
   def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
     val command = Seq[String](
-      config.JAVACMD,
+      config.javacmd,
       "-cp",
-      config.SCALALIB,
-      config.JAVAPROP,
+      config.scalaLib,
+      config.javaProp,
       "scala.tools.nsc.MainGenericRunner",
       "-classpath",
       measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +

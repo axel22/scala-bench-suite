@@ -12,7 +12,6 @@ package scala.tools.sbs
 package measurement
 
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.util.XMLUtil
 import scala.xml.XML
 
 import BenchmarkMode.BenchmarkMode
@@ -35,7 +34,7 @@ trait SubProcessMeasurer extends Measurer {
     val benchmark = settings._2
     log = benchmark.log
 
-    benchmarkRunner = new BenchmarkRunner(log, config)
+    benchmarkRunner = new BenchmarkRunner(log)
 
     try reportResult(this measure benchmark)
     catch { case e: Exception => reportResult(new ExceptionFailure(e)) }
@@ -46,8 +45,8 @@ trait SubProcessMeasurer extends Measurer {
    *  @return	The tuple of the rebuilt `Config` and `Benchmark`
    */
   def rebuildSettings(args: Array[String]): (Config, Benchmark) = {
-    val config = XMLUtil.XMLToConfig(XML loadString args(0))
-    val benchmark = XMLUtil.XMLToBenchmark(XML loadString args(1), config)
+    val config = new Config(args)
+    val benchmark = BenchmarkFactory(XML loadString args(0), config)
     (config, benchmark)
   }
 

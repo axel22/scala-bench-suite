@@ -13,6 +13,7 @@ package regression
 
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
@@ -172,14 +173,17 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @param persistor	The list of previous results
    *  @return	`true` if there is statistically significant difference among the means, `false` otherwise
    */
-  def testDifference(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
+  def testDifference(benchmark: Benchmark,
+                     mode: BenchmarkMode,
+                     measurementResult: MeasurementSuccess,
+                     history: History): BenchmarkResult = {
     if (history.length < 2) {
       throw new Exception("Not enough result files specified")
     }
     if (history.length == 2) {
-      testConfidenceIntervals(measurementResult, history)
+      testConfidenceIntervals(benchmark, mode, measurementResult, history)
     } else {
-      testANOVA(measurementResult, history)
+      testANOVA(benchmark, mode, measurementResult, history)
     }
   }
 
@@ -188,7 +192,10 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @param persistor	The list of previous results
    *  @return	The confidence interval if there is statistically significant difference, `None` otherwise
    */
-  private def testConfidenceIntervals(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
+  private def testConfidenceIntervals(benchmark: Benchmark,
+                                      mode: BenchmarkMode,
+                                      measurementResult: MeasurementSuccess,
+                                      history: History): BenchmarkResult = {
     var series = history.head
 
     val mean1 = mean(series)
@@ -204,7 +211,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     val diff = mean1 - mean2
 
     if (confidenceLevel == 100 && diff == 0) {
-      BenchmarkSuccess(confidenceLevel, measurementResult)
+      BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
     } else {
       reduceConfidenceLevel()
 
@@ -226,9 +233,10 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       }
 
       if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
-        ConfidenceIntervalFailure(confidenceLevel, measurementResult, ArrayBuffer(mean1, mean2), (c1, c2))
+        ConfidenceIntervalFailure(
+          benchmark, mode, confidenceLevel, measurementResult, ArrayBuffer(mean1, mean2), (c1, c2))
       } else {
-        BenchmarkSuccess(confidenceLevel, measurementResult)
+        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
     }
   }
@@ -238,7 +246,10 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @param persistor	The list of previous results
    *  @return	Array of the means if there is statistically significant difference, `None` otherwise
    */
-  private def testANOVA(measurementResult: MeasurementSuccess, history: History): BenchmarkResult = {
+  private def testANOVA(benchmark: Benchmark,
+                        mode: BenchmarkMode,
+                        measurementResult: MeasurementSuccess,
+                        history: History): BenchmarkResult = {
 
     val sum = history.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
@@ -259,9 +270,18 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     if (confidenceLevel == 100 && SSE == 0) {
       // Memory case
       if (SSA != 0) {
-        ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, Double.PositiveInfinity, Double.NaN)
+        ANOVAFailure(
+          benchmark,
+          mode,
+          confidenceLevel,
+          measurementResult,
+          means,
+          SSA,
+          SSE,
+          Double.PositiveInfinity,
+          Double.NaN)
       } else {
-        BenchmarkSuccess(confidenceLevel, measurementResult)
+        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
     } else {
       // Performance case
@@ -274,9 +294,9 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
 
       if (FValue <= F) {
-        BenchmarkSuccess(confidenceLevel, measurementResult)
+        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       } else {
-        ANOVAFailure(confidenceLevel, measurementResult, means, SSA, SSE, FValue, F)
+        ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, means, SSA, SSE, FValue, F)
       }
     }
   }

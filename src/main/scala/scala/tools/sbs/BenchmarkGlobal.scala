@@ -30,7 +30,7 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 
     val srcFiles: List[File] =
       if (benchmark.src.isFile) List(benchmark.src.toFile)
-      else benchmark.src.toDirectory.deepFiles.filter(isScala(_)).foldLeft(List[File]())((fs, f) => f :: fs)
+      else benchmark.src.toDirectory.deepFiles.filter(isScala).foldLeft(List[File]())((fs, f) => f :: fs)
     val bin = config.benchmarkDirectory / "bin" createDirectory ()
     val settings = new Settings(log.error)
     val (ok, errArgs) = settings.processArguments(

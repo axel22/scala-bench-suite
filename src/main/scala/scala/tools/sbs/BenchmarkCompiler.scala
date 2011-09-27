@@ -20,6 +20,6 @@ trait BenchmarkCompiler {
 
 object BenchmarkCompilerFactory {
 
-  def apply(log: Log, config: Config) = new BenchmarkGlobal(log, config)
+  def apply(log: Log, config: Config): BenchmarkCompiler = new BenchmarkGlobal(log, config)
 
 }

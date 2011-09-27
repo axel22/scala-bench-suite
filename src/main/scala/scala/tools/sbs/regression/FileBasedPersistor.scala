@@ -25,12 +25,13 @@ import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.FileUtil
+import scala.tools.sbs.util.Constant._
 
 import BenchmarkMode.BenchmarkMode
 
 class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
-  def location(): Directory = config.benchmarkDirectory
+  val location: Directory = (config.history / benchmark.name).createDirectory()
 
   /** Generates sample results.
    */
@@ -42,7 +43,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       measurer measure benchmark match {
         case success: MeasurementSuccess => {
 
-          storeToFile(success, BenchmarkSuccess(success.series.confidenceLevel, success)) match {
+          storeToFile(success, BenchmarkSuccess(benchmark, mode, success.series.confidenceLevel, success)) match {
             case Some(_) => {
               log.debug("--Stored--")
               i += 1
@@ -77,7 +78,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-      location walkFilter (path => path.isFile && path.canRead) foreach (
+      location walkFilter (path => path.isFile && path.canRead && (path.toFile hasExtension mode.toString)) foreach (
         file => try {
           log.verbose("--Read file--	" + file.path)
 
@@ -123,7 +124,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
         }
       }
     }
-    new Series(log, config, dataSeries, confidenceLevel)
+    new Series(log, dataSeries, confidenceLevel)
   }
 
   def store(measurement: MeasurementSuccess, result: BenchmarkResult): Boolean = {
@@ -145,8 +146,11 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       return None
     }
     val directory = result match {
-      case BenchmarkSuccess(_, result) => ""
-      case _ => (System getProperty "file.separator") + "FAILED"
+      case BenchmarkSuccess(benchmark, mode, _, result) => ""
+      case _ => {
+        (location / "FAILED").createDirectory()
+        SLASH + "FAILED"
+      }
     }
     val data = new ArrayBuffer[String]
     data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)

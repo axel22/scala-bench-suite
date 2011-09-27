@@ -16,9 +16,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.tools.nsc.io.File
-import BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.measurement.UnwarmableFailure
 import scala.tools.sbs.regression.ANOVAFailure
 import scala.tools.sbs.regression.BenchmarkResult
 import scala.tools.sbs.regression.BenchmarkSuccess
@@ -29,6 +26,8 @@ import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.util.FileUtil
+
+import BenchmarkMode.BenchmarkMode
 
 class TextFileReport(
   log: Log, config: Config, benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode) extends Report {
@@ -55,20 +54,12 @@ class TextFileReport(
     write("Benchmark mode:                " + mode.toString)
     write("Benchmark directory:           " + config.benchmarkDirectory.path)
     write("Measured metrics:")
-    result.measurementResult match {
-      case success: MeasurementSuccess =>
-        success.series foreach (l => write("                               " + (l.toString)))
-      case _ => result.measurementResult match {
-        case _: UnwarmableFailure => write("                               benchmark unwarmable")
-        case _ => write("                               benchmark unreliable")
-      }
-    }
+
     write(endl + "Persistor:                     " + persistor.getClass.getName)
     persistor match {
       case sfp: FileBasedPersistor => write("--from:                        " + sfp.location.path)
       case _ => () // TODO
     }
-    write(endl + "At confidence level:           " + result.confidenceLevel + "%" + endl)
     write("------------------------------------------------------------" + endl)
 
     result match {

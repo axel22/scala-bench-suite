@@ -10,14 +10,13 @@
 
 package scala.tools.sbs
 
-import java.lang.System
-
+import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.regression.BenchmarkResult
+import scala.tools.sbs.regression.CompileFailure
 import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.History
 import scala.tools.sbs.regression.ImmeasurableFailure
@@ -49,11 +48,13 @@ object BenchmarkDriver {
     log.debug(config.toString())
 
     try {
+      if (config.isCleanup) {
+        // TODO cleanup
+      }
+      var resultPack = new ResultPack()
       val compiler = BenchmarkCompilerFactory(log, config)
       val compiled = benchmarks filterNot (benchmark => benchmark.shouldCompile && !(compiler compile benchmark))
-      benchmarks filterNot (compiled contains _) foreach (
-        // TODO report failure 
-        _ => ())
+      benchmarks filterNot (compiled contains _) foreach (resultPack add CompileFailure(_))
 
       log.verbose("[Measure]")
 
@@ -67,35 +68,31 @@ object BenchmarkDriver {
 
           measurer measure benchmark match {
             case success: MeasurementSuccess => {
-              val result = detectRegression(log, benchmark, success, persistor)
-              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-              report(result)
+              val result = detectRegression(benchmark, mode, success, persistor, log)
+              resultPack add result
               persistor.store(success, result)
             }
             case failure: MeasurementFailure => {
-              val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-              report(new ImmeasurableFailure(failure))
+              resultPack add ImmeasurableFailure(benchmark, failure)
             }
           }
         } catch {
-          case e: Exception => {
-            val persistor = PersistorFactory(log, config, benchmark, mode)
-            val report = new ReportFactory(log, config).create(benchmark, persistor, mode)
-            report(new ExceptionFailure(e))
-          }
+          case e: Exception => { resultPack add ExceptionFailure(benchmark, e) }
         })
       })
-    } catch {
-      // TODO
-      case e: Exception => throw e
-    }
+      // TODO report here
+    } catch { case e: Exception => throw e }
   }
 
   /** Loads previous results and uses statistically rigorous method to detect regression.
    *
    *  @param result	The benchmark result just measured.
    */
-  def detectRegression(log: Log, benchmark: Benchmark, result: MeasurementSuccess, persistor: Persistor): BenchmarkResult = {
+  def detectRegression(benchmark: Benchmark,
+                       mode: BenchmarkMode,
+                       result: MeasurementSuccess,
+                       persistor: Persistor,
+                       log: Log): BenchmarkResult = {
 
     val history: History =
       if (benchmark.sampleNumber > 0) persistor generate benchmark.sampleNumber
@@ -103,10 +100,10 @@ object BenchmarkDriver {
     history add result.series
 
     if (history.length < 2) {
-      NoPreviousFailure(result)
+      NoPreviousFailure(benchmark, result)
     } else {
       val statistic = StatisticsFactory(log)
-      statistic testDifference (result, history)
+      statistic testDifference (benchmark, mode, result, history)
     }
   }
 

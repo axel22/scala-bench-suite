@@ -46,7 +46,7 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
               case _ => -1
             }): _*)
           if (data forall (_ != -1)) {
-            MeasurementSuccess(new Series(log, config, data, confidenceLevel.text.toInt))
+            MeasurementSuccess(new Series(log, data, confidenceLevel.text.toInt))
           } else {
             ProcessFailure()
           }

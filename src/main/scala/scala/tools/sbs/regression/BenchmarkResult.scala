@@ -15,35 +15,40 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.MeasurementResult
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurementFailure
+import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 
-abstract class BenchmarkResult(confidenceLevel: Int, measurementResult: MeasurementResult) {
+abstract class BenchmarkResult(benchmark: Benchmark)
 
-  def confidenceLevel(): Int = confidenceLevel
+case class BenchmarkSuccess(benchmark: Benchmark,
+                            mode: BenchmarkMode,
+                            confidenceInterval: Int,
+                            measurementSuccess: MeasurementSuccess) extends BenchmarkResult(benchmark)
 
-  def measurementResult(): MeasurementResult = measurementResult
+abstract class BenchmarkFailure(benchmark: Benchmark) extends BenchmarkResult(benchmark)
 
-}
-
-case class BenchmarkSuccess(override val confidenceLevel: Int, measurementSuccess: MeasurementSuccess)
-  extends BenchmarkResult(confidenceLevel, measurementSuccess)
-
-case class ConfidenceIntervalFailure(override val confidenceLevel: Int,
+case class ConfidenceIntervalFailure(benchmark: Benchmark,
+                                     mode: BenchmarkMode,
+                                     confidenceLevel: Int,
                                      measurementSuccess: MeasurementSuccess,
                                      means: ArrayBuffer[Double],
-                                     CI: (Double, Double))
-  extends BenchmarkResult(confidenceLevel, measurementSuccess)
+                                     CI: (Double, Double)) extends BenchmarkFailure(benchmark)
 
-case class ANOVAFailure(override val confidenceLevel: Int,
+case class ANOVAFailure(benchmark: Benchmark,
+                        mode: BenchmarkMode,
+                        confidenceLevel: Int,
                         measurementSuccess: MeasurementSuccess,
                         means: ArrayBuffer[Double],
                         SSA: Double,
                         SSE: Double,
                         FValue: Double,
-                        F: Double)
-  extends BenchmarkResult(confidenceLevel, measurementSuccess)
+                        F: Double) extends BenchmarkFailure(benchmark)
 
-case class NoPreviousFailure(measurementSuccess: MeasurementSuccess) extends BenchmarkResult(0, measurementSuccess)
+case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure(benchmark)
 
-case class ImmeasurableFailure(measurementFailure: MeasurementFailure) extends BenchmarkResult(0, measurementFailure)
+case class NoPreviousFailure(benchmark: Benchmark, measurementSuccess: MeasurementSuccess)
+  extends BenchmarkFailure(benchmark)
 
-case class ExceptionFailure(exception: Exception) extends BenchmarkResult(0, null)
+case class ImmeasurableFailure(benchmark: Benchmark, measurementFailure: MeasurementFailure)
+  extends BenchmarkFailure(benchmark)
+
+case class ExceptionFailure(benchmark: Benchmark, exception: Exception) extends BenchmarkFailure(benchmark)

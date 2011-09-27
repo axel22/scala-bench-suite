@@ -26,7 +26,7 @@ trait Measurer {
 object MeasurerFactory {
 
   def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {
-    case BenchmarkMode.STARTUP => new StartupMeasurer(config)
+    case BenchmarkMode.STARTUP => new StartupHarness
     case _ => new SubJVMMeasurer(config, mode)
   }
 

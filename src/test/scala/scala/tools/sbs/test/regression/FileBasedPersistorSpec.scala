@@ -4,6 +4,6 @@ package regression
 
 import org.scalatest.Spec
 
-class SimpleLoadStoreManager extends Spec {
+class FileBasedPersistorSpec extends Spec {
 
 }

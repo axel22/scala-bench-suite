@@ -1,5 +1,5 @@
 /*
- * StartupMeasurer
+ * StartupHarness
  * 
  * Version
  * 
@@ -13,13 +13,14 @@ package measurement
 
 import scala.compat.Platform
 
-class StartupMeasurer(config: Config) extends Measurer {
+class StartupHarness extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
     log = benchmark.log
     log.info("[Benchmarking startup state]")
+
     if (benchmark.initCommand()) {
-      val benchmarkRunner = new BenchmarkRunner(log, config)
+      val benchmarkRunner = new BenchmarkRunner(log)
       benchmarkRunner run (
         benchmark,
         _ => true,

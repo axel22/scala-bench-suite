@@ -11,8 +11,6 @@
 package scala.tools.sbs
 package io
 
-import scala.tools.nsc.io.Directory
-
 trait Log {
 
   protected var config: Config
@@ -21,15 +19,15 @@ trait Log {
 
   def info(message: String) {
     this("[Info]     " + message)
-    if (config.showLog) {
+    if (config.isShowLog) {
       UI("[Info]     " + message)
     }
   }
 
   def debug(message: String) {
-    if (config.logLevel == LogLevel.DEBUG || config.logLevel == LogLevel.ALL) {
+    if (config.isDebug) {
       this("[Debug]    " + message)
-      if (config.showLog) {
+      if (config.isShowLog) {
         UI("[Debug]    " + message)
       }
     }
@@ -37,15 +35,15 @@ trait Log {
 
   def error(message: String) {
     this("[Error]    " + message)
-    if (config.showLog) {
+    if (config.isShowLog) {
       UI("[Error]    " + message)
     }
   }
 
   def verbose(message: String) {
-    if (config.logLevel == LogLevel.VERBOSE || config.logLevel == LogLevel.ALL) {
+    if (config.isVerbose) {
       this("[Verbose]  " + message)
-      if (config.showLog) {
+      if (config.isShowLog) {
         UI("[Verbose]  " + message)
       }
     }
@@ -53,22 +51,17 @@ trait Log {
 
 }
 
-object LogLevel extends Enumeration {
-  type LogLevel = Value
-  val INFO, DEBUG, VERBOSE, ALL = Value
-}
-
 object LogFactory {
 
-  def apply(benchmarkDir: Directory, config: Config): Log = {
-    TextFileLog.createLog(benchmarkDir) match {
+  def apply(config: Config): Log = {
+    TextFileLog.createLog(config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
       case None => UI
     }
   }
 
-  def apply(benchmarkName: String, benchmarkDir: Directory, config: Config): Log = {
-    TextFileLog.createLog(benchmarkName, benchmarkDir) match {
+  def apply(benchmarkName: String, config: Config): Log = {
+    TextFileLog.createLog(benchmarkName, config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
       case None => UI
     }

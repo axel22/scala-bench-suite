@@ -18,7 +18,7 @@ import scala.compat.Platform
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant
 
-class BenchmarkRunner(log: Log, config: Config) {
+class BenchmarkRunner(log: Log) {
 
   /** Warms the benchmark up if necessary and measures the desired metric.
    *
@@ -32,7 +32,7 @@ class BenchmarkRunner(log: Log, config: Config) {
     log.verbose("")
     log.verbose("--Warmup--")
 
-    var series = new Series(log, config)
+    var series = new Series(log)
     var unwarmable = false
 
     val iteratorMax = benchmark.multiplier * 5

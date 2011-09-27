@@ -11,14 +11,16 @@
 package scala.tools.sbs
 package regression
 
-import BenchmarkMode.BenchmarkMode
+import scala.annotation.implicitNotFound
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
+
+import BenchmarkMode.BenchmarkMode
 
 trait History {
 
   def add(ele: Series): Unit
-  
+
   def append(tag: History): Unit
 
   def mode: BenchmarkMode
@@ -45,7 +47,7 @@ trait History {
 
 object HistoryFactory {
 
-  def apply(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) =
+  def apply(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode): History =
     new ArrayBufferHistory(log, config, benchmark, mode)
 
 }

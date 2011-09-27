@@ -11,11 +11,11 @@
 package scala.tools.sbs
 
 import java.net.URL
-
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
+import scala.xml.Elem
 
 trait Benchmark {
 
@@ -80,5 +80,29 @@ object BenchmarkFactory {
             shouldCompile: Boolean,
             config: Config): Benchmark =
     new SnippetBenchmark(src, arguments, classpathURLs, runs, multiplier, sampleNumber, shouldCompile, config)
+
+  def apply(xml: Elem, config: Config): Benchmark = xml match {
+    case <Benchmark>
+           <src>{ src }</src>
+           <arguments>{ argumentsNode@_* }</arguments>
+           <classpath>{ classpathURLsNode@_* }</classpath>
+           <runs>{ runs }</runs>
+           <multiplier>{ multiplier }</multiplier>
+           <sampleNumber>{ sampleNumber }</sampleNumber>
+           <shouldCompile>{ shouldCompile }</shouldCompile>
+         </Benchmark> =>
+      val arguments = for (arg <- argumentsNode) yield arg.text
+      val classpathURLs = for (cp <- classpathURLsNode) yield Path(cp.text).toURL
+      this(
+        Path(src.text),
+        arguments.toList,
+        classpathURLs.toList,
+        runs.text.toInt,
+        multiplier.text.toInt,
+        sampleNumber.text.toInt,
+        shouldCompile.text.toBoolean,
+        config)
+    case _ => null
+  }
 
 }

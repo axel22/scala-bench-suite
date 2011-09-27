@@ -20,7 +20,7 @@ import scala.tools.sbs.util.Constant
  *
  *  @author ND P
  */
-class Series(log: Log, config: Config) {
+class Series(log: Log) {
 
   /**
    */
@@ -32,8 +32,8 @@ class Series(log: Log, config: Config) {
   private var _confidenceLevel: Int = 100
   def confidenceLevel = _confidenceLevel
 
-  def this(log: Log, config: Config, series: ArrayBuffer[Long], confidenceLevel: Int) {
-    this(log, config)
+  def this(log: Log, series: ArrayBuffer[Long], confidenceLevel: Int) {
+    this(log)
     data = series
     _confidenceLevel = confidenceLevel
   }
@@ -42,7 +42,7 @@ class Series(log: Log, config: Config) {
 
   def head = data.head
 
-  def tail = new Series(log, config, data.tail, _confidenceLevel)
+  def tail = new Series(log, data.tail, _confidenceLevel)
 
   def last = data.last
 
