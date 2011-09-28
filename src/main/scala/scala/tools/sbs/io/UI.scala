@@ -18,7 +18,7 @@ object UI extends Log {
   protected var _config: Config = null
   def config = _config
   def config_=(config: Config) {
-    this.config = config
+    _config = config
   }
 
   def apply(message: String) = Console println message

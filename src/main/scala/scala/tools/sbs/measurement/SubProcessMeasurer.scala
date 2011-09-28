@@ -11,7 +11,6 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.io.Log
 import scala.xml.XML
 
 import BenchmarkMode.BenchmarkMode
@@ -28,26 +27,14 @@ trait SubProcessMeasurer extends Measurer {
    */
   def main(args: Array[String]): Unit = {
 
-    val settings = rebuildSettings(args)
-
-    config = settings._1
-    val benchmark = settings._2
+    config = Config(args.tail)
+    val benchmark = BenchmarkFactory(XML loadString args.head, config)
     log = benchmark.log
 
     benchmarkRunner = new BenchmarkRunner(log)
 
     try reportResult(this measure benchmark)
     catch { case e: Exception => reportResult(new ExceptionFailure(e)) }
-  }
-
-  /** Rebuild the measuring config from command arguments.
-   *
-   *  @return	The tuple of the rebuilt `Config` and `Benchmark`
-   */
-  def rebuildSettings(args: Array[String]): (Config, Benchmark) = {
-    val config = new Config(args)
-    val benchmark = BenchmarkFactory(XML loadString args(0), config)
-    (config, benchmark)
   }
 
   /** Reports the measurement result to the main process.
@@ -59,8 +46,8 @@ trait SubProcessMeasurer extends Measurer {
 object SubProcessMeasurerFactory {
 
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
-    case BenchmarkMode.STEADY => new SteadyHarness
-    case BenchmarkMode.MEMORY => new MemoryHarness
+    case BenchmarkMode.STEADY => SteadyHarness
+    case BenchmarkMode.MEMORY => MemoryHarness
     case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
 

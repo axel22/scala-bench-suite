@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/scala"/>
-	<classpathentry excluding="test/Benchmark.scala" kind="src" path="sbs.test/benchmark/src"/>
-	<classpathentry kind="src" path="src/test"/>
+	<classpathentry kind="src" path="src/test/scala"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_COMPILER_CONTAINER"/>
 	<classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"/>

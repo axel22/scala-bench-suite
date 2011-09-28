@@ -15,7 +15,7 @@ import scala.compat.Platform
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant
 
-class SteadyHarness extends SubProcessMeasurer {
+object SteadyHarness extends SubProcessMeasurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
     val statistic = StatisticsFactory(log)

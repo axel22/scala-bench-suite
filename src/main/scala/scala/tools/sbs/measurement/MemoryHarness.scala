@@ -13,7 +13,7 @@ package measurement
 
 import java.lang.Runtime
 
-class MemoryHarness extends SubProcessMeasurer {
+object MemoryHarness extends SubProcessMeasurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")

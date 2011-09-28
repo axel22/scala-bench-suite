@@ -52,15 +52,15 @@ trait BenchmarkSpec extends Spec {
   		                                                         "detecting regression"   defaultTo 0
 
   heading               ("Specifying paths and additional flags, ~ means sbs root:")
-  val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"       defaultTo "."
-  val binDirPath        = "bindir"         / "path from ~ to test build"                defaultTo (null: String)
-  val historyPath       = "history"        / "path to previous measurement results"     defaultTo benchmarkDirPath
-  val classpath         = "classpath"      / "classpath for benchmarks running"         defaultTo ""
-  val scalaLibPath      = "scala-library"  / "path to scala-library.jar"                defaultTo (null: String)
-  val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"               defaultTo (null: String)
+  protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"   defaultTo "."
+  protected val binDirPath        = "bindir"         / "path from ~ to test build"            defaultTo (null: String)
+  protected val historyPath       = "history"        / "path to previous measurement results" defaultTo benchmarkDirPath
+  protected val classpath         = "classpath"      / "classpath for benchmarks running"     defaultTo ""
+  protected val scalaLibPath      = "scala-library"  / "path to scala-library.jar"            defaultTo (null: String)
+  protected val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"           defaultTo (null: String)
   val javaOpts          = "javaopts"       / "flags to java on all runs"             defaultToEnv "JAVA_OPTS"
   val scalacOpts        = "scalacopts"     / "flags to scalac on all tests"          defaultToEnv "SCALAC_OPTS"
-  val javaPath          = "java-home"      / "path to java"                   defaultTo (System getProperty "java.home")
+  protected val javaPath          = "java-home"      / "path to java"         defaultTo (System getProperty "java.home")
 
   heading                 ("Options influencing output:")
   val shouldCompile     = !("noncompile" / "should re-compile the snippets" --?)

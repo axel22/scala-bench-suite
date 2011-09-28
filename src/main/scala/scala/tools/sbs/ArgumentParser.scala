@@ -31,6 +31,7 @@ object ArgumentParser {
    */
   def parse(args: Array[String]): (Config, Log, List[Benchmark]) = {
     val config = new Config(args)
+    println(config.toString)
     UI.config = config
     val log = LogFactory(config)
     val benchmarks = if (config.parsed.residualArgs.length > 0) {
@@ -42,47 +43,55 @@ object ArgumentParser {
   }
 
   def getBenchmark(name: String, config: Config): List[Benchmark] = {
-    val src = config.benchmarkDirectory / name
-    var argFile = ""
-    if (src isFile) {
-      argFile = (src.path stripSuffix "scala") + "arg"
-    } else {
-      argFile = src.path + ".arg"
+    val srcFile = config.benchmarkDirectory / (name + ".scala")
+    val srcDir = config.benchmarkDirectory / name
+    if (!srcFile.exists && !srcDir.exists) {
+      return Nil
     }
-    if (src == Nil) {
-      Nil
+    var argFile = ""
+
+    if (srcFile isFile) {
+      argFile = (srcFile.path stripSuffix "scala") + "arg"
+    } else if (srcDir isDirectory) {
+      argFile = srcDir.path + ".arg"
     } else {
-      // read  .arg
-      var runs = config.runs
-      var multiplier = config.multiplier
-      var sample = config.sample
-      var shouldCompile = config.shouldCompile
-      var classpathURLs = List[URL]()
-      var args = List[String]()
+      return Nil
+    }
+
+    var runs = config.runs
+    var multiplier = config.multiplier
+    var sample = config.sample
+    var shouldCompile = config.shouldCompile
+    var classpathURLs = List[URL]()
+    var args = List[String]()
+    try {
       for (line <- Source.fromFile(argFile).getLines) {
-        try {
-          if (line startsWith "--runs") {
-            runs = (line split " ")(1).toInt
-          } else if (line startsWith "--multiplier") {
-            multiplier = (line split " ")(1).toInt
-          } else if (line startsWith "--classpath") {
-            val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
-            classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
-          } else if (line startsWith "--sample") {
-            sample = (line split " ")(1).toInt
-          } else if (line startsWith "--noncompile") {
-            shouldCompile = false
-          } else {
-            args = List[String]((line split COLON): _*)
-          }
-        } catch {
-          case e => {
-            UI.debug("[Read failed] " + argFile + e.toString)
-            Nil
-          }
+        if (line startsWith "--runs") {
+          runs = (line split " ")(1).toInt
+        } else if (line startsWith "--multiplier") {
+          multiplier = (line split " ")(1).toInt
+        } else if (line startsWith "--classpath") {
+          val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
+          classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
+        } else if (line startsWith "--sample") {
+          sample = (line split " ")(1).toInt
+        } else if (line startsWith "--noncompile") {
+          shouldCompile = false
+        } else {
+          args = List[String]((line split COLON): _*)
         }
       }
-      List(BenchmarkFactory(src, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
+
+    } catch {
+      case e => {
+        UI.debug("[Read failed] " + argFile + e.toString)
+        Nil
+      }
+    }
+    if (srcFile isFile) {
+      List(BenchmarkFactory(name, srcFile, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
+    } else {
+      List(BenchmarkFactory(name, srcDir, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
     }
   }
 

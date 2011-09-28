@@ -26,7 +26,8 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.util.Constant.COLON
 
-case class SnippetBenchmark(src: Path,
+case class SnippetBenchmark(name: String,
+                            src: Path,
                             arguments: List[String],
                             classpathURLs: List[URL],
                             runs: Int,
@@ -53,12 +54,15 @@ case class SnippetBenchmark(src: Path,
    */
   def init() {
     try {
-      val classLoader = (ScalaClassLoader fromURLs classpathURLs)
+      val classLoader = (ScalaClassLoader fromURLs (config.classpathURLs ++ classpathURLs))
+      println(classLoader)
+      println(name)
       val clazz = classLoader.tryToInitializeClass(name) getOrElse (throw new ClassNotFoundException(name))
       method = clazz.getMethod("main", classOf[Array[String]])
       if (!Modifier.isStatic(method.getModifiers)) {
         throw new NoSuchMethodException(name + ".main is not static")
       }
+      println(method)
       Thread.currentThread.setContextClassLoader(classLoader)
     } catch {
       case x: ClassNotFoundException => throw new ClassNotFoundException(
@@ -101,6 +105,7 @@ case class SnippetBenchmark(src: Path,
 
   def toXML =
     <Benchmark>
+      <name>{ name }</name>
       <src>{ src.path }</src>
       <arguments>{ for (arg <- arguments) yield <arg>{ arg }</arg> }</arguments>
       <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>

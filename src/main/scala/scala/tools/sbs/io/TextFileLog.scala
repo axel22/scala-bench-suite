@@ -40,7 +40,7 @@ object TextFileLog {
     logInit += "Logging on " +
       new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
     logInit += "-------------------------------"
-    FileUtil.createAndStore(benchmarkDir.path, ".log", logInit)
+    FileUtil.createAndStore(benchmarkDir.path, "log", logInit)
   }
 
   /** Creates a new file for logging whose name in the format:
@@ -52,7 +52,7 @@ object TextFileLog {
     logInit += "Logging for " + benchmarkName + " on " +
       new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
     logInit += "-------------------------------"
-    FileUtil.createAndStore(benchmarkDir.path, benchmarkName + ".log", logInit)
+    FileUtil.createAndStore(benchmarkDir.path, benchmarkName + "log", logInit)
   }
 
 }

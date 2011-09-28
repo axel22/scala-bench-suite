@@ -10,13 +10,12 @@
 
 package scala.tools.sbs
 
-import java.lang.System
-
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.File
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.util.Constant.COLON
 
 class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 
@@ -26,17 +25,24 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
     log.verbose("[Compile] " + benchmark.name)
 
     def isScala(file: File) = file.hasExtension("scala")
-    def colon = System getProperty "path.separator"
 
     val srcFiles: List[File] =
       if (benchmark.src.isFile) List(benchmark.src.toFile)
       else benchmark.src.toDirectory.deepFiles.filter(isScala).foldLeft(List[File]())((fs, f) => f :: fs)
-    val bin = config.benchmarkDirectory / "bin" createDirectory ()
+
+    log.debug(srcFiles.toString)
+
     val settings = new Settings(log.error)
-    val (ok, errArgs) = settings.processArguments(
-      List("-classpath", benchmark.classpathURLs map (_.toString) mkString colon),
-      false)
-    settings.outdir.value = bin.path
+    val (ok, errArgs) =
+      settings.processArguments(
+        List(
+          "-classpath",
+          (config.classpathURLs map (_.getPath.toString) mkString COLON) +
+            (benchmark.classpathURLs map (_.getPath.toString) mkString COLON)),
+        false)
+    settings.outdir.value = config.bin.path
+
+    log.debug(settings.toString)
 
     if (ok) {
       val compiler = new Global(settings)

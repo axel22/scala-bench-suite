@@ -24,7 +24,7 @@ import scala.tools.sbs.BenchmarkMode.STEADY
 import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH
 
-class Config(args: Array[String])
+case class Config(args: Array[String])
   extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
@@ -56,15 +56,27 @@ class Config(args: Array[String])
    *  <li>Profiling
    *  </ul>
    */
-  val modes = if (_modes.length == 0) List(STEADY, STARTUP, MEMORY, PROFILE) else _modes
+  val modes = if (_modes == Nil) List(STEADY, STARTUP, MEMORY, PROFILE) else _modes
+
+  val scalaLibraryJar = if (scalaLibPath == null) {
+    //File(System.getProperty("java.class.path").split(COLON).filter(_.contains("scala-library")).head)
+    File(scala.io.Source.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
+    //    File("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar")
+  } else {
+    File(scalaLibPath)
+  }
+
+  val scalaCompilerJar = if (scalaCompilerPath == null) {
+    File(scala.tools.nsc.Main.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
+    //File("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar")
+  } else {
+    File(scalaCompilerPath)
+  }
 
   /** Common classpath URLs for every benchmarks
    */
-  val classpathURLs = ((bin.path + COLON + classpath) split COLON).toList map (Path(_).toCanonical.toURL)
-
-  val scalaLibraryJar = File(scalaLibPath)
-
-  val scalaCompilerJar = File(scalaCompilerPath)
+  val classpathURLs = List(scalaLibraryJar.toURL, scalaCompilerJar.toURL, bin.toURL) ++
+    ((classpath split COLON).toList map (Path(_).toCanonical.toURL))
 
   val javahome = Directory(javaPath)
 
@@ -77,20 +89,16 @@ class Config(args: Array[String])
   override def toString(): String = {
     val endl = System getProperty "line.separator"
     "Config:" +
-      endl + "        BenchmarkDir:    " + benchmarkDirectory.path +
+      endl + "        benchmarkDir:    " + benchmarkDirectory.path +
+      endl + "        bin              " + bin.path +
+      endl + "        history          " + history.path +
+      endl + "        modes            " + modes.toString +
+      endl + "        classpath        " + classpathURLs +
+      endl + "        scalaLibraryJar  " + scalaLibraryJar.path +
+      endl + "        scalaCompilerJar " + scalaCompilerJar.path +
       endl + "        Java home:       " + javahome.path +
       endl + "        Java:            " + javacmd +
       endl + "        Java properties: " + javaProp
   }
-
-  def toXML =
-    <Config>
-      <directory>{ benchmarkDirectory.path }</directory>
-      <modes>{ for (mode <- modes) yield <mode>{ mode.toString } </mode> }</modes>
-      <javahome>{ javahome.path }</javahome>
-      <showLog>{ isShowLog }</showLog>
-      <logVerbose>{ isVerbose }</logVerbose>
-      <logDebug>{ isDebug }</logDebug>
-    </Config>
 
 }

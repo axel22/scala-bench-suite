@@ -15,7 +15,7 @@ class BenchmarkRunnerSpec extends Spec {
   object DummyBenchmark extends Benchmark {
     def src = testDir
     def arguments = List[String]()
-    def classpathURLs = List(testBinDir.toURL)
+    def classpathURLs = testConfig.classpathURLs
     def runs = 1
     def multiplier = 10
     def sampleNumber = 0

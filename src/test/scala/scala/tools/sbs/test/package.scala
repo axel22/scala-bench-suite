@@ -14,15 +14,21 @@ package object test {
   val about1kSeries2 = ArrayBuffer[Long](1050, 1048, 1044, 1045, 1044, 1049, 1053, 1051, 1048, 1052, 1102)
   val about1kSeries3 = ArrayBuffer[Long](1059, 1045, 1052, 1043, 1046, 1049, 1066, 1044, 1046, 1047, 1058)
 
-  val testDir = Directory("sbs.test") createDirectory ()
-  val testBenchmarkDir = testDir
-  val testBinDir = (testBenchmarkDir / "bin").createDirectory()
-  val testScalahome = Directory("D:/University/5thYear/Internship/Working/scala-2.9.1.final")
-  val testJavahome = Directory(System getProperty "java.home")
-  val testConfig = new Config(Array(""))
+  val testDir = Directory("sbs.test").createDirectory()
+  val args = Array(
+    "--benchmarkdir",
+    "D:/University/5thYear/Internship/Working/benchmark",
+    "--runs",
+    "11",
+    "--multiplier",
+    "31",
+    "--steady-performance",
+    "--show-log",
+    "test.Benchmark")
+  val testConfig = new Config(args)
 
   val testLog = LogFactory(testConfig)
   val testBenchmark =
-    BenchmarkFactory(testDir / "test", List[String](), List(testBinDir.toURL), 1, 10, 0, true, testConfig)
+    BenchmarkFactory(testDir / "test", List[String](), testConfig.classpathURLs, 1, 10, 0, true, testConfig)
 
 }

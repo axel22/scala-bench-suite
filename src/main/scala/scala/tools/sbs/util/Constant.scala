@@ -17,7 +17,7 @@ object Constant {
   
   val COLON = System getProperty "path.separator"
   
-  val SLASH = System getProperty "file.Separator"
+  val SLASH = System getProperty "file.separator"
 
   /** Precision thredshold of confidance interval.
    */
@@ -27,7 +27,6 @@ object Constant {
    */
   val STEADY_THREDSHOLD = 0.02
 
-  /* Constants for creating command line arguments to rebuild Config */
   /** Maximum counter for measurements of a series.
    */
   val MAX_MEASUREMENT = 1

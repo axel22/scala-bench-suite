@@ -11,13 +11,12 @@
 package scala.tools.sbs
 package measurement
 
-import java.lang.System
-
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.util.Constant.COLON
 
 import org.apache.commons.math.MathException
 
@@ -29,7 +28,7 @@ trait JVMInvoker {
 
 object JVMInvokerFactory {
 
-  def apply(log: Log, config: Config) = new JVMCommandInvoker(log, config)
+  def apply(log: Log, config: Config): JVMInvoker = new JVMCommandInvoker(log, config)
 
 }
 
@@ -43,14 +42,12 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       config.javaProp,
       "scala.tools.nsc.MainGenericRunner",
       "-classpath",
-      measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath +
-        (System.getProperty("path.separator")) +
-        config.bin.path +
-        (System.getProperty("path.separator")) +
+      measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + COLON +
+        config.bin.path + COLON +
+        config.scalaLib + COLON + 
         classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
       measurer.getClass.getName replace ("$", ""),
-      config.toXML.toString,
-      benchmark.toXML.toString)
+      benchmark.toXML.toString) ++ config.args
 
     for (c <- command) {
       log.verbose("[Command]  " + c)
@@ -64,7 +61,8 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       stdout => Source.fromInputStream(stdout).getLines.foreach(result += _),
       stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
 
-    val process = processBuilder.run(processIO)
+    //val process = processBuilder.run(processIO)
+    val process = processBuilder.run
     val success = process.exitValue
     (result, error)
   }

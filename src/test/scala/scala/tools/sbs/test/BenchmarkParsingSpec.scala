@@ -27,8 +27,8 @@ class BenchmarkParsingSpec extends Spec {
       val SomeSpec = new Config(args)
 
       expect(true)(SomeSpec.isHelp)
-      expect("D:/University/5thYear/Internship/Working/benchmark")(SomeSpec.benchmarkDirPath)
-      expect("D:/University/5thYear/Internship/Working/benchmark/bin")(SomeSpec.binDirPath)
+      expect("D:/University/5thYear/Internship/Working/benchmark")(SomeSpec.benchmarkDirectory.path)
+      expect("D:/University/5thYear/Internship/Working/benchmark/bin")(SomeSpec.bin.path)
       expect("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final")(SomeSpec.javaProp)
       expect(11)(SomeSpec.runs)
       expect(31)(SomeSpec.multiplier)

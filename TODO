@@ -5,33 +5,8 @@ TODO:
 I've taken a look at the code. Good work overall. Here are a couple of comments:
 
 
-4)
-Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
-
 11)
 Add comments.
-
-12)
-Take a look at partest and their directory layout
-
-13)
-Take a look at .check files for partest - we want .args files which contain:
---runs 11 --multiplier 11
-
-14)
---scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
-
-15)
-Persistor
-
-16)
-case class Series(times: ArrayBuffer[Long])
-
-17)
-ResultHistory
-
-18)
-Measure steady state in a separate JVM
 
 19)
 snippet identifier format
@@ -114,3 +89,29 @@ transition to sbt
 
 10)
 check if regression detection works for time based tests
+
+4)
+Is it possible to specify multiple files (benchmarks) in the console when starting the suite?
+
+12)
+Take a look at partest and their directory layout
+
+15)
+Persistor
+
+16)
+case class Series(times: ArrayBuffer[Long])
+
+17)
+ResultHistory
+
+18)
+Measure steady state in a separate JVM
+
+13)
+Take a look at .check files for partest - we want .args files which contain:
+--runs 11 --multiplier 11
+
+14)
+--scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
+
