@@ -13,6 +13,7 @@ import org.scalatest.Spec
 class BenchmarkRunnerSpec extends Spec {
 
   object DummyBenchmark extends Benchmark {
+    def name = "dummy"
     def src = testDir
     def arguments = List[String]()
     def classpathURLs = testConfig.classpathURLs

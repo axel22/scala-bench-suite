@@ -16,14 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.tools.nsc.io.File
-import scala.tools.sbs.regression.ANOVAFailure
-import scala.tools.sbs.regression.BenchmarkResult
-import scala.tools.sbs.regression.BenchmarkSuccess
-import scala.tools.sbs.regression.ConfidenceIntervalFailure
-import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.FileBasedPersistor
-import scala.tools.sbs.regression.ImmeasurableFailure
-import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.util.FileUtil
 
@@ -35,6 +28,10 @@ class TextFileReport(
   val reportFile: File = FileUtil.createFile(config.benchmarkDirectory.path: String, "Report") match {
     case Some(file) => file
     case None => null
+  }
+
+  def apply(asdf: ResultPack) {
+
   }
 
   def apply(result: BenchmarkResult) {

@@ -19,7 +19,7 @@ import BenchmarkMode.BenchmarkMode
 
 trait History {
 
-  def add(ele: Series): Unit
+  def add(ele: Series): History
 
   def append(tag: History): Unit
 

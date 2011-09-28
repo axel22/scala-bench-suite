@@ -13,8 +13,10 @@ package scala.tools.sbs
 import java.lang.System
 import java.net.URL
 
+import scala.Array.canBuildFrom
 import scala.io.Source
 import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
@@ -27,74 +29,86 @@ object ArgumentParser {
 
   /** Parses the arguments from command line.
    *
-   *  @return	The `Config` object conresponding for the parsed values
+   *  @return
+   *  <ul>
+   *  <li>The `Config` object conresponding for the parsed values
+   *  <li>The `Log`
+   *  <li>The list of benchmarks to be run
+   *  </ul>
    */
   def parse(args: Array[String]): (Config, Log, List[Benchmark]) = {
     val config = new Config(args)
-    println(config.toString)
     UI.config = config
     val log = LogFactory(config)
-    val benchmarks = if (config.parsed.residualArgs.length > 0) {
-      config.parsed.residualArgs flatMap (name => getBenchmark(name, config))
-    } else {
-      (config.benchmarkDirectory.list map (_.name)).toList flatMap (name => getBenchmark(name, config))
-    }
+    val benchmarks =
+      if (config.parsed.residualArgs.length > 0) {
+        config.parsed.residualArgs flatMap (name => getBenchmark(name, config))
+      } else {
+        (config.benchmarkDirectory.list map (_.name)).toList flatMap (name => getBenchmark(name, config))
+      }
     (config, log, benchmarks)
   }
 
-  def getBenchmark(name: String, config: Config): List[Benchmark] = {
-    val srcFile = config.benchmarkDirectory / (name + ".scala")
-    val srcDir = config.benchmarkDirectory / name
-    if (!srcFile.exists && !srcDir.exists) {
-      return Nil
-    }
-    var argFile = ""
-
-    if (srcFile isFile) {
-      argFile = (srcFile.path stripSuffix "scala") + "arg"
-    } else if (srcDir isDirectory) {
-      argFile = srcDir.path + ".arg"
-    } else {
-      return Nil
-    }
-
-    var runs = config.runs
-    var multiplier = config.multiplier
-    var sample = config.sample
-    var shouldCompile = config.shouldCompile
-    var classpathURLs = List[URL]()
-    var args = List[String]()
-    try {
-      for (line <- Source.fromFile(argFile).getLines) {
-        if (line startsWith "--runs") {
-          runs = (line split " ")(1).toInt
-        } else if (line startsWith "--multiplier") {
-          multiplier = (line split " ")(1).toInt
-        } else if (line startsWith "--classpath") {
-          val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
-          classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
-        } else if (line startsWith "--sample") {
-          sample = (line split " ")(1).toInt
-        } else if (line startsWith "--noncompile") {
-          shouldCompile = false
-        } else {
-          args = List[String]((line split COLON): _*)
+  /** Gets a `Benchmark` object, which has `name`, along with its specified arguments in the benchmark directory.
+   *
+   *  @param name	The name of the desired benchmark
+   *  @param config
+   *
+   *  @return	`List(Benchmark)` if there is actually a benchmark with the given name, Nil otherwise
+   */
+  def getBenchmark(name: String, config: Config): List[Benchmark] = isBenchmark(name, config.benchmarkDirectory) match {
+    case Some(src) => {
+      val (mainClassName, argFile) =
+        if (src isFile) (src.stripExtension, (src.path stripSuffix "scala") + "arg")
+        else (src.name, src.path + ".arg")
+      var runs = config.runs
+      var multiplier = config.multiplier
+      var sample = config.sample
+      var shouldCompile = config.shouldCompile
+      var classpathURLs = List[URL]()
+      var args = List[String]()
+      try {
+        for (line <- Source.fromFile(argFile).getLines) {
+          if (line startsWith "--runs") {
+            runs = (line split " ")(1).toInt
+          } else if (line startsWith "--multiplier") {
+            multiplier = (line split " ")(1).toInt
+          } else if (line startsWith "--classpath") {
+            val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
+            classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
+          } else if (line startsWith "--sample") {
+            sample = (line split " ")(1).toInt
+          } else if (line startsWith "--noncompile") {
+            shouldCompile = false
+          } else {
+            args = List[String]((line split COLON): _*)
+          }
         }
-      }
-
-    } catch {
-      case e => {
-        UI.debug("[Read failed] " + argFile + e.toString)
-        Nil
-      }
+      } catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
+      List(BenchmarkFactory(mainClassName, src, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
     }
-    if (srcFile isFile) {
-      List(BenchmarkFactory(name, srcFile, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
-    } else {
-      List(BenchmarkFactory(name, srcDir, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
-    }
+    case _ => Nil
   }
 
+  /** Checks whether a `name` in `path` directory is a benchmark.
+   *
+   *  @param name	The name to be checked
+   *  @param path	The benchmark directory
+   *
+   *  @return	`Some[Path]` to the source file / directory if `name` is a benchmark `None` otherwise
+   */
+  def isBenchmark(name: String, path: Directory): Option[Path] = {
+    val src = path / name
+    if (src exists)
+      if (src.isFile && src.hasExtension("scala")) Some(src)
+      else if ((src isDirectory) &&
+        (src.toDirectory.deepFiles.filter(p => p.isFile && p.hasExtension("scala"))).length > 0) Some(src)
+      else None
+    else None
+  }
+
+  /** Prints a message and exit program with error code of 1.
+   */
   def exitOnError(message: String) {
     UI.error(message)
     UI.printUsage

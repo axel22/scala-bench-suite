@@ -1,1 +1,3 @@
 xml with scala.xml.Utility.trim -> ugly code
+
+benchmark package -> package.class.scala

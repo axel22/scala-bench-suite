@@ -63,9 +63,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     justCreated
   }
 
-  def load(): History = {
-    loadFromFile
-  }
+  def load(): History = loadFromFile
 
   def loadFromFile(): History = {
 
@@ -146,7 +144,8 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       return None
     }
     val directory = result match {
-      case BenchmarkSuccess(benchmark, mode, _, result) => ""
+      case BenchmarkSuccess(_, _, _, _) => ""
+      case NoPreviousFailure(_, _) => ""
       case _ => {
         (location / "FAILED").createDirectory()
         SLASH + "FAILED"

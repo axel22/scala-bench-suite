@@ -9,10 +9,8 @@
 package scala.tools.sbs
 package io
 
-import scala.tools.sbs.regression.BenchmarkResult
-
 trait Report {
-  
-  def apply(result: BenchmarkResult)
-  
+
+  def apply(pack: ResultPack)
+
 }

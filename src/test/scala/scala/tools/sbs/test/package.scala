@@ -1,7 +1,6 @@
 package scala.tools.sbs
 
 import java.lang.System
-
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
@@ -14,6 +13,7 @@ package object test {
   val about1kSeries2 = ArrayBuffer[Long](1050, 1048, 1044, 1045, 1044, 1049, 1053, 1051, 1048, 1052, 1102)
   val about1kSeries3 = ArrayBuffer[Long](1059, 1045, 1052, 1043, 1046, 1049, 1066, 1044, 1046, 1047, 1058)
 
+  val testName = "benchmark"
   val testDir = Directory("sbs.test").createDirectory()
   val args = Array(
     "--benchmarkdir",
@@ -29,6 +29,6 @@ package object test {
 
   val testLog = LogFactory(testConfig)
   val testBenchmark =
-    BenchmarkFactory(testDir / "test", List[String](), testConfig.classpathURLs, 1, 10, 0, true, testConfig)
+    BenchmarkFactory(testName, testDir / "test", List[String](), testConfig.classpathURLs, 1, 10, 0, true, testConfig)
 
 }

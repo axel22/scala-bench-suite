@@ -22,7 +22,7 @@ import org.apache.commons.math.MathException
 
 trait JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String])
+  def invoke(measurer: Measurer, benchmark: Benchmark): (ArrayBuffer[String], ArrayBuffer[String])
 
 }
 
@@ -34,7 +34,7 @@ object JVMInvokerFactory {
 
 class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
+  def invoke(measurer: Measurer, benchmark: Benchmark): (ArrayBuffer[String], ArrayBuffer[String]) = {
     val command = Seq[String](
       config.javacmd,
       "-cp",
@@ -53,7 +53,7 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       log.verbose("[Command]  " + c)
     }
 
-    var result = ""
+    var result = ArrayBuffer[String]()
     var error = ArrayBuffer[String]()
     val processBuilder = Process(command)
     val processIO = new ProcessIO(
@@ -61,8 +61,7 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       stdout => Source.fromInputStream(stdout).getLines.foreach(result += _),
       stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
 
-    //val process = processBuilder.run(processIO)
-    val process = processBuilder.run
+    val process = processBuilder.run(processIO)
     val success = process.exitValue
     (result, error)
   }

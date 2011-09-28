@@ -10,14 +10,16 @@
 
 package scala.tools.sbs
 package regression
-import scala.tools.sbs.measurement.Series
+
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.measurement.Series
+
 import BenchmarkMode.BenchmarkMode
 
 class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends History {
 
-  private var data: ArrayBuffer[Series] = null
+  private var data = ArrayBuffer[Series]()
 
   def this(log: Log,
            config: Config,
@@ -30,14 +32,13 @@ class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: B
 
   def mode(): BenchmarkMode = mode
 
-  /**
-   * Add a `Series` to `data`.
+  /** Add a `Series` to `data`.
    */
   def add(ele: Series) = {
     data += ele
     this
   }
-  
+
   def append(tag: History) {
     tag foreach (this add _)
     this

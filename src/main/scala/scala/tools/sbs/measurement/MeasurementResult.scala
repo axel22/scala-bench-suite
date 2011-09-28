@@ -19,10 +19,7 @@ trait MeasurementResult {
 
 case class MeasurementSuccess(series: Series) extends MeasurementResult {
 
-  def toXML =
-    <MeasurementSuccess>
-      { series.toXML }
-    </MeasurementSuccess>
+  def toXML = <MeasurementSuccess>{ series.toXML }</MeasurementSuccess>
 
 }
 
@@ -36,10 +33,7 @@ case class UnwarmableFailure extends MeasurementFailure {
 
   def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNWARMABLE
 
-  def toXML =
-    <UnwarmableFailure>
-      <reason>{ reason }</reason>
-    </UnwarmableFailure>
+  def toXML = <UnwarmableFailure/>
 
 }
 
@@ -47,10 +41,7 @@ case class UnreliableFailure extends MeasurementFailure {
 
   def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNRELIABLE
 
-  def toXML =
-    <UnreliableFailure>
-      <reason>{ reason }</reason>
-    </UnreliableFailure>
+  def toXML = <UnreliableFailure/>
 
 }
 
@@ -58,10 +49,7 @@ case class ProcessFailure extends MeasurementFailure {
 
   def reason = MeasurementSignal.MEASUREMENT_FAILURE_PROCESS_FAIL
 
-  def toXML =
-    <ProcessFailure>
-      <reason>{ reason }</reason>
-    </ProcessFailure>
+  def toXML = <ProcessFailure/>
 
 }
 
@@ -72,8 +60,5 @@ case class ExceptionFailure(e: Exception) extends MeasurementFailure {
   def exception = e
 
   def toXML =
-    <ExceptionFailure>
-      <reason>{ reason }</reason>
-      <exception>{ e.toString + "\n" + e.getStackTraceString }</exception>
-    </ExceptionFailure>
+    <ExceptionFailure>{ e.toString + "\n" + e.getStackTraceString }</ExceptionFailure>
 }

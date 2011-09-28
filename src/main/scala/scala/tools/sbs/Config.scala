@@ -76,7 +76,7 @@ case class Config(args: Array[String])
   /** Common classpath URLs for every benchmarks
    */
   val classpathURLs = List(scalaLibraryJar.toURL, scalaCompilerJar.toURL, bin.toURL) ++
-    ((classpath split COLON).toList map (Path(_).toCanonical.toURL))
+    ((classpath split COLON).toList map (Path(_).toCanonical.toURL)) distinct
 
   val javahome = Directory(javaPath)
 

@@ -15,12 +15,7 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
-import scala.tools.sbs.regression.BenchmarkResult
-import scala.tools.sbs.regression.CompileFailure
-import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.History
-import scala.tools.sbs.regression.ImmeasurableFailure
-import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.regression.StatisticsFactory
@@ -31,7 +26,7 @@ import scala.tools.sbs.regression.StatisticsFactory
  */
 object BenchmarkDriver {
 
-  /** Start point of the benchmark driver
+  /** Start point of the benchmark driver.
    *  Does the following:
    *  <ul>
    *  <li>Parse input parameters
@@ -45,7 +40,7 @@ object BenchmarkDriver {
 
     val (config, log, benchmarks) = ArgumentParser.parse(args)
 
-    log.debug(config.toString())
+    log.debug(config.toString)
 
     try {
       if (config.isCleanup) {
@@ -62,25 +57,20 @@ object BenchmarkDriver {
 
         val measurer = MeasurerFactory(config, mode)
 
-        compiled foreach (benchmark => try {
-
-          val persistor = PersistorFactory(log, config, benchmark, mode)
-
-          measurer measure benchmark match {
-            case success: MeasurementSuccess => {
-              val result = detectRegression(benchmark, mode, success, persistor, log)
-              resultPack add result
-              persistor.store(success, result)
-            }
-            case failure: MeasurementFailure => {
-              resultPack add ImmeasurableFailure(benchmark, failure)
-            }
+        compiled foreach (benchmark => try measurer measure benchmark match {
+          case success: MeasurementSuccess => {
+            val persistor = PersistorFactory(log, config, benchmark, mode)
+            val result = detectRegression(benchmark, mode, success, persistor, log)
+            resultPack add result
+            persistor.store(success, result)
           }
-        } catch {
-          case e: Exception => { resultPack add ExceptionFailure(benchmark, e) }
-        })
+          case failure: MeasurementFailure => {
+            resultPack add ImmeasurableFailure(benchmark, failure)
+          }
+        } catch { case e: Exception => resultPack add ExceptionFailure(benchmark, e) })
       })
       // TODO report here
+      resultPack foreach println
     } catch { case e: Exception => throw e }
   }
 

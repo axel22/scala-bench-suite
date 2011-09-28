@@ -119,9 +119,6 @@ class Series(log: Log) {
     data.foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
 
   def toXML =
-    <Series>
-      <confidenceLevel>{ confidenceLevel }</confidenceLevel>
-      <data>{ for (l <- data) yield <value>{ l.toString }</value> }</data>
-    </Series>
+    <Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ for (l <- data) yield <value>{ l.toString }</value> }</data></Series>
 
 }
