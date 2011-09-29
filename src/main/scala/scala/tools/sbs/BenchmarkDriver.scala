@@ -20,6 +20,7 @@ import scala.tools.sbs.regression.History
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.regression.StatisticsFactory
+import scala.tools.sbs.util.FileUtil
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -45,7 +46,9 @@ object BenchmarkDriver {
 
     try {
       if (config.isCleanup) {
-        // TODO cleanup
+        for (mode <- config.modes) {
+          FileUtil.clean(config.history / mode.location)
+        }
       }
       var resultPack = new ResultPack()
       val compiler = BenchmarkCompilerFactory(log, config)
@@ -56,7 +59,10 @@ object BenchmarkDriver {
 
       config.modes foreach (mode => {
 
-        (config.benchmarkDirectory / mode.location).createDirectory()
+        FileUtil.mkDir(config.benchmarkDirectory / mode.location) match {
+          case Right(s) => log.error(s)
+          case _ => ()
+        }
 
         val measurer = MeasurerFactory(config, mode)
 
@@ -71,6 +77,7 @@ object BenchmarkDriver {
             resultPack add ImmeasurableFailure(benchmark, mode, failure)
           }
         } catch { case e: Exception => resultPack add ExceptionFailure(benchmark, mode, e) })
+        FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
       })
       ReportFactory(config)(resultPack)
     } catch { case e: Exception => throw e }

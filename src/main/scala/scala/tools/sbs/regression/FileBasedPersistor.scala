@@ -29,7 +29,19 @@ import scala.tools.sbs.util.FileUtil
 
 class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
-  val location: Directory = (config.history / mode.location / benchmark.name).createDirectory()
+  val location: Directory = FileUtil.mkDir(config.history / mode.location / benchmark.name) match {
+    case Left(dir) => dir
+    case Right(s) => {
+      log.error(s)
+      FileUtil.mkDir(config.history / mode.location) match {
+        case Left(dir) => dir
+        case Right(s) => {
+          log.error(s)
+          config.benchmarkDirectory
+        }
+      }
+    }
+  }
 
   /** Generates sample results.
    */
@@ -47,15 +59,12 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
               i += 1
               log.verbose("--Got " + i + " sample(s)--")
             }
-            case _ => {
-              log.debug("--Cannot store--")
-            }
+            case _ => log.debug("--Cannot store--")
           }
           justCreated add success.series
         }
-        case failure: MeasurementFailure => {
+        case failure: MeasurementFailure =>
           log.debug("--Generation error at " + i + ": " + failure.reason + "--")
-        }
       }
     }
     justCreated
@@ -144,9 +153,9 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     val directory = result match {
       case BenchmarkSuccess(_, _, _, _) => ""
       case NoPreviousFailure(_, _, _) => ""
-      case _ => {
-        (location / "FAILED").createDirectory()
-        SLASH + "FAILED"
+      case _ => FileUtil.mkDir(location / "FAILED") match {
+        case Left(_) => SLASH + "FAILED"
+        case _ => ""
       }
     }
     val data = new ArrayBuffer[String]

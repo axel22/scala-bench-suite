@@ -11,7 +11,7 @@
 package scala.tools.sbs
 package util
 
-import java.io.{File => JFile}
+import java.io.{ File => JFile }
 import java.io.FileWriter
 import java.lang.Thread.sleep
 import java.lang.System
@@ -24,6 +24,7 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.UI
+import scala.tools.sbs.util.Constant.SLASH
 
 object FileUtil {
 
@@ -51,8 +52,7 @@ object FileUtil {
 
     while (i < maxTry && filename == null) {
 
-      filename = path + (System getProperty "file.separator") +
-        new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + last
+      filename = path + SLASH + new SimpleDateFormat("yyyyMMdd.HHmmss.").format(new Date) + last
 
       if (!createFile(filename)) {
         filename = null
@@ -61,11 +61,7 @@ object FileUtil {
       }
     }
 
-    if (filename != null) {
-      Some(File(filename))
-    } else {
-      None
-    }
+    if (filename != null) Some(File(filename)) else None
   }
 
   /** Tries to get the file with the given name.
@@ -76,16 +72,11 @@ object FileUtil {
    */
   def createFile(filename: String): Boolean = {
     val file = new JFile(filename)
-    if (file.exists()) {
-      false
-    } else {
-      try {
-        file.createNewFile()
-        true
-      } catch {
-        case _ => false
-      }
-    }
+    if (file.exists()) false
+    else try {
+      file.createNewFile()
+      true
+    } catch { case _ => false }
   }
 
   /** Tries to create a file and write some data to it.
@@ -110,61 +101,26 @@ object FileUtil {
     }
   }
 
-  /** Creates directory structure for benchmarking.
-   */
-  def createBenchmarkDir(root: String, name: String): Either[Directory, String] = {
-    val slash = System getProperty "file.separator"
-    try {
-      mkDir(root + slash + name) match {
-        case Left(dir) => {
-          mkDir(dir / "bin") match {
-            case Right(err) => Right(err)
-            case _ => ()
-          }
-          mkDir(dir / "lib") match {
-            case Right(err) => Right(err)
-            case _ => ()
-          }
-          mkDir(dir / "result") match {
-            case Right(err) => Right(err)
-            case _ => ()
-          }
-          mkDir(dir / "src") match {
-            case Right(err) => Right(err)
-            case _ => ()
-          }
-          Left(dir)
-        }
-        case e => e
-      }
-    } catch {
-      case _ => Right("Cannot access directory: " + root)
-    }
-  }
-
   /** Clean all contents of a directory.
    *
    *  @param dir	The desired directory
    */
-  def clean(dir: Path): Option[String] = {
-    try {
-      dir.toDirectory.list foreach (_.deleteRecursively)
-      None
-    } catch {
-      case _ => Some("Cannot clean directory: " + dir.path)
-    }
-  }
+  def clean(dir: Path) =
+    try dir.toDirectory.list foreach (_.deleteRecursively)
+    catch { case _ => UI.error("Cannot clean directory: " + dir.path) }
+
+  /** Clean all .log files in the given directory
+   */
+  def cleanLog(dir: Path) =
+    try dir.toDirectory.deepFiles filter (_.hasExtension("log")) foreach (_.delete)
+    catch { case _ => UI.error("Cannot clean directory: " + dir.path) }
 
   /** Creates new directory.
    *
    *  @param path	The path of the desired directory
    */
-  def mkDir(path: Path): Either[Directory, String] = {
-    try {
-      Left(path.createDirectory())
-    } catch {
-      case _ => Right("Cannot create directory: " + path.path)
-    }
-  }
+  def mkDir(path: Path): Either[Directory, String] =
+    try Left(path.createDirectory())
+    catch { case _ => Right("Cannot create directory: " + path.path) }
 
 }

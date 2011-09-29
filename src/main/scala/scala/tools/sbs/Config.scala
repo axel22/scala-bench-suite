@@ -17,22 +17,43 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH
+import scala.tools.sbs.util.FileUtil
 
 case class Config(args: Array[String])
   extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
    */
-  val benchmarkDirectory = Directory(benchmarkDirPath).toCanonical.createDirectory()
+  val benchmarkDirectory = FileUtil.mkDir(Directory(benchmarkDirPath).toCanonical) match {
+    case Left(dir) => dir
+    case Right(s) => {
+      UI.error(s)
+      UI("Benchmark directory changes into cwd")
+      Directory(".")
+    }
+  }
 
-  /** All benchmark compiles output here, also contains non-compiling-benchmarks.
+  /** All benchmark compiled output are here, also contains not-compiled-benchmarks.
    */
-  val bin: Directory = if (binDirPath == null) {
-    (benchmarkDirectory / "bin").toCanonical.createDirectory()
+  val bin = if (binDirPath == null) {
+    FileUtil.mkDir((benchmarkDirectory / "bin").toCanonical) match {
+      case Left(dir) => dir
+      case Right(s) => {
+        UI.error(s)
+        benchmarkDirectory
+      }
+    }
   } else {
-    Path(binDirPath).toCanonical.createDirectory()
+    FileUtil.mkDir(Path(binDirPath).toCanonical) match {
+      case Left(dir) => dir
+      case Right(s) => {
+        UI.error(s)
+        benchmarkDirectory
+      }
+    }
   }
 
   /** Contains measurement histories from previous runnings. Layout:
@@ -44,7 +65,13 @@ case class Config(args: Array[String])
    *                memory/
    *                       ....
    */
-  val history = Path(historyPath).toCanonical.createDirectory()
+  val history = FileUtil.mkDir(Path(historyPath).toCanonical) match {
+    case Left(dir) => dir
+    case Right(s) => {
+      UI.error(s)
+      benchmarkDirectory
+    }
+  }
 
   /** Benchmarking modes, includes:
    *  <ul>

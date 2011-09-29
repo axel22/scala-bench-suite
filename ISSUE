@@ -1,3 +1,5 @@
 xml with scala.xml.Utility.trim -> ugly code
 
 benchmark package -> package.class.scala
+
+memory no stable on separated JVM

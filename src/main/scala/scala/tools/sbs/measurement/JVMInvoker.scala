@@ -51,7 +51,7 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       benchmark.toXML.toString) ++ config.args
 
     for (c <- command) {
-      log.verbose("[Command]  " + c)
+      log.debug("[Command]  " + c)
     }
 
     var result = ""
@@ -59,8 +59,8 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
     val processBuilder = Process(command)
     val processIO = new ProcessIO(
       _ => (),
-      stdout => Source.fromInputStream(stdout).getLines.foreach(
-        line => if (line startsWith "<") result += line else UI(line)),
+      stdout => Source.fromInputStream(stdout).getLines.foreach(line =>
+        if (line startsWith "<") result += line else UI(line)),
       stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
 
     val process = processBuilder.run(processIO)

@@ -107,7 +107,7 @@ class TextFileReport(config: Config) extends Report {
   }
 
   def emit(imme: ImmeasurableFailure) {
-    write("v" + imme.mode)
+    write("Mode:      " + imme.mode)
     failed()
     write("         " + imme.measurementFailure.reason)
   }
