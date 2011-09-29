@@ -233,7 +233,12 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
       if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
         ConfidenceIntervalFailure(
-          benchmark, mode, confidenceLevel, measurementResult, ArrayBuffer(mean1, mean2), (c1, c2))
+          benchmark,
+          mode,
+          confidenceLevel,
+          measurementResult,
+          ((mean1, standardDeviation(history.head)), (mean2, standardDeviation(history.last))),
+          (c1, c2))
       } else {
         BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
@@ -266,6 +271,9 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
     }
 
+    def meansAndSD: ArrayBuffer[(Double, Double)] =
+      history map (alternative => (mean(alternative), standardDeviation(alternative)))
+
     if (confidenceLevel == 100 && SSE == 0) {
       // Memory case
       if (SSA != 0) {
@@ -274,7 +282,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
           mode,
           confidenceLevel,
           measurementResult,
-          means,
+          meansAndSD,
           SSA,
           SSE,
           Double.PositiveInfinity,
@@ -295,7 +303,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       if (FValue <= F) {
         BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       } else {
-        ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, means, SSA, SSE, FValue, F)
+
+        ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, meansAndSD, SSA, SSE, FValue, F)
       }
     }
   }

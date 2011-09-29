@@ -55,14 +55,11 @@ case class SnippetBenchmark(name: String,
   def init() {
     try {
       val classLoader = (ScalaClassLoader fromURLs (config.classpathURLs ++ classpathURLs))
-      println(classLoader)
-      println(name)
       val clazz = classLoader.tryToInitializeClass(name) getOrElse (throw new ClassNotFoundException(name))
       method = clazz.getMethod("main", classOf[Array[String]])
       if (!Modifier.isStatic(method.getModifiers)) {
         throw new NoSuchMethodException(name + ".main is not static")
       }
-      println(method)
       Thread.currentThread.setContextClassLoader(classLoader)
     } catch {
       case x: ClassNotFoundException => throw new ClassNotFoundException(

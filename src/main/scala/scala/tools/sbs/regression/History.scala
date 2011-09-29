@@ -11,6 +11,8 @@
 package scala.tools.sbs
 package regression
 
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
 
@@ -35,6 +37,8 @@ trait History {
   def tail: History
 
   def length: Int
+
+  def map[B, That](f: Series => B)(implicit bf: CanBuildFrom[ArrayBuffer[Series], B, That]): That
 
   def foreach(f: Series => Unit): Unit
 

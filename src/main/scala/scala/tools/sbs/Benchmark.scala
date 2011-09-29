@@ -11,8 +11,7 @@
 package scala.tools.sbs
 
 import java.net.URL
-import scala.tools.nsc.io.Path.string2path
-import scala.tools.nsc.io.File
+
 import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
 import scala.xml.Elem

@@ -10,7 +10,6 @@
 
 package scala.tools.sbs
 
-import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.File
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
@@ -46,11 +45,12 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 
     if (ok) {
       val compiler = new Global(settings)
-      (new compiler.Run) compile (srcFiles map (_.path))
+      new compiler.Run compile (srcFiles map (_.path))
+      !compiler.reporter.hasErrors
     } else {
       errArgs map (err => log.error(err))
+      false
     }
-    ok
   }
 
 }

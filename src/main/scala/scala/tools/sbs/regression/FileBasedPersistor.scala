@@ -143,7 +143,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     }
     val directory = result match {
       case BenchmarkSuccess(_, _, _, _) => ""
-      case NoPreviousFailure(_, _) => ""
+      case NoPreviousFailure(_, _, _) => ""
       case _ => {
         (location / "FAILED").createDirectory()
         SLASH + "FAILED"

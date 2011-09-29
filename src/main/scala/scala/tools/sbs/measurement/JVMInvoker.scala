@@ -16,13 +16,14 @@ import scala.io.Source
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
 
 import org.apache.commons.math.MathException
 
 trait JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): (ArrayBuffer[String], ArrayBuffer[String])
+  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String])
 
 }
 
@@ -34,7 +35,7 @@ object JVMInvokerFactory {
 
 class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): (ArrayBuffer[String], ArrayBuffer[String]) = {
+  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
     val command = Seq[String](
       config.javacmd,
       "-cp",
@@ -44,7 +45,7 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       "-classpath",
       measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + COLON +
         config.bin.path + COLON +
-        config.scalaLib + COLON + 
+        config.scalaLib + COLON +
         classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
       measurer.getClass.getName replace ("$", ""),
       benchmark.toXML.toString) ++ config.args
@@ -53,12 +54,13 @@ class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
       log.verbose("[Command]  " + c)
     }
 
-    var result = ArrayBuffer[String]()
+    var result = ""
     var error = ArrayBuffer[String]()
     val processBuilder = Process(command)
     val processIO = new ProcessIO(
       _ => (),
-      stdout => Source.fromInputStream(stdout).getLines.foreach(result += _),
+      stdout => Source.fromInputStream(stdout).getLines.foreach(
+        line => if (line startsWith "<") result += line else UI(line)),
       stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
 
     val process = processBuilder.run(processIO)

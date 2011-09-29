@@ -37,10 +37,12 @@ case class Config(args: Array[String])
 
   /** Contains measurement histories from previous runnings. Layout:
    *  here (history)/
-   *                benchmark/
-   *                          memory usage history files
-   *                          steady state history files
-   *                          ...
+   *                steady/
+   *                      benchmark/
+   *                               steady state history files
+   *                               ...
+   *                memory/
+   *                       ....
    */
   val history = Path(historyPath).toCanonical.createDirectory()
 

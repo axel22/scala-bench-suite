@@ -14,7 +14,11 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 
-abstract class BenchmarkResult(benchmark: Benchmark)
+abstract class BenchmarkResult(benchmark: Benchmark) {
+
+  def benchmark: Benchmark
+
+}
 
 case class BenchmarkSuccess(benchmark: Benchmark,
                             mode: BenchmarkMode,
@@ -27,14 +31,14 @@ case class ConfidenceIntervalFailure(benchmark: Benchmark,
                                      mode: BenchmarkMode,
                                      confidenceLevel: Int,
                                      measurementSuccess: MeasurementSuccess,
-                                     means: ArrayBuffer[Double],
+                                     meansAndSD: ((Double, Double), (Double, Double)),
                                      CI: (Double, Double)) extends BenchmarkFailure(benchmark)
 
 case class ANOVAFailure(benchmark: Benchmark,
                         mode: BenchmarkMode,
                         confidenceLevel: Int,
                         measurementSuccess: MeasurementSuccess,
-                        means: ArrayBuffer[Double],
+                        meansAndSD: ArrayBuffer[(Double, Double)],
                         SSA: Double,
                         SSE: Double,
                         FValue: Double,
@@ -42,10 +46,11 @@ case class ANOVAFailure(benchmark: Benchmark,
 
 case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure(benchmark)
 
-case class NoPreviousFailure(benchmark: Benchmark, measurementSuccess: MeasurementSuccess)
+case class NoPreviousFailure(benchmark: Benchmark, mode: BenchmarkMode, measurementSuccess: MeasurementSuccess)
   extends BenchmarkFailure(benchmark)
 
-case class ImmeasurableFailure(benchmark: Benchmark, measurementFailure: MeasurementFailure)
+case class ImmeasurableFailure(benchmark: Benchmark, mode: BenchmarkMode, measurementFailure: MeasurementFailure)
   extends BenchmarkFailure(benchmark)
 
-case class ExceptionFailure(benchmark: Benchmark, exception: Exception) extends BenchmarkFailure(benchmark)
+case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception)
+  extends BenchmarkFailure(benchmark)

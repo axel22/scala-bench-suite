@@ -10,7 +10,9 @@
 
 package scala.tools.sbs
 
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
@@ -66,12 +68,11 @@ object BenchmarkDriver {
             persistor.store(success, result)
           }
           case failure: MeasurementFailure => {
-            resultPack add ImmeasurableFailure(benchmark, failure)
+            resultPack add ImmeasurableFailure(benchmark, mode, failure)
           }
-        } catch { case e: Exception => resultPack add ExceptionFailure(benchmark, e) })
+        } catch { case e: Exception => resultPack add ExceptionFailure(benchmark, mode, e) })
       })
-      // TODO report here
-      resultPack foreach println
+      ReportFactory(config)(resultPack)
     } catch { case e: Exception => throw e }
   }
 
@@ -91,7 +92,7 @@ object BenchmarkDriver {
     history add result.series
 
     if (history.length < 2) {
-      NoPreviousFailure(benchmark, result)
+      NoPreviousFailure(benchmark, mode, result)
     } else {
       val statistic = StatisticsFactory(log)
       statistic testDifference (benchmark, mode, result, history)

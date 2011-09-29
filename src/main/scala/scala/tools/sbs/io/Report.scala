@@ -14,3 +14,11 @@ trait Report {
   def apply(pack: ResultPack)
 
 }
+
+object ReportFactory {
+
+  def apply(config: Config): Report = {
+    new TextFileReport(config)
+  }
+
+}

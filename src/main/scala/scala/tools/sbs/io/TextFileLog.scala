@@ -15,6 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.FileUtil

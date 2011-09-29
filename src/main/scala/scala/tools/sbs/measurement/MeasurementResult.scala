@@ -31,7 +31,7 @@ trait MeasurementFailure extends MeasurementResult {
 
 case class UnwarmableFailure extends MeasurementFailure {
 
-  def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNWARMABLE
+  def reason = "Benchmark could not reach steady state"
 
   def toXML = <UnwarmableFailure/>
 
@@ -39,7 +39,7 @@ case class UnwarmableFailure extends MeasurementFailure {
 
 case class UnreliableFailure extends MeasurementFailure {
 
-  def reason = MeasurementSignal.MEASUREMENT_FAILURE_UNRELIABLE
+  def reason = "Measurement result unriliable"
 
   def toXML = <UnreliableFailure/>
 
@@ -47,7 +47,7 @@ case class UnreliableFailure extends MeasurementFailure {
 
 case class ProcessFailure extends MeasurementFailure {
 
-  def reason = MeasurementSignal.MEASUREMENT_FAILURE_PROCESS_FAIL
+  def reason = "Measurement sub-process failed to start"
 
   def toXML = <ProcessFailure/>
 
@@ -55,7 +55,7 @@ case class ProcessFailure extends MeasurementFailure {
 
 case class ExceptionFailure(e: Exception) extends MeasurementFailure {
 
-  def reason = MeasurementSignal.MEASUREMENT_FAILURE_EXCEPTION
+  def reason = "Exception " + e + " raised"
 
   def exception = e
 

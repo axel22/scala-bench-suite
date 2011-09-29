@@ -11,6 +11,7 @@
 package scala.tools.sbs
 package regression
 
+import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
@@ -58,6 +59,8 @@ class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: B
   def tail = new ArrayBufferHistory(log, config, benchmark, mode, data.tail)
 
   def length = data.length
+
+  def map[B, That](f: Series => B)(implicit bf: CanBuildFrom[ArrayBuffer[Series], B, That]): That = data map f
 
   def foreach(f: Series => Unit): Unit = data foreach f
 
