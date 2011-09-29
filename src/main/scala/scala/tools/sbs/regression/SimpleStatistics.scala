@@ -13,7 +13,6 @@ package regression
 
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series

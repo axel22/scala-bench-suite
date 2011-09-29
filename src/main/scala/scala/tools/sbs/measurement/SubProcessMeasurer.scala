@@ -13,8 +13,6 @@ package measurement
 
 import scala.xml.XML
 
-import BenchmarkMode.BenchmarkMode
-
 /** Driver for measurement in a separated JVM.
  *  Choose the harness to run and write the result to output stream.
  */
@@ -22,6 +20,7 @@ trait SubProcessMeasurer extends Measurer {
 
   protected var benchmarkRunner: BenchmarkRunner = _
   protected var config: Config = _
+  protected val mode: BenchmarkMode
 
   /** Entry point of the new process.
    */
@@ -29,7 +28,7 @@ trait SubProcessMeasurer extends Measurer {
 
     config = Config(args.tail)
     val benchmark = BenchmarkFactory(XML loadString args.head, config)
-    log = benchmark.log
+    log = benchmark createLog mode
 
     benchmarkRunner = new BenchmarkRunner(log)
 
@@ -46,8 +45,8 @@ trait SubProcessMeasurer extends Measurer {
 object SubProcessMeasurerFactory {
 
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
-    case BenchmarkMode.STEADY => SteadyHarness
-    case BenchmarkMode.MEMORY => MemoryHarness
+    case SteadyState() => SteadyHarness
+    case MemoryUsage() => MemoryHarness
     case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
 

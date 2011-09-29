@@ -11,7 +11,6 @@
 package scala.tools.sbs
 package regression
 
-import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series

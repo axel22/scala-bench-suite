@@ -15,6 +15,8 @@ import java.lang.Runtime
 
 object MemoryHarness extends SubProcessMeasurer {
 
+  protected val mode = MemoryUsage()
+
   def measure(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime

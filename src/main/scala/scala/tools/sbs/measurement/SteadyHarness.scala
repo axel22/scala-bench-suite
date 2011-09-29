@@ -17,6 +17,8 @@ import scala.tools.sbs.util.Constant
 
 object SteadyHarness extends SubProcessMeasurer {
 
+  protected val mode = SteadyState()
+
   def measure(benchmark: Benchmark): MeasurementResult = {
     val statistic = StatisticsFactory(log)
     log.info("[Benchmarking steady state]")

@@ -11,11 +11,8 @@
 package scala.tools.sbs
 package regression
 
-import scala.annotation.implicitNotFound
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
-
-import BenchmarkMode.BenchmarkMode
 
 trait History {
 

@@ -21,7 +21,7 @@ class BenchmarkRunnerSpec extends Spec {
     def multiplier = 10
     def sampleNumber = 0
     def shouldCompile = false
-    def log = testLog
+    def createLog(mode: BenchmarkMode) = testLog
     def init() = ()
     def run() = ()
     def reset() = ()

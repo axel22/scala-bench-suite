@@ -48,7 +48,7 @@ case class SnippetBenchmark(name: String,
    */
   private val oldContext = Thread.currentThread.getContextClassLoader
 
-  lazy val log: Log = LogFactory(name, config)
+  def createLog(mode: BenchmarkMode): Log = LogFactory(name, mode, config)
 
   /** Sets the running context and load benchmark classes.
    */
@@ -90,8 +90,6 @@ case class SnippetBenchmark(name: String,
         "-classpath",
         config.bin.path + COLON + config.scalaLib + COLON + (classpathURLs map (_.toString) mkString COLON),
         name))((cmd, arg) => cmd :+ arg)
-
-    log.debug(command.toString)
 
     process = Process(command)
 

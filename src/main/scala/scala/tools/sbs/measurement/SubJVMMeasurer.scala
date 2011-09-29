@@ -15,14 +15,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.UI
 import scala.xml.XML
 
-import BenchmarkMode.BenchmarkMode
-
 /** Measures benchmark metric by invoking a new clean JVM
  */
 class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
-    log = benchmark.log
+    log = benchmark createLog mode
     val subProcessMeasurer = SubProcessMeasurerFactory(mode)
     val (logAndResult, error) = JVMInvokerFactory(log, config).invoke(subProcessMeasurer, benchmark)
     dispose(logAndResult, error)

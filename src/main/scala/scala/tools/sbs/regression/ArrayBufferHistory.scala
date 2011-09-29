@@ -15,8 +15,6 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
 
-import BenchmarkMode.BenchmarkMode
-
 class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends History {
 
   private var data = ArrayBuffer[Series]()

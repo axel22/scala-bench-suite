@@ -13,8 +13,6 @@ package measurement
 
 import scala.tools.sbs.io.Log
 
-import BenchmarkMode.BenchmarkMode
-
 trait Measurer {
 
   protected var log: Log = null
@@ -26,7 +24,7 @@ trait Measurer {
 object MeasurerFactory {
 
   def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {
-    case BenchmarkMode.STARTUP => new StartupHarness
+    case StartUpState() => new StartupHarness
     case _ => new SubJVMMeasurer(config, mode)
   }
 

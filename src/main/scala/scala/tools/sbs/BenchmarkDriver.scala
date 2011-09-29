@@ -10,7 +10,6 @@
 
 package scala.tools.sbs
 
-import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
@@ -54,6 +53,8 @@ object BenchmarkDriver {
       log.verbose("[Measure]")
 
       config.modes foreach (mode => {
+
+        (config.benchmarkDirectory / mode.location).createDirectory()
 
         val measurer = MeasurerFactory(config, mode)
 

@@ -46,13 +46,13 @@ object TextFileLog {
   /** Creates a new file for logging whose name in the format:
    *  YYYYMMDD.hhmmss.Benchmark.log
    */
-  def createLog(benchmarkName: String, benchmarkDir: Directory): Option[File] = {
+  def createLog(benchmarkName: String, mode: BenchmarkMode, benchmarkDir: Directory): Option[File] = {
     var logInit = new ArrayBuffer[String]
     val date = new Date
     logInit += "Logging for " + benchmarkName + " on " +
       new SimpleDateFormat("MM/dd/yyyy").format(date) + " at " + new SimpleDateFormat("HH:mm:ss").format(date)
     logInit += "-------------------------------"
-    FileUtil.createAndStore(benchmarkDir.path, benchmarkName + ".log", logInit)
+    FileUtil.createAndStore((benchmarkDir / mode.location).path, benchmarkName + ".log", logInit)
   }
 
 }

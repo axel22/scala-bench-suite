@@ -11,12 +11,12 @@
 package scala.tools.sbs
 package regression
 
-import java.lang.System
 import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.io.Log
@@ -24,14 +24,12 @@ import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.util.Constant.SLASH
 import scala.tools.sbs.util.FileUtil
-import scala.tools.sbs.util.Constant._
-
-import BenchmarkMode.BenchmarkMode
 
 class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
-  val location: Directory = (config.history / benchmark.name).createDirectory()
+  val location: Directory = (config.history / mode.location / benchmark.name).createDirectory()
 
   /** Generates sample results.
    */

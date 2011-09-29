@@ -16,11 +16,6 @@ import scala.tools.cmd.Spec
 import scala.tools.cmd.FromString
 import scala.tools.cmd.Property
 import scala.tools.cmd.PropertyMapper
-import scala.tools.sbs.BenchmarkMode.BenchmarkMode
-import scala.tools.sbs.BenchmarkMode.MEMORY
-import scala.tools.sbs.BenchmarkMode.PROFILE
-import scala.tools.sbs.BenchmarkMode.STARTUP
-import scala.tools.sbs.BenchmarkMode.STEADY
 
 trait BenchmarkSpec extends Spec {
 
@@ -40,10 +35,10 @@ trait BenchmarkSpec extends Spec {
 
   heading                 ("Benchmark modes")
   protected var _modes: List[BenchmarkMode] = Nil
-                          "steady-performance"  / "Benchmarking in steady state" --> (_modes ::= STEADY)
-                          "startup-performance" / "Run script files"             --> (_modes ::= STARTUP)
-                          "memory-usage"        / "Run shootout tests"           --> (_modes ::= MEMORY)
-                          "profiler"            / "Run scalap tests"             --> (_modes ::= PROFILE)
+                          "steady-performance"  / "Benchmarking in steady state" --> (_modes ::= SteadyState())
+                          "startup-performance" / "Run script files"             --> (_modes ::= StartUpState())
+                          "memory-usage"        / "Run shootout tests"           --> (_modes ::= MemoryUsage())
+                          "profiler"            / "Run scalap tests"             --> (_modes ::= Profiling())
 
   heading		     	  ("Per-benchmark numbers of running")
   val runs              = "runs"       / "number of benchmark's running each measurement" defaultTo 1

@@ -17,10 +17,6 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
-import scala.tools.sbs.BenchmarkMode.MEMORY
-import scala.tools.sbs.BenchmarkMode.PROFILE
-import scala.tools.sbs.BenchmarkMode.STARTUP
-import scala.tools.sbs.BenchmarkMode.STEADY
 import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH
 
@@ -56,7 +52,7 @@ case class Config(args: Array[String])
    *  <li>Profiling
    *  </ul>
    */
-  val modes = if (_modes == Nil) List(STEADY, STARTUP, MEMORY, PROFILE) else _modes
+  val modes = if (_modes == Nil) List(SteadyState(), StartUpState(), MemoryUsage(), Profiling()) else _modes
 
   val scalaLibraryJar = if (scalaLibPath == null) {
     //File(System.getProperty("java.class.path").split(COLON).filter(_.contains("scala-library")).head)

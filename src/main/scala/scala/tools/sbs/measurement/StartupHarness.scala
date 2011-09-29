@@ -16,7 +16,7 @@ import scala.compat.Platform
 class StartupHarness extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
-    log = benchmark.log
+    log = benchmark createLog StartUpState()
     log.info("[Benchmarking startup state]")
 
     if (benchmark.initCommand()) {

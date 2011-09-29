@@ -2,7 +2,6 @@ package scala.tools.sbs
 package test
 
 import org.scalatest.Spec
-import scala.tools.cmd.Instance
 
 class BenchmarkParsingSpec extends Spec {
 
@@ -33,7 +32,7 @@ class BenchmarkParsingSpec extends Spec {
       expect(11)(SomeSpec.runs)
       expect(31)(SomeSpec.multiplier)
       expect(true)(SomeSpec.shouldCompile)
-      expect(List(BenchmarkMode.PROFILE, BenchmarkMode.STEADY))(SomeSpec.modes)
+      expect(List(Profiling(), SteadyState()))(SomeSpec.modes)
     }
 
   }

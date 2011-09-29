@@ -41,7 +41,7 @@ trait Benchmark {
 
   def shouldCompile: Boolean
 
-  def log: Log
+  def createLog(mode: BenchmarkMode): Log
 
   /** Sets the running context and load benchmark classes.
    */

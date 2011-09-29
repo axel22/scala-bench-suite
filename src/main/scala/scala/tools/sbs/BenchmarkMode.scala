@@ -18,7 +18,40 @@ package scala.tools.sbs
  *  <li>Profiling
  *  </ul>
  */
-object BenchmarkMode extends Enumeration {
-  type BenchmarkMode = Value
-  val STARTUP, STEADY, MEMORY, PROFILE = Value
+trait BenchmarkMode {
+
+  def location: String
+
+}
+
+case class StartUpState extends BenchmarkMode {
+
+  val location = "startup"
+
+  override val toString = "startup"
+
+}
+
+case class SteadyState extends BenchmarkMode {
+
+  val location = "steady"
+
+  override val toString = "steady"
+
+}
+
+case class MemoryUsage extends BenchmarkMode {
+
+  val location = "memory"
+
+  override val toString = "memory"
+
+}
+
+case class Profiling extends BenchmarkMode {
+
+  val location = "profile"
+
+  override val toString = "profile"
+
 }

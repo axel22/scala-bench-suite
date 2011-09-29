@@ -11,7 +11,6 @@
 package scala.tools.sbs
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.BenchmarkMode.BenchmarkMode
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 

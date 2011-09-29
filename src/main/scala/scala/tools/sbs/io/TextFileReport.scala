@@ -20,8 +20,6 @@ import scala.tools.sbs.regression.FileBasedPersistor
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.util.FileUtil
 
-import BenchmarkMode.BenchmarkMode
-
 class TextFileReport(
   log: Log, config: Config, benchmark: Benchmark, persistor: Persistor, mode: BenchmarkMode) extends Report {
 

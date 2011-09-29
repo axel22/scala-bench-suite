@@ -60,8 +60,8 @@ object LogFactory {
     }
   }
 
-  def apply(benchmarkName: String, config: Config): Log = {
-    TextFileLog.createLog(benchmarkName, config.benchmarkDirectory) match {
+  def apply(benchmarkName: String, mode: BenchmarkMode, config: Config): Log = {
+    TextFileLog.createLog(benchmarkName, mode: BenchmarkMode, config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
       case None => UI
     }
