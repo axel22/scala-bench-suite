@@ -31,9 +31,9 @@ object ArgumentParser {
    *
    *  @return
    *  <ul>
-   *  <li>The `Config` object conresponding for the parsed values
-   *  <li>The `Log`
-   *  <li>The list of benchmarks to be run
+   *  <li>The {@link Config} object conresponding for the parsed values
+   *  <li>The {@link Log}
+   *  <li>The `List` of benchmarks to be run
    *  </ul>
    */
   def parse(args: Array[String]): (Config, Log, List[Benchmark]) = {

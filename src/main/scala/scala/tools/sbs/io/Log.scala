@@ -11,6 +11,8 @@
 package scala.tools.sbs
 package io
 
+/** Logging trait.
+ */
 trait Log {
 
   protected var config: Config
@@ -51,8 +53,12 @@ trait Log {
 
 }
 
+/** Factory object for {@link Log}.
+ */
 object LogFactory {
 
+  /** Creates log for one sbs running.
+   */
   def apply(config: Config): Log = {
     TextFileLog.createLog(config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
@@ -60,6 +66,8 @@ object LogFactory {
     }
   }
 
+  /** Creates log for one benchmark' running of one {@link BenchmarkMode}.
+   */
   def apply(benchmarkName: String, mode: BenchmarkMode, config: Config): Log = {
     TextFileLog.createLog(benchmarkName, mode: BenchmarkMode, config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)

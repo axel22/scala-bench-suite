@@ -16,6 +16,8 @@ import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
 import scala.xml.Elem
 
+/** Represent a benchmark entity, that is an object for the suite to run, measure and detect regression.
+ */
 trait Benchmark {
 
   def name: String
@@ -68,8 +70,12 @@ trait Benchmark {
 
 }
 
+/** Factory object used to create a benchmark entity.
+ */
 object BenchmarkFactory {
 
+  /** Creates a `Benchmark` from the given arguments.
+   */
   def apply(name: String,
             src: Path,
             arguments: List[String],
@@ -81,6 +87,8 @@ object BenchmarkFactory {
             config: Config): Benchmark =
     new SnippetBenchmark(name, src, arguments, classpathURLs, runs, multiplier, sampleNumber, shouldCompile, config)
 
+  /** Creates a `Benchmark` from a xml element representing it.
+   */
   def apply(xml: Elem, config: Config): Benchmark = scala.xml.Utility.trim(xml) match {
     case <Benchmark><name>{ name }</name><src>{ src }</src><arguments>{ argumentsNode@_* }</arguments><classpath>{ classpathURLsNode@_* }</classpath><runs>{ runs }</runs><multiplier>{ multiplier }</multiplier><sampleNumber>{ sampleNumber }</sampleNumber><shouldCompile>{ shouldCompile }</shouldCompile></Benchmark> =>
       val arguments = for (arg <- argumentsNode) yield arg.text

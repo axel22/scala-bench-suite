@@ -22,6 +22,8 @@ import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH
 import scala.tools.sbs.util.FileUtil
 
+/** Configurations for sbs running.
+ */
 case class Config(args: Array[String])
   extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
@@ -73,7 +75,7 @@ case class Config(args: Array[String])
     }
   }
 
-  /** Benchmarking modes, includes:
+  /** `List` of {@link BenchmarkMode}. May include:
    *  <ul>
    *  <li>Benchmarking in startup state
    *  <li>Benchmarking in steady state
@@ -83,6 +85,8 @@ case class Config(args: Array[String])
    */
   val modes = if (_modes == Nil) List(SteadyState(), StartUpState(), MemoryUsage(), Profiling()) else _modes
 
+  /** `File` path of scala-library.jar.
+   */
   val scalaLibraryJar = if (scalaLibPath == null) {
     //File(System.getProperty("java.class.path").split(COLON).filter(_.contains("scala-library")).head)
     File(scala.io.Source.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
@@ -91,6 +95,8 @@ case class Config(args: Array[String])
     File(scalaLibPath)
   }
 
+  /** `File` path of scala-compiler.jar.
+   */
   val scalaCompilerJar = if (scalaCompilerPath == null) {
     File(scala.tools.nsc.Main.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
     //File("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar")
@@ -109,6 +115,8 @@ case class Config(args: Array[String])
 
   val javaProp = "-Dscala.home=" + scalaLibraryJar.parent.parent.path
 
+  /** Scala-library.jar and scala-compiler.jar in form of classpath.
+   */
   val scalaLib = scalaLibraryJar.path + COLON + scalaCompilerJar
 
   override def toString(): String = {

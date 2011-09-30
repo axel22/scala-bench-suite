@@ -11,6 +11,8 @@
 package scala.tools.sbs
 package measurement
 
+/** Represents a result of a measurement phase of one benchmark on one {@link BenchmarkMode}.
+ */
 trait MeasurementResult {
 
   def toXML: scala.xml.Elem

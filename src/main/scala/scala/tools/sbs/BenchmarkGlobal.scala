@@ -16,9 +16,11 @@ import scala.tools.nsc.Settings
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant.COLON
 
+/** An implement of {@link BenchmarkCompiler}.
+ */
 class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 
-  /** Uses strange named compiler Global to compile.
+  /** Uses strange named compiler `Global` to compile.
    */
   def compile(benchmark: Benchmark): Boolean = {
     log.verbose("[Compile] " + benchmark.name)

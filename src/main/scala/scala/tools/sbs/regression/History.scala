@@ -24,8 +24,6 @@ trait History {
 
   def mode: BenchmarkMode
 
-  def concat(that: History): History
-
   def apply(i: Int): Series
 
   def foldLeft[B](z: B)(op: (B, Series) => B): B

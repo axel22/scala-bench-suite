@@ -26,6 +26,8 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.util.Constant.COLON
 
+/** An implement of {@link Benchmark} trait.
+ */
 case class SnippetBenchmark(name: String,
                             src: Path,
                             arguments: List[String],

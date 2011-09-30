@@ -16,8 +16,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
 
+/** An implement of {@link History}. Uses `ArrayBuffer` to hold previous measurement data.
+ */
 class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends History {
 
+  /** The {@link Series} array.
+   */
   private var data = ArrayBuffer[Series]()
 
   def this(log: Log,
@@ -29,22 +33,21 @@ class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: B
     this.data = data
   }
 
+  /** Benchmarking mode of the history.
+   */
   def mode(): BenchmarkMode = mode
 
-  /** Add a `Series` to `data`.
+  /** Adds a `Series` to `data`.
    */
   def add(ele: Series) = {
     data += ele
     this
   }
 
+  /** Appends a `History` to `this`.
+   */
   def append(tag: History) {
     tag foreach (this add _)
-    this
-  }
-
-  def concat(that: History): History = {
-    that foreach (this add _)
     this
   }
 

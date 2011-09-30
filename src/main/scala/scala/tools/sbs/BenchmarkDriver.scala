@@ -45,6 +45,7 @@ object BenchmarkDriver {
     log.debug(config.toString)
 
     try {
+      // Clean up in case demanded
       if (config.isCleanup) {
         for (mode <- config.modes) {
           FileUtil.clean(config.history / mode.location)
@@ -53,7 +54,15 @@ object BenchmarkDriver {
       var resultPack = new ResultPack()
       val compiler = BenchmarkCompilerFactory(log, config)
       val compiled = benchmarks filterNot (benchmark => benchmark.shouldCompile && !(compiler compile benchmark))
+      // Add failure compiles for reporting
       benchmarks filterNot (compiled contains _) foreach (resultPack add CompileFailure(_))
+
+      // Generate sample history in case demanded
+      compiled filter (_.sampleNumber > 0) foreach (toGenerated =>
+        config.modes foreach (PersistorFactory(log, config, toGenerated, _) generate toGenerated.sampleNumber))
+
+      // List of benchmarks to be run and detect regression
+      val toRun = compiled filter (_.sampleNumber == 0)
 
       log.verbose("[Measure]")
 
@@ -66,7 +75,7 @@ object BenchmarkDriver {
 
         val measurer = MeasurerFactory(config, mode)
 
-        compiled foreach (benchmark => try measurer measure benchmark match {
+        toRun foreach (benchmark => try measurer measure benchmark match {
           case success: MeasurementSuccess => {
             val persistor = PersistorFactory(log, config, benchmark, mode)
             val result = detectRegression(benchmark, mode, success, persistor, log)
@@ -93,9 +102,7 @@ object BenchmarkDriver {
                        persistor: Persistor,
                        log: Log): BenchmarkResult = {
 
-    val history: History =
-      if (benchmark.sampleNumber > 0) persistor generate benchmark.sampleNumber
-      else persistor.load()
+    val history: History = persistor.load()
     history add result.series
 
     if (history.length < 2) {

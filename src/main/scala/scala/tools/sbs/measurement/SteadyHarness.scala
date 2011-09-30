@@ -15,6 +15,8 @@ import scala.compat.Platform
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant
 
+/** Measurer for benchmarking on steady state. Should be run on a clean new JVM.
+ */
 object SteadyHarness extends SubProcessMeasurer {
 
   protected val mode = SteadyState()

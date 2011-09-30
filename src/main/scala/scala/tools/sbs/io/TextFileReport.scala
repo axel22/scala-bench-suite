@@ -18,6 +18,8 @@ import scala.tools.nsc.io.File
 import scala.tools.sbs.util.Constant.ENDL
 import scala.tools.sbs.util.FileUtil
 
+/** An implement of {@link Report}, reporting of a simple text file.
+ */
 class TextFileReport(config: Config) extends Report {
 
   val reportFile: File = FileUtil.createFile(config.benchmarkDirectory.path: String, "Report") match {

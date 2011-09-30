@@ -16,13 +16,11 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant
 
-/** Class represents the result of benchmarking. Allows user to store or load a list of values from file.
- *
- *  @author ND P
+/** Class represents the result of a success measurement.
  */
 class Series(log: Log) {
 
-  /**
+  /** The value series.
    */
   private var data = ArrayBuffer[Long]()
 

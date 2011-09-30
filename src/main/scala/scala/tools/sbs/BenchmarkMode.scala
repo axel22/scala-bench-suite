@@ -20,6 +20,9 @@ package scala.tools.sbs
  */
 trait BenchmarkMode {
 
+  /** Path from benchmark directory to save logs,
+   *  and from history directory to save measurement results.
+   */
   def location: String
 
 }

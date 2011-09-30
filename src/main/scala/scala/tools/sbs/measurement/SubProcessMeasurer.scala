@@ -42,6 +42,8 @@ trait SubProcessMeasurer extends Measurer {
 
 }
 
+/** Factory object of {@link SubProcessMeasurer}.
+ */
 object SubProcessMeasurerFactory {
 
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {

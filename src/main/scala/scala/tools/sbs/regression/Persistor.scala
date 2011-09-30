@@ -14,6 +14,8 @@ package regression
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 
+/** Trait for loading, storing and generating benchmarking history.
+ */
 trait Persistor {
 
   def generate(num: Int): History
@@ -24,6 +26,8 @@ trait Persistor {
 
 }
 
+/** Factory object of {@link Persistor}.
+ */
 object PersistorFactory {
 
   def apply(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode): Persistor =

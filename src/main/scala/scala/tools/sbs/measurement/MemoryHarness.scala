@@ -13,6 +13,8 @@ package measurement
 
 import java.lang.Runtime
 
+/** Measurer for benchmarking on memory usage. Should be run on a clean new JVM.
+ */
 object MemoryHarness extends SubProcessMeasurer {
 
   protected val mode = MemoryUsage()

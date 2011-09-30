@@ -14,7 +14,7 @@ package measurement
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.XML
 
-/** Measures benchmark metric by invoking a new clean JVM
+/** Measures benchmark metric by invoking a new clean JVM.
  */
 class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
 
@@ -30,6 +30,12 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
     }
   }
 
+  /** Disposes a xml string to get the {@link MeasurementResult} it represents.
+   *
+   *  @param result	A `String` contains and xml element.
+   *
+   *  @return	The corresponding `MeasurementResult`
+   */
   def dispose(result: String): MeasurementResult = {
     val xml = XML loadString result
     scala.xml.Utility.trim(xml) match {

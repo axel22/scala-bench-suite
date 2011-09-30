@@ -21,18 +21,35 @@ import scala.tools.sbs.util.Constant.COLON
 
 import org.apache.commons.math.MathException
 
+/** Trait used to invoke a new separated JVM.
+ */
 trait JVMInvoker {
 
+  /** Invokes a new JVM which uses a typical {@link Measurer} to run a typical {@link Benchmark}.
+   *
+   *  @param measurer	{@link Measurer}
+   *  @param benchmark	{@link Benchmark}
+   *
+   *  @return
+   *  <ul>
+   *  <li>A `String`  contains xml element representing the measurement result.
+   *  <li>A `ArrayBuffer` of `String` contains runtime errors if any.
+   *  </ul>
+   */
   def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String])
 
 }
 
+/** Factory object of {@link JVMInvoker}.
+ */
 object JVMInvokerFactory {
 
   def apply(log: Log, config: Config): JVMInvoker = new JVMCommandInvoker(log, config)
 
 }
 
+/** An implement of {@link JVMInvoker}.
+ */
 class JVMCommandInvoker(log: Log, config: Config) extends JVMInvoker {
 
   def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {

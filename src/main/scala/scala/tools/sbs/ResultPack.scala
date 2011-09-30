@@ -12,7 +12,7 @@ package scala.tools.sbs
 
 import scala.collection.mutable.ArrayBuffer
 
-/** Holds all the benchmarking results from one sbs running
+/** Holds all the benchmarking results from one sbs running.
  */
 class ResultPack {
 

@@ -27,6 +27,8 @@ import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Constant.SLASH
 import scala.tools.sbs.util.FileUtil
 
+/** An implement of {@link Persistor} based on simple text files.
+ */
 class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends Persistor {
 
   val location: Directory = FileUtil.mkDir(config.history / mode.location / benchmark.name) match {

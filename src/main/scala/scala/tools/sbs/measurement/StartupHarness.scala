@@ -13,6 +13,8 @@ package measurement
 
 import scala.compat.Platform
 
+/** Measurer for benchmarking on startup state.
+ */
 class StartupHarness extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {

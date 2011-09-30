@@ -17,6 +17,8 @@ import scala.tools.cmd.FromString
 import scala.tools.cmd.Property
 import scala.tools.cmd.PropertyMapper
 
+/** sbs' command line arguments and flags go here.
+ */
 trait BenchmarkSpec extends Spec {
 
   def referenceSpec       = BenchmarkSpec

@@ -14,6 +14,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 
+/** Represents the result of a benchmarking (of one benchmark on one {@link BenchmarkMode}).
+ */
 abstract class BenchmarkResult(benchmark: Benchmark) {
 
   def benchmark: Benchmark

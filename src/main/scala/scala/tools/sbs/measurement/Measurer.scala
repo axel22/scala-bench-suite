@@ -13,6 +13,9 @@ package measurement
 
 import scala.tools.sbs.io.Log
 
+/** A measurer for a benchmarking. Should have a typical type for benchmarking
+ *  on a typical {@link BenchmarkMode}.
+ */
 trait Measurer {
 
   protected var log: Log = null
@@ -21,6 +24,8 @@ trait Measurer {
 
 }
 
+/** Factory object of {@link Measurer}.
+ */
 object MeasurerFactory {
 
   def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {

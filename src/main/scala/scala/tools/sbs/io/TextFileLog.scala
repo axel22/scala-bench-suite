@@ -20,6 +20,8 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.FileUtil
 
+/** An implement of {@link Log}, logging on simple text file.
+ */
 case class TextFileLog(logFile: File, override var config: Config) extends Log {
 
   def apply(message: String) {

@@ -18,6 +18,8 @@ import scala.compat.Platform
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant
 
+/** Runs and measures metrics of a benchmark in general case.
+ */
 class BenchmarkRunner(log: Log) {
 
   /** Warms the benchmark up if necessary and measures the desired metric.

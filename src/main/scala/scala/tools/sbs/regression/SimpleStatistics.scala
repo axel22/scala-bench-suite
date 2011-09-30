@@ -21,6 +21,8 @@ import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
 
+/** An simple implement of {@link Statistics}.
+ */
 class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** Maximum significant level.
@@ -67,6 +69,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   /** Computes the confidence interval for the given sample.
    *
    *  @param series	The result of benchmarking
+   *
    *  @return	The left and right end points of the confidence interval.
    */
   def confidenceInterval(series: Series): (Double, Double) = {
@@ -86,6 +89,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   /** Computes z value of the standard normal distribution with mean 0 and variance 1.
    *
    *  @param alpha	The significant level
+   *
    *  @return	The z value
    */
   private def inverseGaussianDistribution() =
@@ -98,6 +102,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  </ul>
    *
    *  @param df	The degree of freedom
+   *
    *  @return	The t value
    */
   private def inverseStudentDistribution(df: Int) =
@@ -111,17 +116,20 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *
    *  @param n1	The first degree of freedom
    *  @param n2	The second degree of freedom
+   *
    *  @return	The F value
    */
   private def inverseFDistribution(n1: Int, n2: Int) =
     new FDistributionImpl(n1, n2).inverseCumulativeProbability(1 - alpha)
 
   /** @param series	The result of benchmarking
+   *
    *  @return	The minimum value
    */
   def min(series: Series) = series.foldLeft(series.head) { (min, s) => if (min < s) min else s }
 
   /** @param series	The result of benchmarking
+   *
    *  @return	The maximum value
    */
   def max(series: Series) = series.foldRight(series.last) { (max, s) => if (max > s) max else s }
@@ -129,6 +137,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   /** Computes the sample mean.
    *
    *  @param series	The result of benchmarking
+   *
    *  @return	The average
    */
   def mean(series: Series) =
@@ -137,6 +146,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   /** Computes the standard deviation of a given sample.
    *
    *  @param series	The result of benchmarking
+   *
    *  @return	The standard deviation
    */
   def standardDeviation(series: Series): Double = {
@@ -151,6 +161,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   /** Computes the coefficient of variation of a given sample.
    *
    *  @param series	The result of benchmarking
+   *
    *  @return	The coefficient of variation
    */
   def CoV(series: Series) = standardDeviation(series) / mean(series)
@@ -169,8 +180,12 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  <li>ANOVA for comparing 3 or more alternatives.
    *  </ul>
    *
-   *  @param persistor	The list of previous results
-   *  @return	`true` if there is statistically significant difference among the means, `false` otherwise
+   *  @param benchmark			The benchmark to be test
+   *  @param mode					The benchmarking mode
+   *  @param measurementResult	The just measured result
+   *  @param history			The list of previous results
+   *
+   *  @return	The test result
    */
   def testDifference(benchmark: Benchmark,
                      mode: BenchmarkMode,
@@ -188,8 +203,12 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** Statistically rigorously compares means of two samples using confidence intervals.
    *
-   *  @param persistor	The list of previous results
-   *  @return	The confidence interval if there is statistically significant difference, `None` otherwise
+   *  @param benchmark			The benchmark to be test
+   *  @param mode					The benchmarking mode
+   *  @param measurementResult	The just measured result
+   *  @param history			The list of previous results
+   *
+   *  @return	The test result
    */
   private def testConfidenceIntervals(benchmark: Benchmark,
                                       mode: BenchmarkMode,
@@ -247,8 +266,12 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** Statistically rigorously compares means of three or more samples using ANOVA.
    *
-   *  @param persistor	The list of previous results
-   *  @return	Array of the means if there is statistically significant difference, `None` otherwise
+   *  @param benchmark			The benchmark to be test
+   *  @param mode					The benchmarking mode
+   *  @param measurementResult	The just measured result
+   *  @param history			The list of previous results
+   *
+   *  @return	The test result
    */
   private def testANOVA(benchmark: Benchmark,
                         mode: BenchmarkMode,
