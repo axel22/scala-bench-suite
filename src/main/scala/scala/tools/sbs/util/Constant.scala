@@ -23,6 +23,10 @@ object Constant {
 
   val ENDL = System getProperty "line.separator"
 
+  /** Smallest acceptable confidence level.
+   */
+  val LEAST_CONFIDENCE_LEVEL = 90
+
   /** Precision thredshold of confidance interval.
    */
   val CI_PRECISION_THREDSHOLD = 0.02

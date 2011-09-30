@@ -2,6 +2,7 @@ package scala.tools.sbs
 package test
 
 import org.scalatest.Spec
+import scala.tools.nsc.io.Directory
 
 class BenchmarkParsingSpec extends Spec {
 
@@ -23,16 +24,15 @@ class BenchmarkParsingSpec extends Spec {
         "--show-log",
         "ndp.scala.tools.sbs.benchmark.WhileIterator")
 
-      val SomeSpec = new Config(args)
+      val conf = new Config(args)
 
-      expect(true)(SomeSpec.isHelp)
-      expect("D:/University/5thYear/Internship/Working/benchmark")(SomeSpec.benchmarkDirectory.path)
-      expect("D:/University/5thYear/Internship/Working/benchmark/bin")(SomeSpec.bin.path)
-      expect("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final")(SomeSpec.javaProp)
-      expect(11)(SomeSpec.runs)
-      expect(31)(SomeSpec.multiplier)
-      expect(true)(SomeSpec.shouldCompile)
-      expect(List(Profiling(), SteadyState()))(SomeSpec.modes)
+      expect(true)(conf.isHelp)
+      expect(Directory("D:/University/5thYear/Internship/Working/benchmark").toCanonical.path)(conf.benchmarkDirectory.path)
+      expect(Directory("D:/University/5thYear/Internship/Working/benchmark/bin").toCanonical.path)(conf.bin.path)
+      expect(11)(conf.runs)
+      expect(31)(conf.multiplier)
+      expect(true)(conf.shouldCompile)
+      expect(List(Profiling(), SteadyState()))(conf.modes)
     }
 
   }

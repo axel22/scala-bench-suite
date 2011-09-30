@@ -6,7 +6,7 @@ import scala.collection.mutable.ArrayBuffer
 import org.scalatest.Spec
 import scala.tools.sbs.measurement.Series
 
-class ArrayBufferSeriesSpec extends Spec {
+class SeriesSpec extends Spec {
 
   private var s: Series = _
 

@@ -16,6 +16,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.util.Constant.LEAST_CONFIDENCE_LEVEL
 
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
@@ -24,14 +25,6 @@ import org.apache.commons.math.distribution.TDistributionImpl
 /** An simple implement of {@link Statistics}.
  */
 class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
-
-  /** Maximum significant level.
-   */
-  private val alphaMax: Double = 0.1
-
-  /** Minimum significant level.
-   */
-  private val alphaMin: Double = 0.00
 
   /** Reduces the confidence level time by time to by 5% each time,
    *  except 2 cases:
@@ -43,13 +36,13 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @return `true` if success, `false` if the confidence leval is at the minimum value.
    */
   def reduceConfidenceLevel(): Int = {
-    if (alpha == 0) {
+    if (confidenceLevel == 100) {
       alpha = 0.01
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-    } else if (alpha == 0.01) {
+    } else if (confidenceLevel == 99) {
       alpha = 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-    } else if (alpha <= alphaMax) {
+    } else if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) {
       alpha += 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
     } else {
@@ -60,10 +53,10 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
    */
-  def isConfidenceLevelAcceptable = if (alpha <= alphaMax) true else false
+  def isConfidenceLevelAcceptable = if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) true else false
 
   def resetConfidenceInterval() {
-    alpha = alphaMin
+    alpha = 0
   }
 
   /** Computes the confidence interval for the given sample.
@@ -237,20 +230,30 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       var c1: Double = 0
       var c2: Double = 0
 
-      if ((n1 >= 30) && (n2 >= 30)) {
-        c1 = diff - inverseGaussianDistribution * s
-        c2 = diff + inverseGaussianDistribution * s
-      } else {
-        var ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
-          ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
-        if (ndf == 0) {
-          ndf = 1
+      var ok = false
+
+      while (isConfidenceLevelAcceptable && !ok) {
+        if ((n1 >= 30) && (n2 >= 30)) {
+          c1 = diff - inverseGaussianDistribution * s
+          c2 = diff + inverseGaussianDistribution * s
+        } else {
+          var ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
+            ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
+          if (ndf == 0) {
+            ndf = 1
+          }
+          c1 = diff - inverseStudentDistribution(ndf) * s
+          c2 = diff + inverseStudentDistribution(ndf) * s
         }
-        c1 = diff - inverseStudentDistribution(ndf) * s
-        c2 = diff + inverseStudentDistribution(ndf) * s
+
+        if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
+          reduceConfidenceLevel()
+        } else {
+          ok = true
+        }
       }
 
-      if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
+      if (!ok) {
         ConfidenceIntervalFailure(
           benchmark,
           mode,
@@ -315,18 +318,30 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       }
     } else {
       // Performance case
-      reduceConfidenceLevel()
+
       val n1 = history.length - 1
       val n2 = history.foldLeft(0)((s, p) => s + p.length) - history.length
       val FValue = SSA * n2 / SSE / n1
-      val F = inverseFDistribution(n1, n2)
+      var F: Double = 0
 
-      log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
+      var ok = false
+      reduceConfidenceLevel()
 
-      if (FValue <= F) {
+      while (isConfidenceLevelAcceptable && !ok) {
+        F = inverseFDistribution(n1, n2)
+
+        log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
+
+        if (FValue <= F) {
+          ok = true
+        } else {
+          reduceConfidenceLevel()
+        }
+      }
+
+      if (ok) {
         BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
       } else {
-
         ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, meansAndSD, SSA, SSE, FValue, F)
       }
     }

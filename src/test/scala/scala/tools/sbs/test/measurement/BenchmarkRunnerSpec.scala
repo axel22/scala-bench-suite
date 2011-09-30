@@ -12,24 +12,6 @@ import org.scalatest.Spec
 
 class BenchmarkRunnerSpec extends Spec {
 
-  object DummyBenchmark extends Benchmark {
-    def name = "dummy"
-    def src = testDir
-    def arguments = List[String]()
-    def classpathURLs = testConfig.classpathURLs
-    def runs = 1
-    def multiplier = 10
-    def sampleNumber = 0
-    def shouldCompile = false
-    def createLog(mode: BenchmarkMode) = testLog
-    def init() = ()
-    def run() = ()
-    def reset() = ()
-    def initCommand() = true
-    def runCommand() = ()
-    def toXML: scala.xml.Elem = <null/>
-  }
-
   describe("BenchmarkRunner") {
 
     it("should return a UnwarmableFailure when the benchmark cannot be warmed up") {
