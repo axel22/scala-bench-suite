@@ -14,6 +14,19 @@ snippet identifier format
 20)
 jdi - introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
 
+21) about Factories in general - you can use a singleton object instead of instantiating the factory each time
+
+new PersistorFactory - instead:
+
+object PersistorFactory {
+  def create(...)
+}
+
+22)
+THREDSHOLD -> THRESHOLD
+
+23)
+The steady harness - only after you've detected steady state, you have to do the entire measurement again.
 
 
 
