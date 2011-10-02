@@ -3,7 +3,11 @@ package test
 package regression
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.common.SteadyState
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.regression.ANOVAFailure
+import scala.tools.sbs.regression.BenchmarkSuccess
+import scala.tools.sbs.regression.ConfidenceIntervalFailure
 import scala.tools.sbs.regression.HistoryFactory
 import scala.tools.sbs.regression.Statistics
 import scala.tools.sbs.regression.StatisticsFactory

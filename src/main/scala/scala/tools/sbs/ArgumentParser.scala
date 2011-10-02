@@ -18,6 +18,8 @@ import scala.io.Source
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.Path
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkFactory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.io.UI

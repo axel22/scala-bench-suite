@@ -17,6 +17,10 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.nsc.io.Path
+import scala.tools.sbs.common.MemoryUsage
+import scala.tools.sbs.common.Profiling
+import scala.tools.sbs.common.StartUpState
+import scala.tools.sbs.common.SteadyState
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH

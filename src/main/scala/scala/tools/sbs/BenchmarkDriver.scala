@@ -11,12 +11,20 @@
 package scala.tools.sbs
 
 import scala.tools.nsc.io.Path.string2path
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkCompilerFactory
+import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.MeasurerFactory
+import scala.tools.sbs.regression.BenchmarkResult
+import scala.tools.sbs.regression.CompileFailure
+import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.History
+import scala.tools.sbs.regression.ImmeasurableFailure
+import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.regression.StatisticsFactory

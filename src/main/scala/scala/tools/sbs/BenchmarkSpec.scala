@@ -16,6 +16,11 @@ import scala.tools.cmd.Spec
 import scala.tools.cmd.FromString
 import scala.tools.cmd.Property
 import scala.tools.cmd.PropertyMapper
+import scala.tools.sbs.common.BenchmarkMode
+import scala.tools.sbs.common.MemoryUsage
+import scala.tools.sbs.common.Profiling
+import scala.tools.sbs.common.StartUpState
+import scala.tools.sbs.common.SteadyState
 
 /** sbs' command line arguments and flags go here.
  */

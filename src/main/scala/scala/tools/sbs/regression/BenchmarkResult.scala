@@ -9,8 +9,11 @@
  */
 
 package scala.tools.sbs
+package regression
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 

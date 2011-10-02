@@ -13,10 +13,11 @@ package measurement
 
 import java.lang.Thread.sleep
 import java.lang.System
-
 import scala.compat.Platform
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.util.Constant
+import scala.tools.sbs.util.Constant.MAX_MEASUREMENT
+import scala.tools.sbs.util.Constant.MAX_WARM
+import scala.tools.sbs.common.Benchmark
 
 /** Runs and measures metrics of a benchmark in general case.
  */
@@ -31,61 +32,59 @@ class BenchmarkRunner(log: Log) {
    */
   def run(benchmark: Benchmark, checkWarm: Series => Boolean, measure: => Long): MeasurementResult = {
 
-    log.verbose("")
-    log.verbose("--Warmup--")
-
     var series = new Series(log)
     var unwarmable = false
 
-    val iteratorMax = benchmark.multiplier * 5
-    var iteratorCount = 0
-    var iteratorMeasure = 0
+    val warmMax = benchmark.multiplier * MAX_WARM
+    var warmCount = 0
+    var measureCount = 0
 
-    while (iteratorMeasure < Constant.MAX_MEASUREMENT && !series.isReliable) {
-
+    def getSeries {
       series.clear()
-
-      log.verbose("")
-      log.verbose("--Start getting a series--")
-
       for (mul <- 1 to benchmark.multiplier) {
         cleanUp()
         series += measure
         log.verbose("----Measured----  " + series.last)
       }
-      iteratorCount = benchmark.multiplier
+    }
 
-      while (iteratorCount < iteratorMax && !checkWarm(series)) {
+    while (measureCount < MAX_MEASUREMENT && !series.isReliable) {
+      log.verbose("--Start getting a series--")
+
+      getSeries
+
+      warmCount = benchmark.multiplier
+      while (warmCount < warmMax && !checkWarm(series)) {
         log.verbose("----Measured----  " + series.last)
 
-        cleanUp()
         series.remove(0)
+        cleanUp()
         series += measure
-        iteratorCount += 1
+
+        warmCount += 1
       }
 
-      if (iteratorCount == iteratorMax) {
-        log.verbose("--Unwarmmable--")
+      if (checkWarm(series)) {
+        log.debug("--Reached steady state--")
+        unwarmable = false
+        getSeries
+      } else {
+        log.debug("--Unwarmmable--")
         unwarmable = true
         series.clear()
-      } else {
-        unwarmable = false
       }
-
-      iteratorMeasure += 1
-      log.verbose("[End measurement]")
+      log.verbose("--End measurement--")
+      measureCount += 1
     }
 
     benchmark.reset()
 
-    if (iteratorMeasure >= Constant.MAX_MEASUREMENT && !series.isReliable) {
-      if (unwarmable) {
-        UnwarmableFailure()
-      } else {
-        UnreliableFailure()
-      }
-    } else {
+    if (series.isReliable) {
       MeasurementSuccess(series)
+    } else if (unwarmable) {
+      UnwarmableFailure()
+    } else {
+      UnreliableFailure()
     }
   }
 
@@ -93,9 +92,9 @@ class BenchmarkRunner(log: Log) {
    */
   def cleanUp() {
     Platform.collectGarbage
-    System.runFinalization
-    sleep(100)
-    Platform.collectGarbage
+    //    System.runFinalization
+    //    sleep(100)
+    //    Platform.collectGarbage
   }
 
 }

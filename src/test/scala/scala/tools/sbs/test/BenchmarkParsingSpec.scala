@@ -1,8 +1,12 @@
 package scala.tools.sbs
 package test
 
-import org.scalatest.Spec
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
+import scala.tools.sbs.common.Profiling
+import scala.tools.sbs.common.SteadyState
+
+import org.scalatest.Spec
 
 class BenchmarkParsingSpec extends Spec {
 

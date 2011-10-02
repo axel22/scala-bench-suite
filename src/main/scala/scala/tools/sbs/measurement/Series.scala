@@ -14,7 +14,7 @@ package measurement
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.regression.StatisticsFactory
-import scala.tools.sbs.util.Constant
+import scala.tools.sbs.util.Constant.CI_PRECISION_THRESHOLD
 
 /** Class represents the result of a success measurement.
  */
@@ -90,7 +90,7 @@ class Series(log: Log) {
       log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
         ((diff / mean * 100) formatted "%.2f") + "%")
 
-      while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= Constant.CI_PRECISION_THREDSHOLD) {
+      while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= CI_PRECISION_THRESHOLD) {
         statistic.reduceConfidenceLevel()
 
         val (left, right) = statistic confidenceInterval this
@@ -102,7 +102,7 @@ class Series(log: Log) {
           ((diff / mean * 100) formatted "%.2f") + "%")
       }
 
-      if ((diff / mean) < Constant.CI_PRECISION_THREDSHOLD) {
+      if ((diff / mean) < CI_PRECISION_THRESHOLD) {
         _confidenceLevel = statistic.confidenceLevel.toInt
         true
       } else {

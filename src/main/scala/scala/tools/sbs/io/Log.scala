@@ -11,6 +11,8 @@
 package scala.tools.sbs
 package io
 
+import scala.tools.sbs.common.BenchmarkMode
+
 /** Logging trait.
  */
 trait Log {

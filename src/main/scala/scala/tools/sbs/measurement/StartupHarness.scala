@@ -12,6 +12,8 @@ package scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.StartUpState
 
 /** Measurer for benchmarking on startup state.
  */

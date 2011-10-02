@@ -11,6 +11,9 @@
 package scala.tools.sbs
 package measurement
 
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkMode
+import scala.tools.sbs.common.StartUpState
 import scala.tools.sbs.io.Log
 
 /** A measurer for a benchmarking. Should have a typical type for benchmarking

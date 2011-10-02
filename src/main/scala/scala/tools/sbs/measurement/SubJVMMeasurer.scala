@@ -12,6 +12,9 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkMode
+import scala.tools.sbs.common.JVMInvokerFactory
 import scala.xml.XML
 
 /** Measures benchmark metric by invoking a new clean JVM.

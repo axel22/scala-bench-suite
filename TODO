@@ -5,29 +5,11 @@ TODO:
 I've taken a look at the code. Good work overall. Here are a couple of comments:
 
 
-11)
-Add comments.
-
 19)
 snippet identifier format
 
 20)
-jdi - introduce a new harness based on JVMTI - measure # times a method has been invoked (for a start)
-
-21) about Factories in general - you can use a singleton object instead of instantiating the factory each time
-
-new PersistorFactory - instead:
-
-object PersistorFactory {
-  def create(...)
-}
-
-22)
-THREDSHOLD -> THRESHOLD
-
-23)
-The steady harness - only after you've detected steady state, you have to do the entire measurement again.
-
+introduce a new harness based on JDI - measure # times a method has been invoked (for a start)
 
 
 DONE:
@@ -127,4 +109,21 @@ Take a look at .check files for partest - we want .args files which contain:
 
 14)
 --scala-library ../..../..../scala-library.jar --scala-compiler ..../.../..../scala-compiler.jar
+
+11)
+Add comments.
+
+21) about Factories in general - you can use a singleton object instead of instantiating the factory each time
+
+new PersistorFactory - instead:
+
+object PersistorFactory {
+  def create(...)
+}
+
+22)
+THREDSHOLD -> THRESHOLD
+
+23)
+The steady harness - only after you've detected steady state, you have to do the entire measurement again.
 

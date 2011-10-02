@@ -1,9 +1,11 @@
 package scala.tools.sbs
 
-import java.lang.System
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.BenchmarkFactory
+import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series

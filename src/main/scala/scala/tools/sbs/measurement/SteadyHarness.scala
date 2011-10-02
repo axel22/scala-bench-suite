@@ -12,8 +12,10 @@ package scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
+import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.common.SteadyState
 import scala.tools.sbs.regression.StatisticsFactory
-import scala.tools.sbs.util.Constant
+import scala.tools.sbs.util.Constant.STEADY_THRESHOLD
 
 /** Measurer for benchmarking on steady state. Should be run on a clean new JVM.
  */
@@ -27,7 +29,7 @@ object SteadyHarness extends SubProcessMeasurer {
     benchmark.init()
     benchmarkRunner run (
       benchmark,
-      series => (statistic CoV series) < Constant.STEADY_THREDSHOLD,
+      series => (statistic CoV series) < STEADY_THRESHOLD,
       {
         val start = Platform.currentTime
         var i = 0

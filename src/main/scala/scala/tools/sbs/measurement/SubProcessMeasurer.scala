@@ -11,6 +11,10 @@
 package scala.tools.sbs
 package measurement
 
+import scala.tools.sbs.common.BenchmarkFactory
+import scala.tools.sbs.common.BenchmarkMode
+import scala.tools.sbs.common.MemoryUsage
+import scala.tools.sbs.common.SteadyState
 import scala.xml.XML
 
 /** Driver for measurement in a separated JVM.

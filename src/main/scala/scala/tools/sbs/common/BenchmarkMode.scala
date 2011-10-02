@@ -9,6 +9,7 @@
  */
 
 package scala.tools.sbs
+package common
 
 /** Benchmarking modes, includes:
  *  <ul>

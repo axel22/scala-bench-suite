@@ -9,6 +9,7 @@
  */
 
 package scala.tools.sbs
+package common
 
 import scala.tools.sbs.io.Log
 

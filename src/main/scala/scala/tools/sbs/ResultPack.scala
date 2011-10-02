@@ -10,7 +10,11 @@
 
 package scala.tools.sbs
 
+import scala.annotation.implicitNotFound
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.regression.BenchmarkFailure
+import scala.tools.sbs.regression.BenchmarkResult
+import scala.tools.sbs.regression.BenchmarkSuccess
 
 /** Holds all the benchmarking results from one sbs running.
  */
