@@ -87,11 +87,11 @@ class TextFileReport(config: Config) extends Report {
   def emit(ci: ConfidenceIntervalFailure) {
     write("Mode:      " + ci.mode)
     failed()
-    write("         New approach sample mean: " + ci.meansAndSD._1._1.formatted("%.2f") +
-      " -SD- " + ci.meansAndSD._1._2.formatted("%.2f"))
-    write("         History sample mean:      ")
-    write("                                   " + ci.meansAndSD._2._1.formatted("%.2f") +
+    write("         New approach sample mean: " + ci.meansAndSD._2._1.formatted("%.2f") +
       " -SD- " + ci.meansAndSD._2._2.formatted("%.2f"))
+    write("         History sample mean:      ")
+    write("                                   " + ci.meansAndSD._1._1.formatted("%.2f") +
+      " -SD- " + ci.meansAndSD._1._2.formatted("%.2f"))
     write("         Confidence interval:      [" + ci.CI._1.formatted("%.2f") + "; " + ci.CI._2.formatted("%.2f") + "]")
   }
 

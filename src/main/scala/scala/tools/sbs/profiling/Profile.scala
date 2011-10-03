@@ -19,12 +19,16 @@ class Profile {
 
   /** All classes loaded in a benchmark running.
    */
-  private var _classes = List[Class]()
+  private var _classes = ArrayBuffer[LoadedClass]()
 
   def classes = _classes
 
   def loadClass(name: String) {
-    _classes ::= Class(name)
+    _classes += LoadedClass(name)
+  }
+
+  def loadClass(clazz: LoadedClass) {
+    _classes += clazz
   }
 
   /** Number of boxing.

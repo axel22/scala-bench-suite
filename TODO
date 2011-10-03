@@ -8,9 +8,6 @@ I've taken a look at the code. Good work overall. Here are a couple of comments:
 19)
 snippet identifier format
 
-20)
-introduce a new harness based on JDI - measure # times a method has been invoked (for a start)
-
 
 DONE:
 -----
@@ -127,3 +124,5 @@ THREDSHOLD -> THRESHOLD
 23)
 The steady harness - only after you've detected steady state, you have to do the entire measurement again.
 
+20)
+introduce a new harness based on JDI - measure # times a method has been invoked (for a start)

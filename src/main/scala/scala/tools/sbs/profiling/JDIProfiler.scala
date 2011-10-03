@@ -33,7 +33,7 @@ class JDIProfiler(log: Log, config: Config) extends Profiler {
   def profile(benchmark: Benchmark): Profile = {
     val command = JVMInvokerFactory(log, config) command benchmark
     val jvm = launchTarget(command mkString " ")
-    try new JDIEventHandler process jvm
+    try new JDIEventHandler(log, benchmark) process jvm
     catch {
       case exc: InterruptedException => null
     }

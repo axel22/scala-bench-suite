@@ -15,8 +15,10 @@ import java.lang.InterruptedException
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.HashMap
+import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 
+import com.sun.jdi.event.AccessWatchpointEvent
 import com.sun.jdi.event.ClassPrepareEvent
 import com.sun.jdi.event.Event
 import com.sun.jdi.event.ExceptionEvent
@@ -28,14 +30,16 @@ import com.sun.jdi.event.ThreadDeathEvent
 import com.sun.jdi.event.VMDeathEvent
 import com.sun.jdi.event.VMDisconnectEvent
 import com.sun.jdi.event.VMStartEvent
+import com.sun.jdi.request.DuplicateRequestException
 import com.sun.jdi.request.EventRequest
+import com.sun.jdi.request.StepRequest
 import com.sun.jdi.ThreadReference
 import com.sun.jdi.VMDisconnectedException
 import com.sun.jdi.VirtualMachine
 
 /** Handles JDI events.
  */
-class JDIEventHandler(log: Log) {
+class JDIEventHandler(log: Log, benchmark: Benchmark) {
 
   /** Packages to exclude from generating event.
    */
@@ -48,6 +52,10 @@ class JDIEventHandler(log: Log) {
   /** Maps ThreadReference to ThreadTrace instances.
    */
   private val traceMap = new HashMap[ThreadReference, JDIThreadTrace]()
+
+  /** Whether the main benchmark class has been loaded.
+   */
+  private var mainLoaded = false
 
   /** Run the event handling thread. As long as we are connected, get event
    *  sets off the queue and dispatch the events within them.
@@ -73,12 +81,10 @@ class JDIEventHandler(log: Log) {
         }
       }
     }
-    null
+    profile
   }
 
   /** Create the desired event requests, and enable them so that we will get events.
-   *
-   *  @param excludes	Class patterns for which we don't want events
    */
   private def setEventRequests(jvm: VirtualMachine) {
     val mgr = jvm.eventRequestManager
@@ -86,44 +92,23 @@ class JDIEventHandler(log: Log) {
     // want all exceptions
     val excReq = mgr.createExceptionRequest(null, true, true)
     // suspend so we can step
-    excReq.setSuspendPolicy(EventRequest.SUSPEND_ALL)
-    excReq.enable();
-
-    val menr = mgr.createMethodEntryRequest
-    excludes foreach (menr addClassExclusionFilter _)
-    //        menr.addClassFilter("scala.tools.nsc.Main*")
-    menr.addClassFilter("Sort*")
-    menr.setSuspendPolicy(EventRequest.SUSPEND_NONE)
-    menr enable
-
-    val mexr = mgr.createMethodExitRequest
-    excludes foreach (mexr addClassExclusionFilter _)
-    //    mexr.addClassFilter("scala.tools.nsc.Main*")
-    mexr.addClassFilter("Sort*")
-    mexr.setSuspendPolicy(EventRequest.SUSPEND_NONE)
-    mexr enable
+    excReq setSuspendPolicy EventRequest.SUSPEND_ALL
+    excReq enable
 
     val tdr = mgr.createThreadDeathRequest
     // Make sure we sync on thread death
-    tdr.setSuspendPolicy(EventRequest.SUSPEND_ALL)
+    tdr setSuspendPolicy EventRequest.SUSPEND_ALL
     tdr enable
-
-    /*jvm.allThreads().asScala.toSeq foreach (thread => {
-      val str = mgr.createStepRequest(thread, StepRequest.STEP_MIN, StepRequest.STEP_INTO)
-      str.addClassFilter("scala.tools.nsc.util.ScalaClass*")
-      str.setSuspendPolicy(EventRequest.SUSPEND_ALL)
-      str.enable
-    })*/
 
     val cpr = mgr.createClassPrepareRequest
     excludes foreach (cpr addClassExclusionFilter _)
-    cpr.setSuspendPolicy(EventRequest.SUSPEND_ALL)
+    cpr setSuspendPolicy EventRequest.SUSPEND_ALL
     cpr enable
   }
 
   /** Dispatch incoming events
    */
-  private def handleEvent(event: Event, jvm: VirtualMachine, profile: Profile) = {
+  private def handleEvent(event: Event, jvm: VirtualMachine, profile: Profile) {
 
     /** Returns the JDIThreadTrace instance for the specified thread, creating one if needed.
      */
@@ -138,26 +123,71 @@ class JDIEventHandler(log: Log) {
       }
     }
 
-    /** A new class has been loaded. Set watchpoints on each of its fields.
+    /** A new class has been loaded.
+     *  <ul>
+     *  <li>Test whether it is the benchmark main class
+     *  <li>If so, set event requests for fields, methods and steps
+     *  <li>Otherwise, add to profile
+     *  <ul>
      */
-    def classPrepareEvent(cpe: ClassPrepareEvent) {
-      val mgr = jvm.eventRequestManager
-      cpe.referenceType.visibleFields.asScala.toSeq foreach (field => {
-        val req = mgr createModificationWatchpointRequest field
-        excludes foreach (req addClassExclusionFilter _)
-        req.setSuspendPolicy(EventRequest.SUSPEND_NONE)
-        req enable
-      })
+    def classPrepareEvent(event: ClassPrepareEvent) {
+      log.debug("Prepared " + event.referenceType)
 
-      log.debug("Prepared " + cpe.referenceType())
+      if ((event.referenceType.name equals benchmark.name) || (mainLoaded)) {
+
+        profile loadClass event.referenceType.name
+
+        val mgr = jvm.eventRequestManager
+
+        // Add watchpoint requests
+        event.referenceType.visibleFields.asScala.toSeq foreach (field => {
+          val mwrReq = mgr createModificationWatchpointRequest field
+          excludes foreach (mwrReq addClassExclusionFilter _)
+          mwrReq setSuspendPolicy EventRequest.SUSPEND_NONE
+          mwrReq enable
+
+          val awrReq = mgr createAccessWatchpointRequest field
+          excludes foreach (awrReq addClassExclusionFilter _)
+          awrReq setSuspendPolicy EventRequest.SUSPEND_NONE
+          awrReq enable
+        })
+
+        // Add step request
+        try {
+          val str = mgr.createStepRequest(event.thread, StepRequest.STEP_MIN, StepRequest.STEP_INTO)
+          str setSuspendPolicy EventRequest.SUSPEND_ALL
+          str enable
+        } catch {
+          case _: DuplicateRequestException => ()
+        }
+
+        if (!mainLoaded) {
+          mainLoaded = true
+          // Add method entry request
+          val menr = mgr.createMethodEntryRequest
+          excludes foreach (menr addClassExclusionFilter _)
+          menr setSuspendPolicy EventRequest.SUSPEND_NONE
+          menr enable
+
+          // Add method exit request
+          val mexr = mgr.createMethodExitRequest
+          excludes foreach (mexr addClassExclusionFilter _)
+          mexr setSuspendPolicy EventRequest.SUSPEND_NONE
+          mexr enable
+
+        }
+      }
     }
 
     event match {
       case ee: ExceptionEvent => {
         threadTrace(ee.thread) exceptionEvent ee
       }
+      case awe: AccessWatchpointEvent => {
+        threadTrace(awe.thread) fieldAccessEvent awe
+      }
       case mwe: ModificationWatchpointEvent => {
-        threadTrace(mwe.thread) fieldWatchEvent mwe
+        threadTrace(mwe.thread) fieldModifyEvent mwe
       }
       case mee: MethodEntryEvent => {
         threadTrace(mee.thread) methodEntryEvent mee
