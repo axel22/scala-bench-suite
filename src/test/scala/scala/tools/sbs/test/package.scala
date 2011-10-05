@@ -28,7 +28,7 @@ package object test {
   val testLog = LogFactory(testConfig)
 
   object DummyBenchmark extends Benchmark {
-    def name = "dummy"
+    override def name = "dummy"
     def src = testDir
     def arguments = List[String]()
     def classpathURLs = testConfig.classpathURLs

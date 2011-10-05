@@ -93,8 +93,7 @@ case class Config(args: Array[String])
    */
   val scalaLibraryJar = if (scalaLibPath == null) {
     //File(System.getProperty("java.class.path").split(COLON).filter(_.contains("scala-library")).head)
-    File(scala.io.Source.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
-    //    File("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar")
+    File(classOf[scala.ScalaObject].getProtectionDomain.getCodeSource.getLocation.getPath)
   } else {
     File(scalaLibPath)
   }
@@ -102,16 +101,20 @@ case class Config(args: Array[String])
   /** `File` path of scala-compiler.jar.
    */
   val scalaCompilerJar = if (scalaCompilerPath == null) {
-    File(scala.tools.nsc.Main.getClass.getProtectionDomain.getCodeSource.getLocation.getPath)
-    //File("D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar")
+    File(classOf[scala.tools.nsc.MainGenericRunner].getProtectionDomain.getCodeSource.getLocation.getPath)
   } else {
     File(scalaCompilerPath)
   }
 
   /** Common classpath URLs for every benchmarks
    */
-  val classpathURLs = List(scalaLibraryJar.toURL, scalaCompilerJar.toURL, bin.toURL) ++
-    ((classpath split COLON).toList map (Path(_).toCanonical.toURL)) distinct
+  val classpathURLs =
+    List(
+      this.getClass.getProtectionDomain.getCodeSource.getLocation,
+      scalaLibraryJar.toURL,
+      scalaCompilerJar.toURL,
+      bin.toURL) ++
+      ((classpath split COLON).toList map (Path(_).toCanonical.toURL)) distinct
 
   val javahome = Directory(javaPath)
 

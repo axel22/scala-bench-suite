@@ -57,7 +57,7 @@ case class SnippetBenchmark(name: String,
    */
   def init() {
     try {
-      val classLoader = (ScalaClassLoader fromURLs (config.classpathURLs ++ classpathURLs))
+      val classLoader = ScalaClassLoader fromURLs (config.classpathURLs ++ classpathURLs)
       val clazz = classLoader.tryToInitializeClass(name) getOrElse (throw new ClassNotFoundException(name))
       method = clazz.getMethod("main", classOf[Array[String]])
       if (!Modifier.isStatic(method.getModifiers)) {
@@ -102,7 +102,7 @@ case class SnippetBenchmark(name: String,
   def runCommand() = process !
 
   def toXML =
-    <Benchmark>
+    <SnippetBenchmark>
       <name>{ name }</name>
       <src>{ src.path }</src>
       <arguments>{ for (arg <- arguments) yield <arg>{ arg }</arg> }</arguments>
@@ -111,6 +111,6 @@ case class SnippetBenchmark(name: String,
       <multiplier>{ multiplier.toString }</multiplier>
       <sampleNumber>{ sampleNumber.toString }</sampleNumber>
       <shouldCompile>{ shouldCompile.toString }</shouldCompile>
-    </Benchmark>
+    </SnippetBenchmark>
 
 }

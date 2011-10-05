@@ -29,6 +29,7 @@ import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.FileUtil
+import scala.tools.nsc.util.ScalaClassLoader
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -62,15 +63,21 @@ object BenchmarkDriver {
       var resultPack = new ResultPack()
       val compiler = BenchmarkCompilerFactory(log, config)
       val compiled = benchmarks filterNot (benchmark => benchmark.shouldCompile && !(compiler compile benchmark))
+      log.debug(compiled.toString)
       // Add failure compiles for reporting
       benchmarks filterNot (compiled contains _) foreach (resultPack add CompileFailure(_))
 
+      try {
       // Generate sample history in case demanded
       compiled filter (_.sampleNumber > 0) foreach (toGenerated =>
         config.modes foreach (PersistorFactory(log, config, toGenerated, _) generate toGenerated.sampleNumber))
+      } catch {
+        case e => log.debug(e.toString())
+      }
 
       // List of benchmarks to be run and detect regression
       val toRun = compiled filter (_.sampleNumber == 0)
+      log.debug(toRun.toString)
 
       log.verbose("[Measure]")
 

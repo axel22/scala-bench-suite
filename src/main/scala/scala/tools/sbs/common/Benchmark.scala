@@ -88,10 +88,13 @@ object BenchmarkFactory {
             config: Config): Benchmark =
     new SnippetBenchmark(name, src, arguments, classpathURLs, runs, multiplier, sampleNumber, shouldCompile, config)
 
+  def apply(name: String, src: Path, classpathURLs: List[URL], config: Config) =
+    new InitializableBenchmark(name, src, classpathURLs, config)
+
   /** Creates a `Benchmark` from a xml element representing it.
    */
   def apply(xml: Elem, config: Config): Benchmark = scala.xml.Utility.trim(xml) match {
-    case <Benchmark><name>{ name }</name><src>{ src }</src><arguments>{ argumentsNode@_* }</arguments><classpath>{ classpathURLsNode@_* }</classpath><runs>{ runs }</runs><multiplier>{ multiplier }</multiplier><sampleNumber>{ sampleNumber }</sampleNumber><shouldCompile>{ shouldCompile }</shouldCompile></Benchmark> =>
+    case <SnippetBenchmark><name>{ name }</name><src>{ src }</src><arguments>{ argumentsNode@_* }</arguments><classpath>{ classpathURLsNode@_* }</classpath><runs>{ runs }</runs><multiplier>{ multiplier }</multiplier><sampleNumber>{ sampleNumber }</sampleNumber><shouldCompile>{ shouldCompile }</shouldCompile></SnippetBenchmark> => {
       val arguments = for (arg <- argumentsNode) yield arg.text
       val classpathURLs = for (cp <- classpathURLsNode) yield Path(cp.text).toURL
       this(
@@ -104,6 +107,15 @@ object BenchmarkFactory {
         sampleNumber.text.toInt,
         shouldCompile.text.toBoolean,
         config)
+    }
+    case <InitializableBenchmark><name>{ name }</name><src>{ src }</src><classpath>{ classpathURLsNode@_* }</classpath></InitializableBenchmark> => {
+      val classpathURLs = for (cp <- classpathURLsNode) yield Path(cp.text).toURL
+      this(
+        name.text,
+        Path(src.text),
+        classpathURLs.toList,
+        config)
+    }
     case _ => null
   }
 
