@@ -16,14 +16,26 @@ import scala.tools.sbs.io.Log
 
 /** Trait for some kinds of profiling.
  */
-trait Profiler {
+trait Profiler extends Runner {
 
-  def profile(benchmark: Benchmark): Profile
+  def run(benchmark: Benchmark): RunResult = profile(benchmark)
+
+  def profile(benchmark: Benchmark): ProfilingResult
 
 }
 
 object ProfilerFactory {
 
-  def apply(log: Log, config: Config): Profiler = new JDIProfiler(log, config)
+  def apply(config: Config): Runner = {
+    println("asdf")
+//    try {
+    val a = new JDIProfiler(config)
+    println(a)
+    a
+//    } catch {
+//      case e => println(e)
+//      null
+//    }
+  }
 
 }

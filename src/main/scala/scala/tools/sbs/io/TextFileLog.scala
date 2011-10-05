@@ -18,7 +18,6 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.util.FileUtil
 
 /** An implement of {@link Log}, logging on simple text file.

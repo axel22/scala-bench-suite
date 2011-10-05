@@ -15,12 +15,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 import scala.tools.nsc.io.File
+import scala.tools.sbs.profiling.ProfilingException
 import scala.tools.sbs.regression.ANOVAFailure
-import scala.tools.sbs.regression.BenchmarkResult
-import scala.tools.sbs.regression.BenchmarkSuccess
-import scala.tools.sbs.regression.CompileFailure
 import scala.tools.sbs.regression.ConfidenceIntervalFailure
-import scala.tools.sbs.regression.ExceptionFailure
 import scala.tools.sbs.regression.ImmeasurableFailure
 import scala.tools.sbs.regression.NoPreviousFailure
 import scala.tools.sbs.util.Constant.ENDL
@@ -70,17 +67,18 @@ class TextFileReport(config: Config) extends Report {
   }
 
   def emit(result: BenchmarkResult): Unit = result match {
-    case success: BenchmarkSuccess => emit(success)
+    case success: BenchmarkSuccess => emit(success.mode)
     case ci: ConfidenceIntervalFailure => emit(ci)
     case anova: ANOVAFailure => emit(anova)
     case nope: NoPreviousFailure => emit(nope)
     case imme: ImmeasurableFailure => emit(imme)
     case exp: ExceptionFailure => emit(exp)
     case cpl: CompileFailure => emit(cpl)
+//    case pfe: ProfilingException => emit(pfe)
   }
 
-  def emit(success: BenchmarkSuccess) {
-    write("Mode:      " + success.mode)
+  def emit(successMode: BenchmarkMode) {
+    write("Mode:      " + successMode)
     ok()
   }
 
@@ -132,6 +130,13 @@ class TextFileReport(config: Config) extends Report {
   def emit(compiless: CompileFailure) {
     failed()
     write("         Compiling benchmark failed")
+  }
+
+  def emit(exp: ProfilingException) {
+    write("Mode:      " + Profiling)
+    failed()
+    write("         Exception:                 " + exp.exception.toString)
+    write(exp.exception.getStackTraceString)
   }
 
 }

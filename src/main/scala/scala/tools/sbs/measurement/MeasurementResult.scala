@@ -13,7 +13,7 @@ package measurement
 
 /** Represents a result of a measurement phase of one benchmark on one {@link BenchmarkMode}.
  */
-trait MeasurementResult {
+trait MeasurementResult extends RunResult {
 
   def toXML: scala.xml.Elem
 

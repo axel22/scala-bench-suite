@@ -9,7 +9,6 @@
  */
 
 package scala.tools.sbs
-package common
 
 /** Benchmarking modes, includes:
  *  <ul>
@@ -28,7 +27,7 @@ trait BenchmarkMode {
 
 }
 
-case class StartUpState extends BenchmarkMode {
+object StartUpState extends BenchmarkMode {
 
   val location = "startup"
 
@@ -36,7 +35,7 @@ case class StartUpState extends BenchmarkMode {
 
 }
 
-case class SteadyState extends BenchmarkMode {
+object SteadyState extends BenchmarkMode {
 
   val location = "steady"
 
@@ -44,7 +43,7 @@ case class SteadyState extends BenchmarkMode {
 
 }
 
-case class MemoryUsage extends BenchmarkMode {
+object MemoryUsage extends BenchmarkMode {
 
   val location = "memory"
 
@@ -52,7 +51,7 @@ case class MemoryUsage extends BenchmarkMode {
 
 }
 
-case class Profiling extends BenchmarkMode {
+object Profiling extends BenchmarkMode {
 
   val location = "profile"
 

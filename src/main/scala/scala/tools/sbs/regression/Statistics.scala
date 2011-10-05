@@ -12,7 +12,6 @@ package scala.tools.sbs
 package regression
 
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
@@ -46,7 +45,7 @@ trait Statistics {
   def testDifference(benchmark: Benchmark,
                      mode: BenchmarkMode,
                      measurementResult: MeasurementSuccess,
-                     history: History): BenchmarkResult
+                     history: History): RegressionResult
 
 }
 

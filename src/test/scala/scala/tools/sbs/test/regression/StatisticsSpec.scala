@@ -3,12 +3,11 @@ package test
 package regression
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.SteadyState
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.regression.ANOVAFailure
-import scala.tools.sbs.regression.BenchmarkSuccess
 import scala.tools.sbs.regression.ConfidenceIntervalFailure
 import scala.tools.sbs.regression.HistoryFactory
+import scala.tools.sbs.regression.RegressionSuccess
 import scala.tools.sbs.regression.Statistics
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.LEAST_CONFIDENCE_LEVEL
@@ -101,46 +100,46 @@ class StatisticsSpec extends Spec {
 
     it("returns BenchmarkSuccess object if old and new Series are `same same`") {
       statistics = StatisticsFactory(testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState())
+      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries1
-      var result = statistics.testDifference(DummyBenchmark, SteadyState(), success1k1, history)
-      expect(BenchmarkSuccess(DummyBenchmark, SteadyState(), 99, success1k1))(result)
+      var result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
+      expect(RegressionSuccess(DummyBenchmark, SteadyState, 99, success1k1))(result)
     }
 
     it("returns BenchmarkSuccess object 3 Series are `same same`") {
       statistics = StatisticsFactory(testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState())
+      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
       history add about1kSeries1
-      var result = statistics.testDifference(DummyBenchmark, SteadyState(), success1k1, history)
-      expect(BenchmarkSuccess(DummyBenchmark, SteadyState(), 99, success1k1))(result)
+      var result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
+      expect(RegressionSuccess(DummyBenchmark, SteadyState, 99, success1k1))(result)
     }
 
     it("returns BenchmarkFailure object if 3 Series are statistically significant different") {
       statistics = StatisticsFactory(testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState())
+      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
       history add about5k5Series
-      val result = statistics.testDifference(DummyBenchmark, SteadyState(), success1k1, history)
+      val result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
       assert(result.isInstanceOf[ANOVAFailure])
     }
 
     it("returns BenchmarkFailure object if old and new Series are statistically significant different") {
       statistics = StatisticsFactory(testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState())
+      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries3
       history add about5k5Series
-      val result = statistics.testDifference(DummyBenchmark, SteadyState(), success1k1, history)
+      val result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
       assert(result.isInstanceOf[ConfidenceIntervalFailure])
     }
 
     it("raises Exception if history is less than 1") {
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState())
+      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       intercept[Exception] {
-        statistics.testDifference(DummyBenchmark, SteadyState(), success1k1, history)
+        statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
       }
     }
 

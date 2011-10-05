@@ -28,6 +28,7 @@ import java.lang.Thread.sleep
 case class InitializableBenchmark(name: String,
                                   src: Path,
                                   classpathURLs: List[URL],
+                                  shouldCompile: Boolean,
                                   config: Config) extends Benchmark {
 
   val arguments = List[String]()
@@ -37,8 +38,6 @@ case class InitializableBenchmark(name: String,
   lazy val multiplier = benchmarkObject.multiplier
 
   lazy val sampleNumber = benchmarkObject.sampleNumber
-
-  val shouldCompile = true
 
   def init = benchmarkObject.init
 

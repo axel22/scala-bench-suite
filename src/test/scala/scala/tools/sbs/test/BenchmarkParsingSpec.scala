@@ -3,8 +3,6 @@ package test
 
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.common.Profiling
-import scala.tools.sbs.common.SteadyState
 
 import org.scalatest.Spec
 
@@ -36,7 +34,7 @@ class BenchmarkParsingSpec extends Spec {
       expect(11)(conf.runs)
       expect(31)(conf.multiplier)
       expect(true)(conf.shouldCompile)
-      expect(List(Profiling(), SteadyState()))(conf.modes)
+      expect(List(Profiling, SteadyState))(conf.modes)
     }
 
   }

@@ -13,31 +13,27 @@ package regression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
 
 /** Represents the result of a benchmarking (of one benchmark on one {@link BenchmarkMode}).
  */
-abstract class BenchmarkResult(benchmark: Benchmark) {
+abstract class RegressionResult(benchmark: Benchmark) extends BenchmarkResult
 
-  def benchmark: Benchmark
+case class RegressionSuccess(benchmark: Benchmark,
+                             mode: BenchmarkMode,
+                             confidenceInterval: Int,
+                             measurementSuccess: MeasurementSuccess)
+  extends RegressionResult(benchmark) with BenchmarkSuccess
 
-}
-
-case class BenchmarkSuccess(benchmark: Benchmark,
-                            mode: BenchmarkMode,
-                            confidenceInterval: Int,
-                            measurementSuccess: MeasurementSuccess) extends BenchmarkResult(benchmark)
-
-abstract class BenchmarkFailure(benchmark: Benchmark) extends BenchmarkResult(benchmark)
+abstract class RegressionFailure(benchmark: Benchmark) extends RegressionResult(benchmark)
 
 case class ConfidenceIntervalFailure(benchmark: Benchmark,
                                      mode: BenchmarkMode,
                                      confidenceLevel: Int,
                                      measurementSuccess: MeasurementSuccess,
                                      meansAndSD: ((Double, Double), (Double, Double)),
-                                     CI: (Double, Double)) extends BenchmarkFailure(benchmark)
+                                     CI: (Double, Double)) extends RegressionFailure(benchmark)
 
 case class ANOVAFailure(benchmark: Benchmark,
                         mode: BenchmarkMode,
@@ -47,15 +43,10 @@ case class ANOVAFailure(benchmark: Benchmark,
                         SSA: Double,
                         SSE: Double,
                         FValue: Double,
-                        F: Double) extends BenchmarkFailure(benchmark)
-
-case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure(benchmark)
+                        F: Double) extends RegressionFailure(benchmark)
 
 case class NoPreviousFailure(benchmark: Benchmark, mode: BenchmarkMode, measurementSuccess: MeasurementSuccess)
-  extends BenchmarkFailure(benchmark)
+  extends RegressionFailure(benchmark)
 
 case class ImmeasurableFailure(benchmark: Benchmark, mode: BenchmarkMode, measurementFailure: MeasurementFailure)
-  extends BenchmarkFailure(benchmark)
-
-case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception)
-  extends BenchmarkFailure(benchmark)
+  extends RegressionFailure(benchmark)

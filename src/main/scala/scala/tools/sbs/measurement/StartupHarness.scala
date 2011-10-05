@@ -13,14 +13,13 @@ package measurement
 
 import scala.compat.Platform
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.StartUpState
 
 /** Measurer for benchmarking on startup state.
  */
 class StartupHarness extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
-    log = benchmark createLog StartUpState()
+    log = benchmark createLog StartUpState
     log.info("[Benchmarking startup state]")
 
     if (benchmark.initCommand()) {

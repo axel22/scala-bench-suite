@@ -12,9 +12,6 @@ package scala.tools.sbs
 package measurement
 
 import scala.tools.sbs.common.BenchmarkFactory
-import scala.tools.sbs.common.BenchmarkMode
-import scala.tools.sbs.common.MemoryUsage
-import scala.tools.sbs.common.SteadyState
 import scala.xml.XML
 
 /** Driver for measurement in a separated JVM.
@@ -51,8 +48,8 @@ trait SubProcessMeasurer extends Measurer {
 object SubProcessMeasurerFactory {
 
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
-    case SteadyState() => SteadyHarness
-    case MemoryUsage() => MemoryHarness
+    case SteadyState => SteadyHarness
+    case MemoryUsage => MemoryHarness
     case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
 

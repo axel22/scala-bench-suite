@@ -48,7 +48,7 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
     if (event.method.name startsWith "boxTo") {
       profile.box
     }
-    if (event.method.name startsWith "UnboxTo") {
+    if (event.method.name startsWith "unboxTo") {
       profile.unbox
     }
   }

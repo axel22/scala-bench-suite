@@ -87,8 +87,8 @@ object ArgumentParser {
           }
         }
       } catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
-//      List(BenchmarkFactory(mainClassName, src, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
-      List(BenchmarkFactory(mainClassName, src, classpathURLs, config))
+      List(BenchmarkFactory(mainClassName, src, args, classpathURLs, runs, multiplier, sample, shouldCompile, config))
+//      List(BenchmarkFactory(mainClassName, src, classpathURLs, config))
     }
     case _ => Nil
   }

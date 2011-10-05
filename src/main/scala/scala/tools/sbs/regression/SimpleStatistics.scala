@@ -14,7 +14,6 @@ package regression
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
@@ -185,7 +184,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   def testDifference(benchmark: Benchmark,
                      mode: BenchmarkMode,
                      measurementResult: MeasurementSuccess,
-                     history: History): BenchmarkResult = {
+                     history: History): RegressionResult = {
     if (history.length < 2) {
       throw new Exception("Not enough result files specified")
     }
@@ -208,7 +207,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   private def testConfidenceIntervals(benchmark: Benchmark,
                                       mode: BenchmarkMode,
                                       measurementResult: MeasurementSuccess,
-                                      history: History): BenchmarkResult = {
+                                      history: History): RegressionResult = {
     var series = history.head
 
     val mean1 = mean(series)
@@ -224,7 +223,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     val diff = mean1 - mean2
 
     if (confidenceLevel == 100 && diff == 0) {
-      BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
+      RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
     } else {
       reduceConfidenceLevel()
 
@@ -264,7 +263,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
           ((mean1, standardDeviation(history.head)), (mean2, standardDeviation(history.last))),
           (c1, c2))
       } else {
-        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
+        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
     }
   }
@@ -281,7 +280,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   private def testANOVA(benchmark: Benchmark,
                         mode: BenchmarkMode,
                         measurementResult: MeasurementSuccess,
-                        history: History): BenchmarkResult = {
+                        history: History): RegressionResult = {
 
     val sum = history.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
 
@@ -316,7 +315,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
           Double.PositiveInfinity,
           Double.NaN)
       } else {
-        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
+        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
     } else {
       // Performance case
@@ -342,7 +341,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       }
 
       if (ok) {
-        BenchmarkSuccess(benchmark, mode, confidenceLevel, measurementResult)
+        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
       } else {
         ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, meansAndSD, SSA, SSE, FValue, F)
       }

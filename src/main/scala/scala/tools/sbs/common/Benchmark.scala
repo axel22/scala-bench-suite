@@ -89,7 +89,7 @@ object BenchmarkFactory {
     new SnippetBenchmark(name, src, arguments, classpathURLs, runs, multiplier, sampleNumber, shouldCompile, config)
 
   def apply(name: String, src: Path, classpathURLs: List[URL], config: Config) =
-    new InitializableBenchmark(name, src, classpathURLs, config)
+    new InitializableBenchmark(name, src, classpathURLs, false, config)
 
   /** Creates a `Benchmark` from a xml element representing it.
    */

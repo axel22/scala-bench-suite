@@ -41,10 +41,14 @@ import com.sun.jdi.VirtualMachine
  */
 class JDIEventHandler(log: Log, benchmark: Benchmark) {
 
-  /** Packages to exclude from generating event.
+  /** Packages to exclude from generating class prepared event.
    */
-  private val excludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "scala.*", "org.apache.*")
+  private val classExcludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "scala.*", "org.apache.*")
 
+  /** Packages to exclude from generation method event.
+   */
+  private val methodExcludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.*")
+  
   /** Connected to target JVM.
    */
   private var connected = true
@@ -101,7 +105,7 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     tdr enable
 
     val cpr = mgr.createClassPrepareRequest
-    excludes foreach (cpr addClassExclusionFilter _)
+    classExcludes foreach (cpr addClassExclusionFilter _)
     cpr setSuspendPolicy EventRequest.SUSPEND_ALL
     cpr enable
   }
@@ -142,12 +146,12 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
         // Add watchpoint requests
         event.referenceType.visibleFields.asScala.toSeq foreach (field => {
           val mwrReq = mgr createModificationWatchpointRequest field
-          excludes foreach (mwrReq addClassExclusionFilter _)
+          classExcludes foreach (mwrReq addClassExclusionFilter _)
           mwrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           mwrReq enable
 
           val awrReq = mgr createAccessWatchpointRequest field
-          excludes foreach (awrReq addClassExclusionFilter _)
+          classExcludes foreach (awrReq addClassExclusionFilter _)
           awrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           awrReq enable
         })
@@ -165,13 +169,13 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
           mainLoaded = true
           // Add method entry request
           val menr = mgr.createMethodEntryRequest
-          excludes foreach (menr addClassExclusionFilter _)
+          methodExcludes foreach (menr addClassExclusionFilter _)
           menr setSuspendPolicy EventRequest.SUSPEND_NONE
           menr enable
 
           // Add method exit request
           val mexr = mgr.createMethodExitRequest
-          excludes foreach (mexr addClassExclusionFilter _)
+          methodExcludes foreach (mexr addClassExclusionFilter _)
           mexr setSuspendPolicy EventRequest.SUSPEND_NONE
           mexr enable
 

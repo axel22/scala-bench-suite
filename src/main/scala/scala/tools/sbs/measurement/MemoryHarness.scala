@@ -14,13 +14,12 @@ package measurement
 import java.lang.Runtime
 
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.MemoryUsage
 
 /** Measurer for benchmarking on memory usage. Should be run on a clean new JVM.
  */
 object MemoryHarness extends SubProcessMeasurer {
 
-  protected val mode = MemoryUsage()
+  protected val mode = MemoryUsage
 
   def measure(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")

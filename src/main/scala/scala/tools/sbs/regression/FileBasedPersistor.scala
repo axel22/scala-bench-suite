@@ -20,7 +20,6 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.BenchmarkMode
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
@@ -57,7 +56,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       measurer measure benchmark match {
         case success: MeasurementSuccess => {
 
-          storeToFile(success, BenchmarkSuccess(benchmark, mode, success.series.confidenceLevel, success)) match {
+          storeToFile(success, RegressionSuccess(benchmark, mode, success.series.confidenceLevel, success)) match {
             case Some(_) => {
               log.debug("--Stored--")
               i += 1
@@ -136,7 +135,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     new Series(log, dataSeries, confidenceLevel)
   }
 
-  def store(measurement: MeasurementSuccess, result: BenchmarkResult): Boolean = {
+  def store(measurement: MeasurementSuccess, result: RegressionResult): Boolean = {
     storeToFile(measurement, result) match {
       case Some(file) => {
         log.info("Result stored OK into " + file.path)
@@ -149,13 +148,13 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     }
   }
 
-  def storeToFile(measurement: MeasurementSuccess, result: BenchmarkResult): Option[File] = {
+  def storeToFile(measurement: MeasurementSuccess, result: RegressionResult): Option[File] = {
     if (measurement.series.length == 0) {
       log.info("Nothing to store")
       return None
     }
     val directory = result match {
-      case BenchmarkSuccess(_, _, _, _) => ""
+      case RegressionSuccess(_, _, _, _) => ""
       case NoPreviousFailure(_, _, _) => ""
       case _ => FileUtil.mkDir(location / "FAILED") match {
         case Left(_) => SLASH + "FAILED"
