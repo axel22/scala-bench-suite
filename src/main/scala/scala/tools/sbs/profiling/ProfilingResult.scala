@@ -16,14 +16,14 @@ import scala.tools.sbs.common.Benchmark
 /** A {@link RunResult} from a running of {@link Runner}.
  *  In the mean time, also a {@link BenchmarkResult} for reporting.
  */
-abstract class ProfilingResult(benchmark: Benchmark) extends BenchmarkSuccess with RunResult {
+abstract class ProfilingResult extends BenchmarkSuccess with RunResult {
 
   def mode = Profiling
 
 }
 
-case class ProfilingSuccess(benchmark: Benchmark, profile: Profile) extends ProfilingResult(benchmark)
+case class ProfilingSuccess(benchmark: Benchmark, profile: Profile) extends ProfilingResult with BenchmarkSuccess
 
-abstract class ProfilingFailure(benchmark: Benchmark) extends ProfilingResult(benchmark)
+trait ProfilingFailure extends ProfilingResult with BenchmarkFailure
 
-case class ProfilingException(benchmark: Benchmark, exception: Exception) extends ProfilingFailure(benchmark)
+case class ProfilingException(benchmark: Benchmark, exception: Exception) extends ProfilingFailure

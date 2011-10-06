@@ -77,7 +77,7 @@ object BenchmarkDriver {
       val toRun = compiled filter (_.sampleNumber == 0)
       log.debug(toRun.toString)
 
-      log.verbose("[Measure]")
+      log.verbose("[Run]")
 
       config.modes foreach (mode => {
 
@@ -87,8 +87,6 @@ object BenchmarkDriver {
         }
 
         val runner = RunnerFactory(log, config, mode)
-
-        println(runner)
 
         toRun foreach (benchmark => try runner run benchmark match {
           case success: MeasurementSuccess => {
@@ -102,7 +100,15 @@ object BenchmarkDriver {
           }
           case prof: ProfilingSuccess => {
             // TODO: store
-            println(prof.profile)
+            prof.profile.classes foreach (clazz => {
+              clazz.methodInvoked foreach (method => {
+                print("    " + method.name + " invoked:")
+                method.invocations foreach (invo => {
+                  print(" " + invo.time)
+                })
+                println
+              })
+            })
             resultPack add prof
           }
           case prof: ProfilingFailure => {

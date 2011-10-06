@@ -14,9 +14,9 @@ trait BenchmarkSuccess extends BenchmarkResult {
 
 }
 
-abstract class BenchmarkFailure(benchmark: Benchmark) extends BenchmarkResult
+trait BenchmarkFailure extends BenchmarkResult
 
-case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure(benchmark)
+case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure
 
 case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception)
-  extends BenchmarkFailure(benchmark)
+  extends BenchmarkFailure

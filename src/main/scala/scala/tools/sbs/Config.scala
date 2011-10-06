@@ -87,19 +87,23 @@ case class Config(args: Array[String])
 
   /** `File` path of scala-library.jar.
    */
-  val scalaLibraryJar = if (scalaLibPath == null) {
-    //File(System.getProperty("java.class.path").split(COLON).filter(_.contains("scala-library")).head)
-    File(classOf[scala.ScalaObject].getProtectionDomain.getCodeSource.getLocation.getPath)
-  } else {
-    File(scalaLibPath)
-  }
+  val scalaLibraryJar: File = getJar(scalaLibPath, "scala-library.jar")
 
   /** `File` path of scala-compiler.jar.
    */
-  val scalaCompilerJar = if (scalaCompilerPath == null) {
-    File(classOf[scala.tools.nsc.MainGenericRunner].getProtectionDomain.getCodeSource.getLocation.getPath)
-  } else {
-    File(scalaCompilerPath)
+  val scalaCompilerJar = getJar(scalaCompilerPath, "scala-compiler.jar")
+
+  private def getJar(path: String, name: String): File = {
+    if (path == null) {
+      List("java.class.path", "java.boot.class.path", "sun.boot.class.path")
+        .flatMap(s => System.getProperty(s, "") split COLON)
+        .find(Path(_).name equals "scala-compiler.jar") match {
+          case None => Path(".").toCanonical.toFile
+          case Some(str) => Path(str).toCanonical.toFile
+        }
+    } else {
+      Path(path).toCanonical.toFile
+    }
   }
 
   /** Common classpath URLs for every benchmarks

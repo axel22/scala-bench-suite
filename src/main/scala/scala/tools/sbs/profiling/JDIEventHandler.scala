@@ -7,19 +7,18 @@
  * 
  * Created by ND P
  */
-
 package scala.tools.sbs
 package profiling
 
 import java.lang.InterruptedException
 
-import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.HashMap
 import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 
 import com.sun.jdi.event.AccessWatchpointEvent
 import com.sun.jdi.event.ClassPrepareEvent
+import com.sun.jdi.event.ClassUnloadEvent
 import com.sun.jdi.event.Event
 import com.sun.jdi.event.ExceptionEvent
 import com.sun.jdi.event.MethodEntryEvent
@@ -30,9 +29,7 @@ import com.sun.jdi.event.ThreadDeathEvent
 import com.sun.jdi.event.VMDeathEvent
 import com.sun.jdi.event.VMDisconnectEvent
 import com.sun.jdi.event.VMStartEvent
-import com.sun.jdi.request.DuplicateRequestException
 import com.sun.jdi.request.EventRequest
-import com.sun.jdi.request.StepRequest
 import com.sun.jdi.ThreadReference
 import com.sun.jdi.VMDisconnectedException
 import com.sun.jdi.VirtualMachine
@@ -41,14 +38,10 @@ import com.sun.jdi.VirtualMachine
  */
 class JDIEventHandler(log: Log, benchmark: Benchmark) {
 
-  /** Packages to exclude from generating class prepared event.
+  /** Packages to exclude from generating event.
    */
-  private val classExcludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "scala.*", "org.apache.*")
+  private val excludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.*")
 
-  /** Packages to exclude from generation method event.
-   */
-  private val methodExcludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.*")
-  
   /** Connected to target JVM.
    */
   private var connected = true
@@ -94,10 +87,9 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     val mgr = jvm.eventRequestManager
 
     // want all exceptions
-    val excReq = mgr.createExceptionRequest(null, true, true)
-    // suspend so we can step
-    excReq setSuspendPolicy EventRequest.SUSPEND_ALL
-    excReq enable
+//    val excReq = mgr.createExceptionRequest(null, true, true)
+//    excReq setSuspendPolicy EventRequest.SUSPEND_ALL
+//    excReq enable
 
     val tdr = mgr.createThreadDeathRequest
     // Make sure we sync on thread death
@@ -105,9 +97,15 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     tdr enable
 
     val cpr = mgr.createClassPrepareRequest
-    classExcludes foreach (cpr addClassExclusionFilter _)
+    //    excludes foreach (cpr addClassExclusionFilter _)
+    cpr addClassFilter (benchmark.name)
     cpr setSuspendPolicy EventRequest.SUSPEND_ALL
     cpr enable
+
+    val cur = mgr.createClassUnloadRequest
+    excludes foreach (cur addClassExclusionFilter _)
+    cur setSuspendPolicy EventRequest.SUSPEND_ALL
+    cur enable
   }
 
   /** Dispatch incoming events
@@ -135,7 +133,7 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
      *  <ul>
      */
     def classPrepareEvent(event: ClassPrepareEvent) {
-      log.debug("Prepared " + event.referenceType)
+      log.verbose("Prepared " + event.referenceType)
 
       if ((event.referenceType.name equals benchmark.name) || (mainLoaded)) {
 
@@ -144,14 +142,14 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
         val mgr = jvm.eventRequestManager
 
         // Add watchpoint requests
-        event.referenceType.visibleFields.asScala.toSeq foreach (field => {
+        /*event.referenceType.visibleFields.asScala.toSeq foreach (field => {
           val mwrReq = mgr createModificationWatchpointRequest field
-          classExcludes foreach (mwrReq addClassExclusionFilter _)
+          excludes foreach (mwrReq addClassExclusionFilter _)
           mwrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           mwrReq enable
 
           val awrReq = mgr createAccessWatchpointRequest field
-          classExcludes foreach (awrReq addClassExclusionFilter _)
+          excludes foreach (awrReq addClassExclusionFilter _)
           awrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           awrReq enable
         })
@@ -163,24 +161,30 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
           str enable
         } catch {
           case _: DuplicateRequestException => ()
-        }
+        }*/
 
         if (!mainLoaded) {
           mainLoaded = true
           // Add method entry request
           val menr = mgr.createMethodEntryRequest
-          methodExcludes foreach (menr addClassExclusionFilter _)
+          excludes foreach (menr addClassExclusionFilter _)
+          menr addClassExclusionFilter "scala.*"
           menr setSuspendPolicy EventRequest.SUSPEND_NONE
           menr enable
 
           // Add method exit request
           val mexr = mgr.createMethodExitRequest
-          methodExcludes foreach (mexr addClassExclusionFilter _)
+          excludes foreach (mexr addClassExclusionFilter _)
+          mexr addClassExclusionFilter "scala.*"
           mexr setSuspendPolicy EventRequest.SUSPEND_NONE
           mexr enable
 
         }
       }
+    }
+
+    def classUnloadEvent(event: ClassUnloadEvent) {
+      log.verbose("Unloaded " + event.className)
     }
 
     event match {
@@ -208,16 +212,20 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
       case cpe: ClassPrepareEvent => {
         classPrepareEvent(cpe)
       }
+      case cue: ClassUnloadEvent => {
+        classUnloadEvent(cue)
+      }
       case vse: VMStartEvent => {
-        log.debug("--JVM Started--")
+        log.info("--JVM Started--")
       }
       case vde: VMDeathEvent => {
-        log.debug("--Target JVM exited--")
+        log.info("--Target JVM exited--")
       }
       case vde: VMDisconnectEvent => {
         vmDisconnectEvent
       }
       case _ => {
+        // TODO
         throw new Error("Unexpected event type")
       }
     }
@@ -236,7 +244,7 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
         while (iter hasNext) {
           iter.nextEvent match {
             case vde: VMDeathEvent => {
-              log.debug("--Target JVM exited--")
+              log.info("--Target JVM exited--")
             }
             case vde: VMDisconnectEvent => {
               vmDisconnectEvent()

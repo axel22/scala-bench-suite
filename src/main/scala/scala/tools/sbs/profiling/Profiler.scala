@@ -27,15 +27,7 @@ trait Profiler extends Runner {
 object ProfilerFactory {
 
   def apply(config: Config): Runner = {
-    println("asdf")
-//    try {
-    val a = new JDIProfiler(config)
-    println(a)
-    a
-//    } catch {
-//      case e => println(e)
-//      null
-//    }
+    new JDIProfiler(config)
   }
 
 }

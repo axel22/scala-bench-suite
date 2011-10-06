@@ -53,7 +53,7 @@ case class LoadedClass(name: String) extends ProfileElement {
  */
 case class InvokedMethod(name: String) extends ProfileElement {
 
-  case class Invocation(stepPerformed: Int)
+  case class Invocation(time: Long)
 
   /** Number of all the invocations of this method.
    */
@@ -61,8 +61,8 @@ case class InvokedMethod(name: String) extends ProfileElement {
 
   def invocations = _invocations
 
-  def hasInvoked(stepPerformed: Int) {
-    _invocations += Invocation(stepPerformed)
+  def hasInvoked(time: Long) {
+    _invocations += Invocation(time)
   }
 
 }
