@@ -52,7 +52,7 @@ case class SnippetBenchmark(name: String,
   private val oldContext = Thread.currentThread.getContextClassLoader
 
   def createLog(mode: BenchmarkMode): Log = LogFactory(name, mode, config)
-
+  
   /** Sets the running context and load benchmark classes.
    */
   def init() {
