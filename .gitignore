@@ -1,6 +1,5 @@
 bin/
 
-
 *~
 *.*~
 
@@ -13,3 +12,16 @@ libeclipse/
 
 *~
 *.*~
+
+sbt.bat
+
+sbt-launch.jar
+
+.settings/
+
+*~
+*.*~
+
+.classpath
+
+.project
