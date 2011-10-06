@@ -86,10 +86,10 @@ class TextFileReport(config: Config) extends Report {
     write("Mode:      " + ci.mode)
     failed()
     write("         New approach sample mean: " + ci.meansAndSD._2._1.formatted("%.2f") +
-      " -SD- " + ci.meansAndSD._2._2.formatted("%.2f"))
+      " -Standard Deviation- " + ci.meansAndSD._2._2.formatted("%.2f"))
     write("         History sample mean:      ")
     write("                                   " + ci.meansAndSD._1._1.formatted("%.2f") +
-      " -SD- " + ci.meansAndSD._1._2.formatted("%.2f"))
+      " -Standard Deviation- " + ci.meansAndSD._1._2.formatted("%.2f"))
     write("         Confidence interval:      [" + ci.CI._1.formatted("%.2f") + "; " + ci.CI._2.formatted("%.2f") + "]")
   }
 
@@ -97,15 +97,17 @@ class TextFileReport(config: Config) extends Report {
     write("Mode:      " + anova.mode)
     failed()
     write("         New approach sample mean: " + anova.meansAndSD.last._1.formatted("%.2f") +
-      " -SD- " + anova.meansAndSD.last._2.formatted("%.2f"))
+      " -Standard Deviation- " + anova.meansAndSD.last._2.formatted("%.2f"))
     write("         History sample mean:      ")
     anova.meansAndSD.init foreach (m => write("                                   " + m._1.formatted("%.2f") +
-      " -SD- " + m._2.formatted("%.2f")))
+      " -Standard Deviation- " + m._2.formatted("%.2f")))
     write("         F-test:")
-    write("                              SSA: " + anova.SSA)
-    write("                              SSE: " + anova.SSE)
-    write("                           FValue: " + anova.FValue)
-    write("                   F distribution: " + anova.F)
+    write(" Sum-of-squared due to alternatives: " + anova.SSA)
+    write("       Sum-of-squared due to errors: " + anova.SSE)
+    write("                       Alternatives: " + "K")
+    write("     Each alternatives measurements: " + "N")
+    write("SSA * (N - 1) * K / (SSE * (K - 1)): " + anova.FValue)
+    write("                     F distribution: " + anova.F)
   }
 
   def emit(nope: NoPreviousFailure) {
@@ -124,7 +126,9 @@ class TextFileReport(config: Config) extends Report {
     write("Mode:      " + exp.mode)
     failed()
     write("         Exception:                 " + exp.exception.toString)
+    write("alksfjdslf")
     write(exp.exception.getStackTraceString)
+    write("as;jdflsdkfjsfj")
   }
 
   def emit(compiless: CompileFailure) {

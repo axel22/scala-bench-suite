@@ -36,3 +36,7 @@ object RunnerFactory {
 }
 
 trait RunResult
+
+trait RunSuccess extends RunResult
+
+trait RunFailure extends RunResult

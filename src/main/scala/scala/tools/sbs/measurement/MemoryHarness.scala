@@ -24,12 +24,12 @@ object MemoryHarness extends SubProcessMeasurer {
   def measure(benchmark: Benchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime
+    benchmark.init()
     benchmarkRunner run (
       benchmark,
       series => series forall (_ == series.head),
       {
         val start = runtime.freeMemory
-        benchmark.init()
         benchmark.run()
         start - runtime.freeMemory
       })

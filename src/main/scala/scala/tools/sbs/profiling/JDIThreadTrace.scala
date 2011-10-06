@@ -44,7 +44,7 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
    */
   def methodEntryEvent(event: MethodEntryEvent) {
     times push (Platform.currentTime)
-    log.verbose("    " + wrapName(event.method))
+//    log.verbose("    " + wrapName(event.method))
     if (event.method.name startsWith "boxTo") {
       profile.box
     }

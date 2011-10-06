@@ -19,13 +19,13 @@ trait MeasurementResult extends RunResult {
 
 }
 
-case class MeasurementSuccess(series: Series) extends MeasurementResult {
+case class MeasurementSuccess(series: Series) extends RunSuccess with MeasurementResult {
 
   def toXML = <MeasurementSuccess>{ series.toXML }</MeasurementSuccess>
 
 }
 
-trait MeasurementFailure extends MeasurementResult {
+trait MeasurementFailure extends RunFailure with MeasurementResult {
 
   def reason: String
 

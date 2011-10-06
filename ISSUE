@@ -2,4 +2,9 @@ xml with scala.xml.Utility.trim -> ugly code
 
 benchmark package -> package.class.scala
 
-memory no stable on separated JVM
+memory not stable on separated JVM
+
+get default scala-library.jar & scala-compiler.jar
+
+distinct self-run and initializable benchmark
+
