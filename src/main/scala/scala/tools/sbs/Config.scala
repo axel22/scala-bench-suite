@@ -95,19 +95,22 @@ case class Config(args: Array[String])
 
   private def getJar(path: String, name: String): File = {
     if (path == null) {
-      val clazz = if (name contains "library") {
-        classOf[scala.ScalaObject]
-      } else {
-        scala.tools.nsc.MainGenericRunner.getClass
+      try {
+        val clazz =
+          if (name contains "library") classOf[scala.ScalaObject]
+          else scala.tools.nsc.MainGenericRunner.getClass
+        Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical.toFile
+      } catch {
+        case _ => {
+          val classpath = List("java.class.path",
+            "java.boot.class.path",
+            "sun.boot.class.path").flatMap(s => System.getProperty(s, "") split COLON)
+          classpath.find(Path(_).name equals name) match {
+            case None => throw new Error("Cannot find default " + name)
+            case Some(str) => Path(str).toCanonical.toFile
+          }
+        }
       }
-      Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical.toFile
-
-      /*List("java.class.path", "java.boot.class.path", "sun.boot.class.path")
-        .flatMap(s => System.getProperty(s, "") split COLON)
-        .find(Path(_).name equals "scala-compiler.jar") match {
-          case None => Path(".").toCanonical.toFile
-          case Some(str) => Path(str).toCanonical.toFile
-        }*/
     } else {
       Path(path).toCanonical.toFile
     }
