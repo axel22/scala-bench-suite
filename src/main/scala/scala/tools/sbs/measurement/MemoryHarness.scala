@@ -12,8 +12,8 @@ package scala.tools.sbs
 package measurement
 
 import java.lang.Runtime
-import scala.tools.sbs.benchmark.Benchmark
 
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Measurer for benchmarking on memory usage. Should be run on a clean new JVM.
  */

@@ -76,7 +76,8 @@ class Series(log: Log) {
     if (data.length == 0) {
       log.debug("--Cleared result--")
       false
-    } else {
+    }
+    else {
       val statistic = StatisticsFactory(log)
 
       val mean = statistic mean this
@@ -105,7 +106,8 @@ class Series(log: Log) {
       if ((diff / mean) < CI_PRECISION_THRESHOLD) {
         _confidenceLevel = statistic.confidenceLevel.toInt
         true
-      } else {
+      }
+      else {
         false
       }
     }
@@ -116,6 +118,8 @@ class Series(log: Log) {
   override def toString(): String =
     data.foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
 
+  /** All of the xml should be on only one line for parsing from sub process.
+   */
   def toXML =
     <Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ for (l <- data) yield <value>{ l.toString }</value> }</data></Series>
 

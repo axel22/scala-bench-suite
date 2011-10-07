@@ -52,7 +52,8 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
       val compiler = new Global(settings)
       new compiler.Run compile (srcFiles map (_.path))
       !compiler.reporter.hasErrors
-    } else {
+    }
+    else {
       errArgs map (err => log.error(err))
       false
     }

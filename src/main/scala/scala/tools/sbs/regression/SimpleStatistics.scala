@@ -39,13 +39,16 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     if (confidenceLevel == 100) {
       alpha = 0.01
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-    } else if (confidenceLevel == 99) {
+    }
+    else if (confidenceLevel == 99) {
       alpha = 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-    } else if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) {
+    }
+    else if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) {
       alpha += 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
-    } else {
+    }
+    else {
       log.verbose("Confidence level is not reducible")
     }
     confidenceLevel
@@ -71,9 +74,11 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
     if (SD == 0) {
       diff = 0
-    } else if (series.length >= 30) {
+    }
+    else if (series.length >= 30) {
       diff = inverseGaussianDistribution * SD / sqrt(series.length)
-    } else {
+    }
+    else {
       diff = inverseStudentDistribution(series.length - 1) * SD / sqrt(series.length)
     }
     (mean(series) - diff, mean(series) + diff)
@@ -145,7 +150,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
   def standardDeviation(series: Series): Double = {
     if (series.length == 0) {
       0
-    } else {
+    }
+    else {
       val mean = this.mean(series)
       sqrt(series.foldLeft(0: Double) { (squareSum, s) => squareSum + (s - mean) * (s - mean) } / (series.length - 1))
     }
@@ -189,7 +195,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     }
     if (history.length == 2) {
       testConfidenceIntervals(benchmark, mode, measurementResult, history)
-    } else {
+    }
+    else {
       testANOVA(benchmark, mode, measurementResult, history)
     }
   }
@@ -223,7 +230,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
     if (confidenceLevel == 100 && diff == 0) {
       RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
-    } else {
+    }
+    else {
       reduceConfidenceLevel()
 
       val s = sqrt(s1 * s1 / n1 + s2 * s2 / n2)
@@ -236,7 +244,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
         if ((n1 >= 30) && (n2 >= 30)) {
           c1 = diff - inverseGaussianDistribution * s
           c2 = diff + inverseGaussianDistribution * s
-        } else {
+        }
+        else {
           var ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
             ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
           if (ndf == 0) {
@@ -248,7 +257,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
         if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
           reduceConfidenceLevel()
-        } else {
+        }
+        else {
           ok = true
         }
       }
@@ -261,7 +271,8 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
           measurementResult,
           ((mean1, standardDeviation(history.head)), (mean2, standardDeviation(history.last))),
           (c1, c2))
-      } else {
+      }
+      else {
         RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
     }
@@ -313,10 +324,12 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
           SSE,
           Double.PositiveInfinity,
           Double.NaN)
-      } else {
+      }
+      else {
         RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
       }
-    } else {
+    }
+    else {
       // Performance case
 
       val n1 = history.length - 1
@@ -334,14 +347,16 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
         if (FValue <= F) {
           ok = true
-        } else {
+        }
+        else {
           reduceConfidenceLevel()
         }
       }
 
       if (ok) {
         RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
-      } else {
+      }
+      else {
         ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, meansAndSD, SSA, SSE, FValue, F)
       }
     }

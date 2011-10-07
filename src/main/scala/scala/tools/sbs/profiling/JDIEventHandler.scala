@@ -70,7 +70,8 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
           handleEvent(it nextEvent, jvm, profile)
         }
         eventSet resume
-      } catch {
+      }
+      catch {
         case _: InterruptedException => ()
         case exc: VMDisconnectedException => {
           handleDisconnectedException(jvm)
@@ -87,9 +88,9 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     val mgr = jvm.eventRequestManager
 
     // want all exceptions
-//    val excReq = mgr.createExceptionRequest(null, true, true)
-//    excReq setSuspendPolicy EventRequest.SUSPEND_ALL
-//    excReq enable
+    //    val excReq = mgr.createExceptionRequest(null, true, true)
+    //    excReq setSuspendPolicy EventRequest.SUSPEND_ALL
+    //    excReq enable
 
     val tdr = mgr.createThreadDeathRequest
     // Make sure we sync on thread death
@@ -252,9 +253,8 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
           }
         }
         eventSet.resume
-      } catch {
-        case _: InterruptedException => ()
       }
+      catch { case _: InterruptedException => () }
     }
   }
 

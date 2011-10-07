@@ -32,7 +32,8 @@ class StartupHarness extends Measurer {
           benchmark.runCommand()
           Platform.currentTime - start
         })
-    } else {
+    }
+    else {
       ProcessFailure()
     }
   }

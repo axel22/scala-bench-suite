@@ -68,7 +68,8 @@ class BenchmarkRunner(log: Log) {
         log.debug("--Reached steady state--")
         unwarmable = false
         getSeries
-      } else {
+      }
+      else {
         log.debug("--Unwarmmable--")
         unwarmable = true
         series.clear()
@@ -81,9 +82,11 @@ class BenchmarkRunner(log: Log) {
 
     if (series.isReliable) {
       MeasurementSuccess(series)
-    } else if (unwarmable) {
+    }
+    else if (unwarmable) {
       UnwarmableFailure()
-    } else {
+    }
+    else {
       UnreliableFailure()
     }
   }

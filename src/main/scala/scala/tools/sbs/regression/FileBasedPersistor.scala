@@ -60,7 +60,8 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
 
     if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
-    } else {
+    }
+    else {
       location walkFilter (path => path.isFile && path.canRead && (path.toFile hasExtension "xml")) foreach (
         file => try {
           log.verbose("--Read file--	" + file.path)
@@ -72,7 +73,8 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
           if (series != null && series.length > 0) {
             justLoaded add series
           }
-        } catch {
+        }
+        catch {
           case e => {
             UI.error(e.toString)
             log.debug(e.toString)
@@ -89,7 +91,8 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       var dataSeries = ArrayBuffer[Long]()
       (xml \\ "value") foreach (dataSeries += _.text.toLong)
       new Series(log, dataSeries, confidenceLevel)
-    } catch {
+    }
+    catch {
       case e => {
         UI.error("[Read failed] " + file.path + e.toString)
         log.debug("[Read failed] " + file.path + e.toString)
@@ -113,7 +116,8 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
             log.debug("--Stored--")
             i += 1
             log.verbose("--Got " + i + " sample(s)--")
-          } else {
+          }
+          else {
             log.debug("--Cannot store--")
           }
           justCreated add success.series
@@ -130,7 +134,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     val directory = if (benchmarkSuccess) "" else {
       FileUtil.mkDir(location / "FAILED") match {
         case Left(_) => SLASH + "FAILED"
-        case _ => ""
+        case _       => ""
       }
     }
     FileUtil.createFile(location.path + directory, benchmark.name + "." + mode.toString + ".xml") match {

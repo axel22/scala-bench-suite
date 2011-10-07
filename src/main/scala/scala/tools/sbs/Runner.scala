@@ -30,7 +30,7 @@ object RunnerFactory {
 
   def apply(log: Log, config: Config, mode: BenchmarkMode): Runner = mode match {
     case Profiling => ProfilerFactory(config)
-    case _ => MeasurerFactory(config, mode)
+    case _         => MeasurerFactory(config, mode)
   }
 
 }

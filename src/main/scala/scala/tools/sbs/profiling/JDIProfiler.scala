@@ -11,7 +11,7 @@
 package scala.tools.sbs.profiling
 
 import java.io.IOException
-import java.util.{Map => JMap}
+import java.util.{ Map => JMap }
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.tools.sbs.benchmark.Benchmark
@@ -50,7 +50,8 @@ class JDIProfiler(config: Config) extends Profiler {
     try {
       val profile = new JDIEventHandler(log, benchmark) process jvm
       ProfilingSuccess(benchmark, profile)
-    } catch {
+    }
+    catch {
       // TODO
       case exc: Exception => {
         log.info(exc.toString)
@@ -58,9 +59,9 @@ class JDIProfiler(config: Config) extends Profiler {
         jvm.exit(1)
         ProfilingException(benchmark, exc)
       }
-      case exc: IOException => throw new Error("Unable to launch target VM: " + exc)
+      case exc: IOException                        => throw new Error("Unable to launch target VM: " + exc)
       case exc: IllegalConnectorArgumentsException => throw new Error("Internal error: " + exc)
-      case exc: VMStartException => throw new Error("Target VM failed to initialize: " + exc.getMessage)
+      case exc: VMStartException                   => throw new Error("Target VM failed to initialize: " + exc.getMessage)
     }
   }
 
@@ -71,7 +72,7 @@ class JDIProfiler(config: Config) extends Profiler {
       Bootstrap.virtualMachineManager.allConnectors.asScala.toSeq find (
         _.name equals "com.sun.jdi.CommandLineLaunch") match {
           case Some(cnt) => cnt.asInstanceOf[LaunchingConnector]
-          case None => throw new Exception("No launching connector")
+          case None      => throw new Exception("No launching connector")
         }
     val arguments = connectorArguments(connector, mainArgs)
     connector launch arguments

@@ -62,7 +62,7 @@ object LogFactory {
   def apply(config: Config): Log = {
     TextFileLog.createLog(config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
-      case None => UI
+      case None          => UI
     }
   }
 
@@ -71,7 +71,7 @@ object LogFactory {
   def apply(benchmarkName: String, mode: BenchmarkMode, config: Config): Log = {
     TextFileLog.createLog(benchmarkName, mode: BenchmarkMode, config.benchmarkDirectory) match {
       case Some(logFile) => new TextFileLog(logFile, config)
-      case None => UI
+      case None          => UI
     }
   }
 

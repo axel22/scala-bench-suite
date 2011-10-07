@@ -78,7 +78,8 @@ object BenchmarkDriver {
       compiled filter (_.sampleNumber > 0) foreach (toGenerated =>
         config.modes.filterNot(_ equals Profiling) foreach (
           PersistorFactory(log, config, toGenerated, _) generate toGenerated.sampleNumber))
-    } catch {
+    }
+    catch {
       case e => log.debug(e.toString())
     }
 
@@ -95,7 +96,7 @@ object BenchmarkDriver {
 
       FileUtil.mkDir(config.benchmarkDirectory / mode.location) match {
         case Right(s) => log.error(s)
-        case _ => ()
+        case _        => ()
       }
 
       val runner = RunnerFactory(log, config, mode)
@@ -163,13 +164,15 @@ object BenchmarkDriver {
               }
             }
           }
-        } catch { case e: Exception => resultPack add ExceptionFailure(benchmark, mode, e) }
+        }
+        catch { case e: Exception => resultPack add ExceptionFailure(benchmark, mode, e) }
       })
       FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
 
     })
     ReportFactory(config)(resultPack)
-  } catch {
+  }
+  catch {
     case e: Throwable => {
       UI.info(e.toString)
       UI.info(e.getStackTraceString)
@@ -192,7 +195,8 @@ object BenchmarkDriver {
 
     if (history.length < 2) {
       NoPreviousFailure(benchmark, mode, result)
-    } else {
+    }
+    else {
       val statistic = StatisticsFactory(log)
       statistic testDifference (benchmark, mode, result, history)
     }

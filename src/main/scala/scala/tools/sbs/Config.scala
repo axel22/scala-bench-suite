@@ -25,7 +25,7 @@ import scala.tools.sbs.util.FileUtil
 /** Configurations for sbs running.
  */
 case class Config(args: Array[String])
-  extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
+    extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
    */
@@ -48,7 +48,8 @@ case class Config(args: Array[String])
         benchmarkDirectory
       }
     }
-  } else {
+  }
+  else {
     FileUtil.mkDir(Path(binDirPath).toCanonical) match {
       case Left(dir) => dir
       case Right(s) => {
@@ -100,18 +101,20 @@ case class Config(args: Array[String])
           if (name contains "library") classOf[scala.ScalaObject]
           else scala.tools.nsc.MainGenericRunner.getClass
         Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical.toFile
-      } catch {
+      }
+      catch {
         case _ => {
           val classpath = List("java.class.path",
             "java.boot.class.path",
             "sun.boot.class.path").flatMap(s => System.getProperty(s, "") split COLON)
           classpath.find(Path(_).name equals name) match {
-            case None => throw new Error("Cannot find default " + name)
+            case None      => throw new Error("Cannot find default " + name)
             case Some(str) => Path(str).toCanonical.toFile
           }
         }
       }
-    } else {
+    }
+    else {
       Path(path).toCanonical.toFile
     }
   }

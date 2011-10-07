@@ -28,7 +28,8 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
     if (error.length > 0) {
       error foreach log.error
       ExceptionFailure(new Exception(error mkString "\n"))
-    } else {
+    }
+    else {
       dispose(logAndResult)
     }
   }
@@ -42,27 +43,29 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
   def dispose(result: String): MeasurementResult = {
     val xml = XML loadString result
     scala.xml.Utility.trim(xml) match {
-      case <MeasurementSuccess><Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ valueNodeSeq@_* }</data></Series></MeasurementSuccess> =>
+      case <MeasurementSuccess><Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ valueNodeSeq @ _* }</data></Series></MeasurementSuccess> =>
         try {
           val data = ArrayBuffer(
             (for (valueNode <- valueNodeSeq) yield valueNode match {
               case <value>{ value }</value> => value.text.toLong
-              case _ => -1
+              case _                        => -1
             }): _*)
           if (data forall (_ != -1)) {
             MeasurementSuccess(new Series(log, data, confidenceLevel.text.toInt))
-          } else {
+          }
+          else {
             ProcessFailure()
           }
-        } catch {
+        }
+        catch {
           case e: Exception => {
             log.error("Malformed XML: " + xml)
             ExceptionFailure(e)
           }
         }
-      case <UnwarmableFailure/> => UnwarmableFailure()
-      case <UnreliableFailure/> => UnreliableFailure()
-      case <ProcessFailure/> => ProcessFailure()
+      case <UnwarmableFailure/>                         => UnwarmableFailure()
+      case <UnreliableFailure/>                         => UnreliableFailure()
+      case <ProcessFailure/>                            => ProcessFailure()
       case <ExceptionFailure>{ ect }</ExceptionFailure> => ExceptionFailure(new Exception(ect.text))
       case _ => {
         log.error("Malformed XML: " + xml)

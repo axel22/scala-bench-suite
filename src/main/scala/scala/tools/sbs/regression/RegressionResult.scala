@@ -28,7 +28,7 @@ case class RegressionSuccess(benchmark: Benchmark,
                              mode: BenchmarkMode,
                              confidenceInterval: Int,
                              measurementSuccess: MeasurementSuccess)
-  extends RegressionResult(benchmark) with BenchmarkSuccess
+    extends RegressionResult(benchmark) with BenchmarkSuccess
 
 abstract class RegressionFailure(benchmark: Benchmark) extends RegressionResult(benchmark) with BenchmarkFailure
 

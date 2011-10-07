@@ -37,14 +37,14 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
    */
   private def wrapName(method: com.sun.jdi.Method) =
     method.declaringType.name + "." +
-    method.argumentTypeNames.asScala.toSeq.foldLeft(method.name + " -> ")((name, tpe) => name + tpe + " -> ") +
+      method.argumentTypeNames.asScala.toSeq.foldLeft(method.name + " -> ")((name, tpe) => name + tpe + " -> ") +
       method.returnTypeName
 
   /** Push new method on the call stack.
    */
   def methodEntryEvent(event: MethodEntryEvent) {
     times push (Platform.currentTime)
-//    log.verbose("    " + wrapName(event.method))
+    //    log.verbose("    " + wrapName(event.method))
     if (event.method.name startsWith "boxTo") {
       profile.box
     }
@@ -90,13 +90,13 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
       case Some(clazz) => {
         clazz.fields find (_.name equals event.field.name) match {
           case Some(field) => event match {
-            case _: AccessWatchpointEvent => field.access
+            case _: AccessWatchpointEvent       => field.access
             case _: ModificationWatchpointEvent => field.modify
           }
           case None => {
             val field = Field(event.field.name)
             event match {
-              case _: AccessWatchpointEvent => field.access
+              case _: AccessWatchpointEvent       => field.access
               case _: ModificationWatchpointEvent => field.modify
             }
             clazz.addField(field)
@@ -108,7 +108,7 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
         val loaded = LoadedClass(event.field.declaringType.name)
         val field = Field(event.field.name)
         event match {
-          case _: AccessWatchpointEvent => field.access
+          case _: AccessWatchpointEvent       => field.access
           case _: ModificationWatchpointEvent => field.modify
         }
         loaded.addField(field)

@@ -38,7 +38,7 @@ object Constant {
   /** Maximum counter for measurements of a series.
    */
   val MAX_MEASUREMENT = 1
-  
+
   /** Maximum multiplier for waming up.
    */
   val MAX_WARM = 5

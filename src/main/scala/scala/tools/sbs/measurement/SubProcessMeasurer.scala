@@ -52,7 +52,7 @@ object SubProcessMeasurerFactory {
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
     case SteadyState => SteadyHarness
     case MemoryUsage => MemoryHarness
-    case _ => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
+    case _           => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
 
 }

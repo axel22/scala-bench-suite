@@ -23,7 +23,7 @@ trait ProfilingResult extends BenchmarkResult with RunResult {
 }
 
 case class ProfilingSuccess(benchmark: Benchmark, profile: Profile)
-  extends BenchmarkSuccess with RunSuccess with ProfilingResult {
+    extends BenchmarkSuccess with RunSuccess with ProfilingResult {
 
   def benchmarkName = benchmark.name
 

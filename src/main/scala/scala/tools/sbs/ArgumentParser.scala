@@ -44,7 +44,8 @@ object ArgumentParser {
     val benchmarks =
       if (config.parsed.residualArgs.length > 0) {
         config.parsed.residualArgs flatMap (name => getBenchmark(name, config))
-      } else {
+      }
+      else {
         (config.benchmarkDirectory.list map (_.name)).toList flatMap (name => getBenchmark(name, config))
       }
     (config, log, benchmarks)
@@ -73,20 +74,26 @@ object ArgumentParser {
           for (line <- Source.fromFile(argFile).getLines) {
             if (line startsWith "--runs") {
               runs = (line split " ")(1).toInt
-            } else if (line startsWith "--multiplier") {
+            }
+            else if (line startsWith "--multiplier") {
               multiplier = (line split " ")(1).toInt
-            } else if (line startsWith "--classpath") {
+            }
+            else if (line startsWith "--classpath") {
               val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
               classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
-            } else if (line startsWith "--sample") {
+            }
+            else if (line startsWith "--sample") {
               sample = (line split " ")(1).toInt
-            } else if (line startsWith "--noncompile") {
+            }
+            else if (line startsWith "--noncompile") {
               shouldCompile = false
-            } else {
+            }
+            else {
               args = List[String]((line split COLON): _*)
             }
           }
-        } catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
+        }
+        catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
         List(BenchmarkInfo(mainClassName, src, args, classpathURLs, runs, multiplier, sample, shouldCompile))
       }
       case _ => Nil

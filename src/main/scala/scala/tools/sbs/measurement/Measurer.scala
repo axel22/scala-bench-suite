@@ -31,7 +31,7 @@ object MeasurerFactory {
 
   def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {
     case StartUpState => new StartupHarness
-    case _ => new SubJVMMeasurer(config, mode)
+    case _            => new SubJVMMeasurer(config, mode)
   }
 
 }

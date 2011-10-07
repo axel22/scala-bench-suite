@@ -29,7 +29,7 @@ class TextFileReport(config: Config) extends Report {
 
   val reportFile: File = FileUtil.createFile(config.benchmarkDirectory.path: String, "Report") match {
     case Some(file) => file
-    case None => null
+    case None       => null
   }
 
   def write(s: String) = FileUtil.write(reportFile.path, s)
@@ -67,14 +67,14 @@ class TextFileReport(config: Config) extends Report {
   }
 
   def emit(result: BenchmarkResult): Unit = result match {
-    case success: BenchmarkSuccess => emit(success.mode)
+    case success: BenchmarkSuccess     => emit(success.mode)
     case ci: ConfidenceIntervalFailure => emit(ci)
-    case anova: ANOVAFailure => emit(anova)
-    case nope: NoPreviousFailure => emit(nope)
-    case imme: ImmeasurableFailure => emit(imme)
-    case exp: ExceptionFailure => emit(exp)
-    case cpl: CompileFailure => emit(cpl)
-//    case pfe: ProfilingException => emit(pfe)
+    case anova: ANOVAFailure           => emit(anova)
+    case nope: NoPreviousFailure       => emit(nope)
+    case imme: ImmeasurableFailure     => emit(imme)
+    case exp: ExceptionFailure         => emit(exp)
+    case cpl: CompileFailure           => emit(cpl)
+    //    case pfe: ProfilingException => emit(pfe)
   }
 
   def emit(successMode: BenchmarkMode) {

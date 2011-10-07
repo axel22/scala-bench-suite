@@ -72,11 +72,14 @@ object FileUtil {
    */
   def createFile(filename: String): Boolean = {
     val file = new JFile(filename)
-    if (file.exists()) false
+    if (file.exists) {
+      false
+    }
     else try {
       file.createNewFile()
       true
-    } catch { case _ => false }
+    }
+    catch { case _ => false }
   }
 
   /** Tries to create a file and write some data to it.
@@ -90,7 +93,8 @@ object FileUtil {
             write(file.path, line)
           }
           Some(file)
-        } catch {
+        }
+        catch {
           case e => {
             UI(file.path + (System getProperty "line.separator") + e.toString())
             None
