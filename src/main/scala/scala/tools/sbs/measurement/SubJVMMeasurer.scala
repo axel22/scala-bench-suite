@@ -12,10 +12,11 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.JVMInvokerFactory
-import scala.tools.sbs.io.Log
-import scala.xml.XML
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.common.JVMInvokerFactory
+import scala.tools.sbs.BenchmarkMode
+import scala.tools.sbs.Config
+import scala.xml.XML
 
 /** Measures benchmark metric by invoking a new clean JVM.
  */
@@ -24,13 +25,13 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
   def measure(benchmark: Benchmark): MeasurementResult = {
     log = benchmark createLog mode
     val subProcessMeasurer = SubProcessMeasurerFactory(mode)
-    val (logAndResult, error) = JVMInvokerFactory(log, config).invoke(subProcessMeasurer, benchmark)
+    val (result, error) = JVMInvokerFactory(log, config).invoke(subProcessMeasurer, benchmark)
     if (error.length > 0) {
       error foreach log.error
       ExceptionFailure(new Exception(error mkString "\n"))
     }
     else {
-      dispose(logAndResult)
+      dispose(result)
     }
   }
 
@@ -43,24 +44,17 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
   def dispose(result: String): MeasurementResult = {
     val xml = XML loadString result
     scala.xml.Utility.trim(xml) match {
-      case <MeasurementSuccess><Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ valueNodeSeq @ _* }</data></Series></MeasurementSuccess> =>
+      case <MeasurementSuccess>{ _ }</MeasurementSuccess> =>
         try {
-          val data = ArrayBuffer(
-            (for (valueNode <- valueNodeSeq) yield valueNode match {
-              case <value>{ value }</value> => value.text.toLong
-              case _                        => -1
-            }): _*)
-          if (data forall (_ != -1)) {
-            MeasurementSuccess(new Series(log, data, confidenceLevel.text.toInt))
-          }
-          else {
-            ProcessFailure()
-          }
+          MeasurementSuccess(new Series(
+            log,
+            ArrayBuffer((xml \\ "value") map (_.text.toLong): _*),
+            (xml \\ "confidenceLevel").text.toInt))
         }
         catch {
           case e: Exception => {
             log.error("Malformed XML: " + xml)
-            ExceptionFailure(e)
+            ProcessFailure()
           }
         }
       case <UnwarmableFailure/>                         => UnwarmableFailure()
