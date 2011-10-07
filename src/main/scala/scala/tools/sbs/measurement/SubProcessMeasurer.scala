@@ -11,7 +11,9 @@
 package scala.tools.sbs
 package measurement
 
-import scala.tools.sbs.common.BenchmarkFactory
+import scala.tools.sbs.benchmark.BenchmarkFactory
+import scala.tools.sbs.BenchmarkMode
+import scala.tools.sbs.Config
 import scala.xml.XML
 
 /** Driver for measurement in a separated JVM.

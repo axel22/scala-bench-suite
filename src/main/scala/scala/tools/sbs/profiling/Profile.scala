@@ -61,4 +61,12 @@ class Profile {
     _gcCycle += 1
   }
 
+  def toXML =
+    <profile>
+      <classes>{ for (clazz <- classes) yield clazz.toXML }</classes>
+      <boxing>{ boxing }</boxing>
+      <unboxing>{ unboxing }</unboxing>
+      <gc>{ gcCycle }</gc>
+    </profile>
+
 }

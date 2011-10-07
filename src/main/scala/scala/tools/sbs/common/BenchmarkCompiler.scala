@@ -11,7 +11,9 @@
 package scala.tools.sbs
 package common
 
+import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.Config
 
 /** Represents a compiler used to compile benchmarks from scala sources.
  */
@@ -21,7 +23,7 @@ trait BenchmarkCompiler {
    *
    *  @return	`true` if successfully, `false` otherwise
    */
-  def compile(benchmark: Benchmark): Boolean
+  def compile(benchmark: BenchmarkInfo): Boolean
 
 }
 

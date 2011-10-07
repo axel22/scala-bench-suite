@@ -13,13 +13,11 @@ package regression
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
@@ -27,6 +25,10 @@ import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Constant.SLASH
 import scala.tools.sbs.util.FileUtil
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.profiling.ProfilingSuccess
+import scala.xml.XML
+import scala.tools.sbs.io.UI
 
 /** An implement of {@link Persistor} based on simple text files.
  */
@@ -46,33 +48,6 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     }
   }
 
-  /** Generates sample results.
-   */
-  def generate(num: Int): History = {
-    var i = 0
-    val measurer = MeasurerFactory(config, mode)
-    var justCreated = HistoryFactory(log, config, benchmark, mode)
-    while (i < num) {
-      measurer measure benchmark match {
-        case success: MeasurementSuccess => {
-
-          storeToFile(success, RegressionSuccess(benchmark, mode, success.series.confidenceLevel, success)) match {
-            case Some(_) => {
-              log.debug("--Stored--")
-              i += 1
-              log.verbose("--Got " + i + " sample(s)--")
-            }
-            case _ => log.debug("--Cannot store--")
-          }
-          justCreated add success.series
-        }
-        case failure: MeasurementFailure =>
-          log.debug("--Generation error at " + i + ": " + failure.reason + "--")
-      }
-    }
-    justCreated
-  }
-
   def load(): History = loadFromFile
 
   def loadFromFile(): History = {
@@ -86,7 +61,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     if (!location.isDirectory || !location.canRead) {
       log.info("--Cannot find previous results--")
     } else {
-      location walkFilter (path => path.isFile && path.canRead && (path.toFile hasExtension mode.toString)) foreach (
+      location walkFilter (path => path.isFile && path.canRead && (path.toFile hasExtension "xml")) foreach (
         file => try {
           log.verbose("--Read file--	" + file.path)
 
@@ -99,6 +74,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
           }
         } catch {
           case e => {
+            UI.error(e.toString)
             log.debug(e.toString)
           }
         })
@@ -107,71 +83,67 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
   }
 
   def loadSeries(file: File): Series = {
-    var dataSeries = ArrayBuffer[Long]()
-    var confidenceLevel = 0
-    for (line <- Source.fromFile(file.path).getLines) {
-      try {
-        if (line startsWith "Date") {
-
-        } else if (line startsWith "-") {
-
-        } else if (line startsWith "Mode") {
-
-        } else if (line startsWith "Main") {
-
-        } else if (line startsWith "Confidence") {
-          confidenceLevel = (line split " ")(2).toInt
-        } else {
-          dataSeries += line.toLong
-        }
-      } catch {
-        case e => {
-          log.debug("[Read failed] " + file.path + e.toString)
-          dataSeries.clear()
-          return null
-        }
-      }
-    }
-    new Series(log, dataSeries, confidenceLevel)
-  }
-
-  def store(measurement: MeasurementSuccess, result: RegressionResult): Boolean = {
-    storeToFile(measurement, result) match {
-      case Some(file) => {
-        log.info("Result stored OK into " + file.path)
-        true
-      }
-      case _ => {
-        log.info("Cannot store measurement result")
-        false
+    val xml = XML.loadFile(file.path)
+    try {
+      val confidenceLevel = (xml \\ "confidenceLevel").text.toInt
+      var dataSeries = ArrayBuffer[Long]()
+      (xml \\ "value") foreach (dataSeries += _.text.toLong)
+      new Series(log, dataSeries, confidenceLevel)
+    } catch {
+      case e => {
+        UI.error("[Read failed] " + file.path + e.toString)
+        log.debug("[Read failed] " + file.path + e.toString)
+        log.debug(e.getStackTraceString)
+        null
       }
     }
   }
 
-  def storeToFile(measurement: MeasurementSuccess, result: RegressionResult): Option[File] = {
-    if (measurement.series.length == 0) {
-      log.info("Nothing to store")
-      return None
+  /** Generates sample results.
+   */
+  def generate(num: Int): History = {
+    var i = 0
+    val runner = RunnerFactory(log, config, mode)
+    var justCreated = HistoryFactory(log, config, benchmark, mode)
+    while (i < num) {
+      runner run benchmark match {
+        case success: MeasurementSuccess => {
+
+          if (store(success, true)) {
+            log.debug("--Stored--")
+            i += 1
+            log.verbose("--Got " + i + " sample(s)--")
+          } else {
+            log.debug("--Cannot store--")
+          }
+          justCreated add success.series
+        }
+        case failure: MeasurementFailure =>
+          log.debug("--Generation error at " + i + ": " + failure.reason + "--")
+        case _ => throw new Error("WTF is just created?")
+      }
     }
-    val directory = result match {
-      case RegressionSuccess(_, _, _, _) => ""
-      case NoPreviousFailure(_, _, _) => ""
-      case _ => FileUtil.mkDir(location / "FAILED") match {
+    justCreated
+  }
+
+  def store(runSuccess: RunSuccess, benchmarkSuccess: Boolean): Boolean = {
+    val directory = if (benchmarkSuccess) "" else {
+      FileUtil.mkDir(location / "FAILED") match {
         case Left(_) => SLASH + "FAILED"
         case _ => ""
       }
     }
-    val data = new ArrayBuffer[String]
-    data += "Date:             " + new SimpleDateFormat("yyyy/MM/dd 'at' HH:mm:ss").format(new Date)
-    data += "Main Class:       " + benchmark.name
-    data += "Mode:             " + mode
-    data += "Confidence level: " + measurement.series.confidenceLevel + " %"
-    data += "-------------------------------"
-
-    FileUtil.createAndStore(
-      location.path + directory,
-      benchmark.name + "." + mode.toString,
-      measurement.series.foldLeft(data) { (data, l) => data + l.toString })
+    FileUtil.createFile(location.path + directory, benchmark.name + "." + mode.toString + ".xml") match {
+      case Some(xmlFile) => {
+        log.info("Result stored OK into " + xmlFile.path)
+        XML.saveFull(xmlFile.path, runSuccess.toXML, "UTF-8", true, null)
+        true
+      }
+      case None => {
+        log.info("Cannot store run result")
+        false
+      }
+    }
   }
 
 }

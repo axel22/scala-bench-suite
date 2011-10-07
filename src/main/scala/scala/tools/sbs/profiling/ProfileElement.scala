@@ -45,6 +45,12 @@ case class LoadedClass(name: String) extends ProfileElement {
     _methodInvoked += method
   }
 
+  def toXML =
+    <class>
+      <name>{ name }</name>
+      <fields>{ for (field <- fields) yield field.toXML }</fields>
+      <methods>{ for (method <- methodInvoked) yield method.toXML }</methods>
+    </class>
 }
 
 /** A benchmark method that has been invoked in a benchmark run.
@@ -65,6 +71,11 @@ case class InvokedMethod(name: String) extends ProfileElement {
     _invocations += Invocation(time)
   }
 
+  def toXML =
+    <method>
+      <name>{ name }</name>
+      <invocations>{ for (invoked <- invocations) yield <invoked>{ invoked.time }</invoked> }</invocations>
+    </method>
 }
 
 /** A member value/variable that has been accessed or modified
@@ -88,4 +99,10 @@ case class Field(name: String) extends ProfileElement {
     _modified += 1
   }
 
+  def toXML =
+    <field>
+      <name>{ name }</name>
+      <accessed>{ accessed }</accessed>
+      <modified>{ modified }</modified>
+    </field>
 }

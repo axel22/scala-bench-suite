@@ -14,28 +14,29 @@ package common
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Measurer
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Trait used to invoke a new separated JVM.
  */
 trait JVMInvoker {
 
-  /** Invokes a new JVM which uses a typical {@link Measurer} to run a typical {@link Benchmark}.
+  /** Invokes a new JVM which uses a typical {@link Runner} to run a typical {@link Benchmark}.
    *
-   *  @param measurer	{@link Measurer}
+   *  @param measurer	{@link Runner}
    *  @param benchmark	{@link Benchmark}
    *
    *  @return
    *  <ul>
    *  <li>A `String`  contains xml element representing the measurement result.
-   *  <li>A `ArrayBuffer` of `String` contains runtime errors if any.
+   *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
    *  </ul>
    */
-  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String])
+  def invoke(runner: Runner, benchmark: Benchmark): (String, ArrayBuffer[String])
 
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.
    */
-  def command(measurer: Measurer, benchmark: Benchmark): Seq[String]
+  def command(runner: Runner, benchmark: Benchmark): Seq[String]
 
   /** OS command to invoke an new JVM which has `benchmark` as the main scala class.
    */

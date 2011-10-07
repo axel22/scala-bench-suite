@@ -1,10 +1,11 @@
 package scala.tools.sbs
 
-import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.benchmark.BenchmarkInfo
 
 trait BenchmarkResult {
 
-  def benchmark: Benchmark
+  def benchmarkName: String
 
 }
 
@@ -16,7 +17,14 @@ trait BenchmarkSuccess extends BenchmarkResult {
 
 trait BenchmarkFailure extends BenchmarkResult
 
-case class CompileFailure(benchmark: Benchmark) extends BenchmarkFailure
+case class CompileFailure(info: BenchmarkInfo) extends BenchmarkFailure {
 
-case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception)
-  extends BenchmarkFailure
+  def benchmarkName = info.name
+
+}
+
+case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception) extends BenchmarkFailure {
+
+  def benchmarkName = benchmark.name
+
+}

@@ -14,8 +14,10 @@ package common
 import scala.tools.nsc.io.File
 import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
+import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant.COLON
+import scala.tools.sbs.Config
 
 /** An implement of {@link BenchmarkCompiler}.
  */
@@ -23,14 +25,14 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
 
   /** Uses strange named compiler `Global` to compile.
    */
-  def compile(benchmark: Benchmark): Boolean = {
-    log.verbose("[Compile] " + benchmark.name)
+  def compile(benchmarkInfo: BenchmarkInfo): Boolean = {
+    log.verbose("[Compile] " + benchmarkInfo.name)
 
     def isScala(file: File) = file.hasExtension("scala")
 
     val srcFiles: List[File] =
-      if (benchmark.src.isFile) List(benchmark.src.toFile)
-      else benchmark.src.toDirectory.deepFiles.filter(isScala).foldLeft(List[File]())((fs, f) => f :: fs)
+      if (benchmarkInfo.src.isFile) List(benchmarkInfo.src.toFile)
+      else benchmarkInfo.src.toDirectory.deepFiles.filter(isScala).foldLeft(List[File]())((fs, f) => f :: fs)
 
     log.debug(srcFiles.toString)
 
@@ -40,7 +42,7 @@ class BenchmarkGlobal(log: Log, config: Config) extends BenchmarkCompiler {
         List(
           "-classpath",
           (config.classpathURLs map (_.getPath.toString) mkString COLON) +
-            (benchmark.classpathURLs map (_.getPath.toString) mkString COLON)),
+            (benchmarkInfo.classpathURLs map (_.getPath.toString) mkString COLON)),
         false)
     settings.outdir.value = config.bin.path
 

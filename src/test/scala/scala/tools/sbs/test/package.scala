@@ -3,11 +3,12 @@ package scala.tools.sbs
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.common.Benchmark
-import scala.tools.sbs.common.BenchmarkFactory
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.benchmark.BenchmarkFactory
+import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.measurement.MeasurementSuccess
 
 package object test {
 
@@ -59,6 +60,6 @@ package object test {
   val success1k3 = MeasurementSuccess(about1kSeries3)
   val success5k5 = MeasurementSuccess(about5k5Series)
 
-  val testBenchmark = BenchmarkFactory("test", testDir / "test", List[String](), Nil, 1, 10, 0, true, testConfig)
+  val testBenchmark = DummyBenchmark
 
 }

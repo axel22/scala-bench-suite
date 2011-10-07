@@ -12,10 +12,10 @@ package scala.tools.sbs
 package measurement
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
 import scala.xml.XML
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Measures benchmark metric by invoking a new clean JVM.
  */

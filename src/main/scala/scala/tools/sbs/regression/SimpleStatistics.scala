@@ -13,15 +13,14 @@ package regression
 
 import scala.Math.sqrt
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.util.Constant.LEAST_CONFIDENCE_LEVEL
-
 import org.apache.commons.math.distribution.FDistributionImpl
 import org.apache.commons.math.distribution.NormalDistributionImpl
 import org.apache.commons.math.distribution.TDistributionImpl
+import scala.tools.sbs.benchmark.Benchmark
 
 /** An simple implement of {@link Statistics}.
  */

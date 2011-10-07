@@ -11,8 +11,8 @@
 package scala.tools.sbs
 package profiling
 
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Trait for some kinds of profiling.
  */

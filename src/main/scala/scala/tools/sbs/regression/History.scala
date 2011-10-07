@@ -13,9 +13,9 @@ package regression
 
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.benchmark.Benchmark
 
 trait History {
 

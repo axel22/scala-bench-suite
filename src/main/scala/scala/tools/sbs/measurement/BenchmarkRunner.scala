@@ -17,7 +17,7 @@ import scala.compat.Platform
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant.MAX_MEASUREMENT
 import scala.tools.sbs.util.Constant.MAX_WARM
-import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Runs and measures metrics of a benchmark in general case.
  */

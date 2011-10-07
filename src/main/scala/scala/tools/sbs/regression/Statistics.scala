@@ -11,10 +11,10 @@
 package scala.tools.sbs
 package regression
 
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Class stores the significant level and computes statistical arguments for a given sample.
  */

@@ -15,10 +15,12 @@ import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.measurement.Measurer
 import scala.tools.sbs.util.Constant.COLON
+import scala.tools.sbs.Config
+import scala.tools.sbs.Runner
 
 import org.apache.commons.math.MathException
 
@@ -34,10 +36,10 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     "scala.tools.nsc.MainGenericRunner",
     "-classpath")
 
-  def invoke(measurer: Measurer, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
+  def invoke(runner: Runner, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
     var result = ""
     var error = ArrayBuffer[String]()
-    val processBuilder = Process(command(measurer, benchmark))
+    val processBuilder = Process(command(runner, benchmark))
     val processIO = new ProcessIO(
       _ => (),
       stdout => Source.fromInputStream(stdout).getLines.foreach(line =>
@@ -49,13 +51,13 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     (result, error)
   }
 
-  def command(measurer: Measurer, benchmark: Benchmark) = commandInit ++
+  def command(runner: Runner, benchmark: Benchmark) = commandInit ++
     Seq(
-      measurer.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + COLON +
+      runner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + COLON +
         config.bin.path + COLON +
         config.scalaLib + COLON +
         classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-      measurer.getClass.getName replace ("$", ""),
+      runner.getClass.getName replace ("$", ""),
       benchmark.toXML.toString) ++
       config.args
 

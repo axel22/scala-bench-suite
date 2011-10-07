@@ -13,7 +13,7 @@ package profiling
 import java.lang.InterruptedException
 
 import scala.collection.mutable.HashMap
-import scala.tools.sbs.common.Benchmark
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 import com.sun.jdi.event.AccessWatchpointEvent

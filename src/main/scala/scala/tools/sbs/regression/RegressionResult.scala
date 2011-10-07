@@ -12,13 +12,17 @@ package scala.tools.sbs
 package regression
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.measurement.MeasurementFailure
 import scala.tools.sbs.measurement.MeasurementSuccess
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Represents the result of a benchmarking (of one benchmark on one {@link BenchmarkMode}).
  */
-abstract class RegressionResult(benchmark: Benchmark) extends BenchmarkResult
+abstract class RegressionResult(benchmark: Benchmark) extends BenchmarkResult {
+
+  def benchmarkName = benchmark.name
+
+}
 
 case class RegressionSuccess(benchmark: Benchmark,
                              mode: BenchmarkMode,

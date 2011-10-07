@@ -11,9 +11,9 @@
 package scala.tools.sbs
 package regression
 
-import scala.tools.sbs.common.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
+import scala.tools.sbs.benchmark.Benchmark
 
 /** Trait for loading, storing and generating benchmarking history.
  */
@@ -23,7 +23,7 @@ trait Persistor {
 
   def load(): History
 
-  def store(measurementSuccess: MeasurementSuccess, result: RegressionResult): Boolean
+  def store(runSuccess: RunSuccess, benchmarkSuccess: Boolean): Boolean
 
 }
 

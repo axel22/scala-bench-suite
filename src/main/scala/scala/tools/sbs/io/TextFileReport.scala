@@ -60,7 +60,7 @@ class TextFileReport(config: Config) extends Report {
     break
 
     pack foreach (r => {
-      write("Benchmark: " + r.benchmark.name)
+      write("Benchmark: " + r.benchmarkName)
       emit(r)
       break
     })
