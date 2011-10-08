@@ -15,6 +15,8 @@ import java.util.{ Map => JMap }
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.common.JVMInvokerFactory
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.Config
 import scala.tools.sbs.Profiling
 
@@ -31,8 +33,8 @@ class JDIProfiler(config: Config) extends Profiler {
 
   def profile(benchmark: Benchmark): ProfilingResult = {
     log = benchmark createLog Profiling
-    //    val command = JVMInvokerFactory(log, config) command benchmark
-    val command = List(
+    val javaArgument = JVMInvokerFactory(log, config) asJavaArgument benchmark
+    /*List(
       "-cp",
       "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar;" +
         "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar",
@@ -42,11 +44,12 @@ class JDIProfiler(config: Config) extends Profiler {
       "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar;" +
         "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar;" +
         config.bin.path,
-      benchmark.name) ++ benchmark.arguments
+      benchmark.name) ++ benchmark.arguments*/
 
-    log.debug("Profile command: " + (command mkString " "))
+    UI.debug("Profile command: " + (javaArgument mkString " "))
+    log.debug("Profile command: " + (javaArgument mkString " "))
 
-    val jvm = launchTarget(command mkString " ")
+    val jvm = launchTarget(javaArgument mkString " ")
     try {
       val profile = new JDIEventHandler(log, benchmark) process jvm
       ProfilingSuccess(benchmark, profile)

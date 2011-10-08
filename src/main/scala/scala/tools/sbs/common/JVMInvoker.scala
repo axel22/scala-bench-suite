@@ -31,7 +31,7 @@ trait JVMInvoker {
    *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
    *  </ul>
    */
-  def invoke(runner: Runner, benchmark: Benchmark): (String, ArrayBuffer[String])
+  def invoke(command: Seq[String]): (String, ArrayBuffer[String])
 
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.
@@ -41,6 +41,13 @@ trait JVMInvoker {
   /** OS command to invoke an new JVM which has `benchmark` as the main scala class.
    */
   def command(benchmark: Benchmark): Seq[String]
+
+  /** OS command argument to run with java.
+   *  Ex: `Seq("-cp", ".", "scala.tools.nsc.MainGenericRunner", "-vesion")`.
+   */
+  def asJavaArgument(benchmark: Benchmark): Seq[String]
+
+  def asJavaArgument(runner: Runner, benchmark: Benchmark): Seq[String]
 
 }
 

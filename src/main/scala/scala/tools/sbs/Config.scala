@@ -123,11 +123,16 @@ case class Config(args: Array[String])
    */
   val classpathURLs =
     List(
-      this.getClass.getProtectionDomain.getCodeSource.getLocation,
       scalaLibraryJar.toURL,
       scalaCompilerJar.toURL,
+      this.getClass.getProtectionDomain.getCodeSource.getLocation,
+      classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation,
       bin.toURL) ++
       ((classpath split COLON).toList map (Path(_).toCanonical.toURL)) distinct
+
+  /** Commone classpath as a string.
+   */
+  val classpathString = (classpathURLs map (_.getPath)) mkString COLON
 
   val javahome = Directory(javaPath)
 

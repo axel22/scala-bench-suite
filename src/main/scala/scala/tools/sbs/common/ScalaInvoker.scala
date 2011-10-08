@@ -19,8 +19,6 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
-import scala.tools.sbs.Config
-import scala.tools.sbs.Runner
 
 import org.apache.commons.math.MathException
 
@@ -28,18 +26,47 @@ import org.apache.commons.math.MathException
  */
 class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
-  private val commandInit = Seq[String](
-    config.javacmd,
-    "-cp",
-    config.scalaLib,
-    config.javaProp,
-    "scala.tools.nsc.MainGenericRunner",
-    "-classpath")
+  /** `java` or `./jre/bin/java`...
+   */
+  private val java = Seq(config.javacmd)
 
-  def invoke(runner: Runner, benchmark: Benchmark): (String, ArrayBuffer[String]) = {
+  /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala=<scala-home> scala.tools.nsc.MainGenericRunner`
+   */
+  private val asScala = Seq("-cp", config.scalaLib, config.javaProp, "scala.tools.nsc.MainGenericRunner")
+
+  /** `-cp <classpath from config; classpath from benchmark>`
+   */
+  private def asScalaClasspath(benchmark: Benchmark) =
+    Seq("-cp", config.classpathString + COLON + ((benchmark.classpathURLs map (_.getPath)) mkString COLON))
+
+  /** `-cp <classpath from config; classpath from benchmark> Runner`
+   */
+  private def asRunner(runner: Runner, benchmark: Benchmark) =
+    asScalaClasspath(benchmark) ++ Seq(runner.getClass.getName replace ("$", ""))
+
+  /** `-cp <classpath from config; classpath from benchmark> Benchmark`
+   */
+  private def asBenchmark(benchmark: Benchmark) = asScalaClasspath(benchmark) ++ Seq(benchmark.name)
+
+  /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala.home=<scala-home> scala.tools.nsc.MainGenericRunner
+   *  -cp <classpath from config; classpath from benchmark> Benchmark benchmark.arguments`
+   */
+  def asJavaArgument(benchmark: Benchmark) = asScala ++ asBenchmark(benchmark) ++ benchmark.arguments
+
+  /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala.home=<scala-home> scala.tools.nsc.MainGenericRunner
+   *  -cp <classpath from config; classpath from benchmark> Runner benchmark.toXML config.args`
+   */
+  def asJavaArgument(runner: Runner, benchmark: Benchmark) =
+    asScala ++ asRunner(runner, benchmark) ++ Seq(benchmark.toXML.toString) ++ config.args
+
+  def command(runner: Runner, benchmark: Benchmark) = java ++ asJavaArgument(runner, benchmark)
+
+  def command(benchmark: Benchmark) = java ++ asScala ++ asJavaArgument(benchmark)
+
+  def invoke(command: Seq[String]): (String, ArrayBuffer[String]) = {
     var result = ""
     var error = ArrayBuffer[String]()
-    val processBuilder = Process(command(runner, benchmark))
+    val processBuilder = Process(command)
     val processIO = new ProcessIO(
       _ => (),
       stdout => Source.fromInputStream(stdout).getLines.foreach(line =>
@@ -50,23 +77,5 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     val success = process.exitValue
     (result, error)
   }
-
-  def command(runner: Runner, benchmark: Benchmark) = commandInit ++
-    Seq(
-      runner.getClass.getProtectionDomain.getCodeSource.getLocation.getPath + COLON +
-        config.bin.path + COLON +
-        config.scalaLib + COLON +
-        classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-      runner.getClass.getName replace ("$", ""),
-      benchmark.toXML.toString) ++
-      config.args
-
-  def command(benchmark: Benchmark) = commandInit ++
-    Seq[String](
-      config.bin.path + COLON +
-        config.scalaLib + COLON +
-        classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation.getPath,
-      benchmark.name) ++
-      config.args
 
 }

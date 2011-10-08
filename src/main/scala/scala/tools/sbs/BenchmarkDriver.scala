@@ -136,15 +136,6 @@ object BenchmarkDriver {
                 resultPack add result
               }
               case pfl: ProfilingSuccess => {
-                pfl.profile.classes foreach (clazz => {
-                  clazz.methodInvoked foreach (method => {
-                    print("    " + method.name + " invoked:")
-                    method.invocations foreach (invo => {
-                      print(" " + invo.time)
-                    })
-                    println
-                  })
-                })
                 resultPack add pfl
                 persistor.store(pfl, true)
               }
