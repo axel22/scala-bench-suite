@@ -19,14 +19,14 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
-
 import org.apache.commons.math.MathException
+import scala.tools.nsc.util.ClassPath
 
 /** An implement of {@link JVMInvoker}.
  */
 class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
-  /** `java` or `./jre/bin/java`...
+  /** `java` or `./jre/bin/java`, etc...
    */
   private val java = Seq(config.javacmd)
 
@@ -37,7 +37,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   /** `-cp <classpath from config; classpath from benchmark>`
    */
   private def asScalaClasspath(benchmark: Benchmark) =
-    Seq("-cp", config.classpathString + COLON + ((benchmark.classpathURLs map (_.getPath)) mkString COLON))
+    Seq("-cp", ClassPath.fromURLs(config.classpathURLs ++ benchmark.classpathURLs: _*))
 
   /** `-cp <classpath from config; classpath from benchmark> Runner`
    */
@@ -67,6 +67,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     var result = ""
     var error = ArrayBuffer[String]()
     val processBuilder = Process(command)
+
+    log.debug(command mkString " ")
+
     val processIO = new ProcessIO(
       _ => (),
       stdout => Source.fromInputStream(stdout).getLines.foreach(line =>
@@ -75,6 +78,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
     val process = processBuilder.run(processIO)
     val success = process.exitValue
+
+    log.debug("Sub-process exit value: " + success)
+
     (result, error)
   }
 

@@ -51,6 +51,16 @@ class Profile {
     _unboxing += 1
   }
 
+  /** Number of steps performed.
+   */
+  private var _steps = 0
+
+  def steps = _steps
+
+  def performStep {
+    _steps += 1
+  }
+
   /** Number of garbage collection cycle.
    */
   private var _gcCycle = 0
@@ -64,6 +74,7 @@ class Profile {
   def toXML =
     <profile>
       <classes>{ for (clazz <- classes) yield clazz.toXML }</classes>
+      <steps>{ steps }</steps>
       <boxing>{ boxing }</boxing>
       <unboxing>{ unboxing }</unboxing>
       <gc>{ gcCycle }</gc>

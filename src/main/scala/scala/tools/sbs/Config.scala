@@ -27,6 +27,15 @@ import scala.tools.sbs.util.FileUtil
 case class Config(args: Array[String])
     extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
+  def helpMsg = BenchmarkSpec.helpMsg
+
+  val excludeClasses =
+    if (_excludeClasses equals "") List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.common.math.*")
+    else if (_excludeClasses equals "none") Nil
+    else (_excludeClasses split ";") toList
+
+  val profiledClasses = (_profiledClasses split ";") toList
+
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
    */
   val benchmarkDirectory = FileUtil.mkDir(Directory(benchmarkDirPath).toCanonical) match {
@@ -40,7 +49,7 @@ case class Config(args: Array[String])
 
   /** All benchmark compiled output are here, also contains not-compiled-benchmarks.
    */
-  val bin = if (binDirPath == null) {
+  val bin = if (binDirPath == "") {
     FileUtil.mkDir((benchmarkDirectory / "bin").toCanonical) match {
       case Left(dir) => dir
       case Right(s) => {
@@ -95,7 +104,7 @@ case class Config(args: Array[String])
   val scalaCompilerJar = getJar(scalaCompilerPath, "scala-compiler.jar")
 
   private def getJar(path: String, name: String): File = {
-    if (path == null) {
+    if (path == "") {
       try {
         val clazz =
           if (name contains "library") classOf[scala.ScalaObject]
@@ -129,10 +138,6 @@ case class Config(args: Array[String])
       classOf[org.apache.commons.math.MathException].getProtectionDomain.getCodeSource.getLocation,
       bin.toURL) ++
       ((classpath split COLON).toList map (Path(_).toCanonical.toURL)) distinct
-
-  /** Commone classpath as a string.
-   */
-  val classpathString = (classpathURLs map (_.getPath)) mkString COLON
 
   val javahome = Directory(javaPath)
 

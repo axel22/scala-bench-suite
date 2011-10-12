@@ -59,7 +59,7 @@ case class LoadedClass(name: String) extends ProfileElement {
  */
 case class InvokedMethod(name: String) extends ProfileElement {
 
-  case class Invocation(time: Long)
+  case class Invocation(steps: Int)
 
   /** Number of all the invocations of this method.
    */
@@ -67,14 +67,14 @@ case class InvokedMethod(name: String) extends ProfileElement {
 
   def invocations = _invocations
 
-  def hasInvoked(time: Long) {
-    _invocations += Invocation(time)
+  def hasInvoked(steps: Int) {
+    _invocations += Invocation(steps)
   }
 
   def toXML =
     <method>
       <name>{ name }</name>
-      <invocations>{ for (invoked <- invocations) yield <invoked>{ invoked.time }</invoked> }</invocations>
+      <invocations>{ for (invoked <- invocations) yield <invoked>{ invoked.steps }</invoked> }</invocations>
     </method>
 }
 

@@ -15,6 +15,7 @@ import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.BenchmarkMode
 import scala.tools.sbs.Config
 import scala.xml.XML
+import scala.tools.sbs.io.UI
 
 /** Driver for measurement in a separated JVM.
  *  Choose the harness to run and write the result to output stream.
@@ -30,6 +31,7 @@ trait SubProcessMeasurer extends Measurer {
   def main(args: Array[String]): Unit = {
 
     config = Config(args.tail)
+    UI.config = config
     val benchmark = BenchmarkFactory(XML loadString args.head, config)
     log = benchmark createLog mode
 

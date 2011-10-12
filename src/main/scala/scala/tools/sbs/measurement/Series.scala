@@ -13,6 +13,7 @@ package measurement
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.CI_PRECISION_THRESHOLD
 
@@ -75,6 +76,7 @@ class Series(log: Log) {
 
     if (data.length == 0) {
       log.debug("--Cleared result--")
+//      UI.debug("--Cleared result--")
       false
     }
     else {
@@ -82,14 +84,19 @@ class Series(log: Log) {
 
       val mean = statistic mean this
       log.verbose("--Average--            " + (mean formatted "%.2f"))
+//      UI.verbose("--Average--            " + (mean formatted "%.2f"))
 
       val (left, right) = statistic confidenceInterval this
       log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
         (right formatted "%.2f") + "]")
+//      UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+//        (right formatted "%.2f") + "]")
 
       var diff = right - left
       log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
         ((diff / mean * 100) formatted "%.2f") + "%")
+//      UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+//        ((diff / mean * 100) formatted "%.2f") + "%")
 
       while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= CI_PRECISION_THRESHOLD) {
         statistic.reduceConfidenceLevel()
@@ -97,10 +104,14 @@ class Series(log: Log) {
         val (left, right) = statistic confidenceInterval this
         log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
           (right formatted "%.2f") + "]")
+//        UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+//          (right formatted "%.2f") + "]")
 
         diff = right - left
         log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
           ((diff / mean * 100) formatted "%.2f") + "%")
+////        UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+//          ((diff / mean * 100) formatted "%.2f") + "%")
       }
 
       if ((diff / mean) < CI_PRECISION_THRESHOLD) {

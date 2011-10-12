@@ -11,20 +11,19 @@
 package scala.tools.sbs
 
 import java.lang.System
-
 import scala.tools.cmd.Spec
 import scala.tools.cmd.FromString
 import scala.tools.cmd.Property
 import scala.tools.cmd.PropertyMapper
+import scala.tools.cmd.Interpolation
+import scala.tools.cmd.Meta
 
 /** sbs' command line arguments and flags go here.
  */
-trait BenchmarkSpec extends Spec {
+trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
 
   def referenceSpec       = BenchmarkSpec
   def programInfo         = Spec.Info("sbs", "", "scala.tools.sbs.BenchmarkDriver")
-  private val modeAcc     = new Spec.Accumulator[String]()
-  def modesString = modeAcc.get
   
   private implicit val tokenizeString = FromString.ArgumentsFromString    // String => List[String]
 
@@ -35,32 +34,42 @@ trait BenchmarkSpec extends Spec {
     |
     |  Benchmark mode:""".stripMargin)
 
-  heading                 ("Benchmark modes")
   protected var _modes: List[BenchmarkMode] = Nil
-                          "steady-performance"  / "Benchmarking in steady state" --> (_modes ::= SteadyState)
-                          "startup-performance" / "Run script files"             --> (_modes ::= StartUpState)
-                          "memory-usage"        / "Run shootout tests"           --> (_modes ::= MemoryUsage)
-                          "profiler"            / "Run scalap tests"             --> (_modes ::= Profiling)
+                          "steady-performance"  / "Benchmarking in steady state"  --> (_modes ::= SteadyState)
+                          "startup-performance" / "Benchmarking in startup state" --> (_modes ::= StartUpState)
+                          "memory-usage"        / "Measuring memory usage"        --> (_modes ::= MemoryUsage)
+                          "profiler"            / "Profiling"                     --> (_modes ::= Profiling)
 
-  heading		     	  ("Per-benchmark numbers of running")
-  val runs              = "runs"       / "number of benchmark's running each measurement" defaultTo 1
-  val multiplier        = "multiplier" / "number of benchmark's measurements"             defaultTo 11
-  val sample            = "sample"     / "number of pre-created samples for " +
-  		                                                         "detecting regression"   defaultTo 0
+  heading		     	("Per-benchmark numbers of performance measuring " +
+  		                "(will be overriden by corresponding one in .arg file):")
+  val runs              = "runs"       / "number running per measurement"        defaultTo 1
+  val multiplier        = "multiplier" / "number of  measurements"               defaultTo 11
+  val sample            = "sample"     / "number of pre-created samples"         defaultTo 0
+  val shouldCompile     = !("noncompile" / "should re-compile the snippets" --?)
 
-  heading               ("Specifying paths and additional flags, ~ means sbs root:")
+  heading                         ("Per-benchmark names for profiling " +
+  		                            "(will be overriden by corresponding one in .arg file):")
+  protected val _profiledClasses = "profile-class"  / "classes to be profiled, split by ;" defaultTo ""
+  protected val _excludeClasses  = "excludes"       / "classes to be ignored, split by ; 'none' for profile anything" defaultTo ""
+
+  val profiledMethod    = "profile-method" / "name of the methoed to be profiled" defaultTo ""
+  val profiledField     = "profile-field"  / "name of the field to be profiled"   defaultTo ""
+  val shouldGC          = "profile-gc"     / "should profile gc's running" --?
+  val shouldBoxing      = "profile-boxing" / "profile number of boxing - unboxing" --?
+  val shouldStep        = "profile-step"   / "profile number of steps performed" --?
+
+  heading               ("Specifying paths and additional values, ~ means sbs root:")
   protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"   defaultTo "."
-  protected val binDirPath        = "bindir"         / "path from ~ to test build"            defaultTo (null: String)
-  protected val historyPath       = "history"        / "path to previous measurement results" defaultTo benchmarkDirPath
+  protected val binDirPath        = "bindir"         / "path from ~ to benchmark build"       defaultTo ("": String)
+  protected val historyPath       = "history"        / "path to measurement result history"   defaultTo benchmarkDirPath
   protected val classpath         = "classpath"      / "classpath for benchmarks running"     defaultTo ""
-  protected val scalaLibPath      = "scala-library"  / "path to scala-library.jar"            defaultTo (null: String)
-  protected val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"           defaultTo (null: String)
-  val javaOpts          = "javaopts"       / "flags to java on all runs"             defaultToEnv "JAVA_OPTS"
-  val scalacOpts        = "scalacopts"     / "flags to scalac on all tests"          defaultToEnv "SCALAC_OPTS"
+  protected val scalaLibPath      = "scala-library"  / "path to scala-library.jar"            defaultTo ("": String)
+  protected val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"           defaultTo ("": String)
+  val javaOpts                    = "javaopts"       / "flags to java on all runs"            defaultToEnv "JAVA_OPTS"
+  val scalacOpts                  = "scalacopts"     / "flags to scalac on all tests"         defaultToEnv "SCALAC_OPTS"
   protected val javaPath          = "java-home"      / "path to java"         defaultTo (System getProperty "java.home")
 
   heading                 ("Options influencing output:")
-  val shouldCompile     = !("noncompile" / "should re-compile the snippets" --?)
   val isShowLog         = "show-log"     / "show log" --?
   val isVerbose         = "verbose"      / "be more verbose" --?
   val isDebug           = "debug"        / "debugging output" --?

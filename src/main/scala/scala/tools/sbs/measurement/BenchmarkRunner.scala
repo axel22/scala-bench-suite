@@ -18,6 +18,7 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant.MAX_MEASUREMENT
 import scala.tools.sbs.util.Constant.MAX_WARM
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.UI
 
 /** Runs and measures metrics of a benchmark in general case.
  */
@@ -45,11 +46,13 @@ class BenchmarkRunner(log: Log) {
         cleanUp()
         series += measure
         log.verbose("----Measured----  " + series.last)
+//        UI.verbose("----Measured----  " + series.last)
       }
     }
 
     while (measureCount < MAX_MEASUREMENT && !series.isReliable) {
       log.verbose("--Start getting a series--")
+//      UI.info("--Start getting a series--")
 
       getSeries
 
@@ -65,16 +68,19 @@ class BenchmarkRunner(log: Log) {
       }
 
       if (checkWarm(series)) {
-        log.debug("--Reached steady state--")
+        log.info("--Reached steady state--")
+//        UI.info("--Reached steady state--")
         unwarmable = false
         getSeries
       }
       else {
-        log.debug("--Unwarmmable--")
+        log.info("--Unwarmmable--")
+        UI.info("--Unwarmmable--")
         unwarmable = true
         series.clear()
       }
-      log.verbose("--End measurement--")
+      log.info("--End measurement--")
+      UI.info("--End measurement--")
       measureCount += 1
     }
 

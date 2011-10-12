@@ -12,7 +12,7 @@ package profiling
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.Stack
-import scala.compat.Platform
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 import com.sun.jdi.event.AccessWatchpointEvent
@@ -27,11 +27,11 @@ import com.sun.jdi.VirtualMachine
 
 /** This class keeps context on events in one thread.
  */
-class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: VirtualMachine) {
+class JDIThreadTrace(log: Log, profile: Profile, benchmark: Benchmark, thread: ThreadReference, jvm: VirtualMachine) {
 
   /** Instruction steps of methods in call stack.
    */
-  private var times = Stack[Long]()
+  private var steps = Stack[Int]()
 
   /** Convert the `com.sun.jdi.Method` name into the format of <name>.<argument types>.<return type>
    */
@@ -43,12 +43,15 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
   /** Push new method on the call stack.
    */
   def methodEntryEvent(event: MethodEntryEvent) {
-    times push (Platform.currentTime)
-    //    log.verbose("    " + wrapName(event.method))
-    if (event.method.name startsWith "boxTo") {
+    log.verbose(wrapName(event.method))
+    steps push 0
+    if (event.method().name() equals benchmark.profiledMethod) {
+      profile
+    }
+    if (event.method.name contains "box") {
       profile.box
     }
-    if (event.method.name startsWith "unboxTo") {
+    if (event.method.name contains "unbox") {
       profile.unbox
     }
   }
@@ -58,16 +61,16 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
    *  if not existed in.
    */
   def methodExitEvent(event: MethodExitEvent) {
-    if (!times.isEmpty) {
+    if (!steps.isEmpty) {
       profile.classes find (_.name equals event.method.declaringType.name) match {
         case Some(clazz) => {
           clazz.methodInvoked find (_.name equals wrapName(event.method)) match {
             case Some(method) => {
-              method.hasInvoked(Platform.currentTime - (times pop))
+              method.hasInvoked(steps pop)
             }
             case None => {
               val invoked = InvokedMethod(wrapName(event.method))
-              invoked.hasInvoked(Platform.currentTime - (times pop))
+              invoked.hasInvoked(steps pop)
               clazz.invokeMethod(invoked)
             }
           }
@@ -75,7 +78,7 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
         case None => {
           val loaded = LoadedClass(event.method.declaringType.name)
           val invoked = InvokedMethod(wrapName(event.method))
-          invoked.hasInvoked(Platform.currentTime - (times pop))
+          invoked.hasInvoked(steps pop)
           loaded.invokeMethod(invoked)
           profile.loadClass(loaded)
         }
@@ -141,6 +144,8 @@ class JDIThreadTrace(log: Log, profile: Profile, thread: ThreadReference, jvm: V
     //    }
     //    val mgr = jvm.eventRequestManager
     //    mgr deleteEventRequest event.request
+    steps push (steps.pop + 1)
+    profile performStep
   }
 
   def threadDeathEvent(event: ThreadDeathEvent) {

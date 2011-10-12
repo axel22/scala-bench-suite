@@ -23,8 +23,4 @@ case class CompileFailure(info: BenchmarkInfo) extends BenchmarkFailure {
 
 }
 
-case class ExceptionFailure(benchmark: Benchmark, mode: BenchmarkMode, exception: Exception) extends BenchmarkFailure {
-
-  def benchmarkName = benchmark.name
-
-}
+case class ExceptionFailure(benchmarkName: String, exception: Exception) extends BenchmarkFailure

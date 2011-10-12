@@ -12,9 +12,11 @@ package profiling
 
 import java.lang.InterruptedException
 
+import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.HashMap
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.Config
 
 import com.sun.jdi.event.AccessWatchpointEvent
 import com.sun.jdi.event.ClassPrepareEvent
@@ -29,18 +31,16 @@ import com.sun.jdi.event.ThreadDeathEvent
 import com.sun.jdi.event.VMDeathEvent
 import com.sun.jdi.event.VMDisconnectEvent
 import com.sun.jdi.event.VMStartEvent
+import com.sun.jdi.request.DuplicateRequestException
 import com.sun.jdi.request.EventRequest
+import com.sun.jdi.request.StepRequest
 import com.sun.jdi.ThreadReference
 import com.sun.jdi.VMDisconnectedException
 import com.sun.jdi.VirtualMachine
 
 /** Handles JDI events.
  */
-class JDIEventHandler(log: Log, benchmark: Benchmark) {
-
-  /** Packages to exclude from generating event.
-   */
-  private val excludes = List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.*")
+class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
 
   /** Connected to target JVM.
    */
@@ -49,10 +49,6 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
   /** Maps ThreadReference to ThreadTrace instances.
    */
   private val traceMap = new HashMap[ThreadReference, JDIThreadTrace]()
-
-  /** Whether the main benchmark class has been loaded.
-   */
-  private var mainLoaded = false
 
   /** Run the event handling thread. As long as we are connected, get event
    *  sets off the queue and dispatch the events within them.
@@ -97,16 +93,32 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     tdr setSuspendPolicy EventRequest.SUSPEND_ALL
     tdr enable
 
-    val cpr = mgr.createClassPrepareRequest
-    //    excludes foreach (cpr addClassExclusionFilter _)
-    cpr addClassFilter (benchmark.name)
-    cpr setSuspendPolicy EventRequest.SUSPEND_ALL
-    cpr enable
+    println(benchmark.profiledClasses)
+    println(benchmark.excludeClasses)
+    benchmark.profiledClasses foreach (pattern => {
+      val cpr = mgr.createClassPrepareRequest
+      benchmark.excludeClasses foreach (cpr addClassExclusionFilter _)
+      cpr addClassFilter pattern
+      cpr setSuspendPolicy EventRequest.SUSPEND_ALL
+      cpr enable
+    })
 
-    val cur = mgr.createClassUnloadRequest
-    excludes foreach (cur addClassExclusionFilter _)
-    cur setSuspendPolicy EventRequest.SUSPEND_ALL
-    cur enable
+    if (config.shouldBoxing) List(
+      "scala.runtime.BoxesRunTime",
+      "scala.Predef",
+      "scala.Int",
+      "scala.Short",
+      "scala.Long",
+      "scala.Double",
+      "scala.Float",
+      "scala.Boolean",
+      "scala.Byte",
+      "scala.Char") foreach (boxingClass => {
+        val boxingMethodRequest = mgr.createMethodEntryRequest
+        boxingMethodRequest addClassFilter boxingClass
+        boxingMethodRequest setSuspendPolicy EventRequest.SUSPEND_NONE
+        boxingMethodRequest enable
+      })
   }
 
   /** Dispatch incoming events
@@ -118,7 +130,7 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     def threadTrace(thread: ThreadReference): JDIThreadTrace = {
       traceMap.get(thread) match {
         case None => {
-          val ret = new JDIThreadTrace(log, profile, thread, jvm)
+          val ret = new JDIThreadTrace(log, profile, benchmark, thread, jvm)
           traceMap.put(thread, ret)
           ret
         }
@@ -136,52 +148,46 @@ class JDIEventHandler(log: Log, benchmark: Benchmark) {
     def classPrepareEvent(event: ClassPrepareEvent) {
       log.verbose("Prepared " + event.referenceType)
 
-      if ((event.referenceType.name equals benchmark.name) || (mainLoaded)) {
+      profile loadClass event.referenceType.name
 
-        profile loadClass event.referenceType.name
+      val mgr = jvm.eventRequestManager
 
-        val mgr = jvm.eventRequestManager
-
-        // Add watchpoint requests
-        /*event.referenceType.visibleFields.asScala.toSeq foreach (field => {
+      // Add watchpoint requests
+      event.referenceType.visibleFields.asScala.toSeq find (_.name == benchmark.profiledField) match {
+        case Some(field) => {
           val mwrReq = mgr createModificationWatchpointRequest field
-          excludes foreach (mwrReq addClassExclusionFilter _)
           mwrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           mwrReq enable
 
           val awrReq = mgr createAccessWatchpointRequest field
-          excludes foreach (awrReq addClassExclusionFilter _)
           awrReq setSuspendPolicy EventRequest.SUSPEND_NONE
           awrReq enable
-        })
+        }
+        case None => ()
+      }
 
-        // Add step request
+      // Add step request
+      if (config.shouldStep) {
         try {
           val str = mgr.createStepRequest(event.thread, StepRequest.STEP_MIN, StepRequest.STEP_INTO)
-          str setSuspendPolicy EventRequest.SUSPEND_ALL
+          benchmark.excludeClasses foreach (str addClassExclusionFilter _)
+          str setSuspendPolicy EventRequest.SUSPEND_NONE
           str enable
-        } catch {
-          case _: DuplicateRequestException => ()
-        }*/
-
-        if (!mainLoaded) {
-          mainLoaded = true
-          // Add method entry request
-          val menr = mgr.createMethodEntryRequest
-          excludes foreach (menr addClassExclusionFilter _)
-          menr addClassExclusionFilter "scala.*"
-          menr setSuspendPolicy EventRequest.SUSPEND_NONE
-          menr enable
-
-          // Add method exit request
-          val mexr = mgr.createMethodExitRequest
-          excludes foreach (mexr addClassExclusionFilter _)
-          mexr addClassExclusionFilter "scala.*"
-          mexr setSuspendPolicy EventRequest.SUSPEND_NONE
-          mexr enable
-
         }
+        catch { case _: DuplicateRequestException => () }
       }
+
+      // Add method entry request
+      val menr = mgr.createMethodEntryRequest
+      menr addClassFilter event.referenceType.name
+      menr setSuspendPolicy EventRequest.SUSPEND_NONE
+      menr enable
+      
+      // Add method exit request
+      val mexr = mgr.createMethodExitRequest
+      mexr addClassFilter event.referenceType.name
+      mexr setSuspendPolicy EventRequest.SUSPEND_NONE
+      mexr enable
     }
 
     def classUnloadEvent(event: ClassUnloadEvent) {

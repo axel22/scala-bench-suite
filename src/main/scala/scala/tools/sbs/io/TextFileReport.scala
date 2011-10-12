@@ -123,12 +123,9 @@ class TextFileReport(config: Config) extends Report {
   }
 
   def emit(exp: ExceptionFailure) {
-    write("Mode:      " + exp.mode)
     failed()
     write("         Exception:                 " + exp.exception.toString)
-    write("alksfjdslf")
     write(exp.exception.getStackTraceString)
-    write("as;jdflsdkfjsfj")
   }
 
   def emit(compiless: CompileFailure) {

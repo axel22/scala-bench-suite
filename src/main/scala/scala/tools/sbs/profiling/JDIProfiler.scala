@@ -8,7 +8,8 @@
  * Created by ND P
  */
 
-package scala.tools.sbs.profiling
+package scala.tools.sbs
+package profiling
 
 import java.io.IOException
 import java.util.{ Map => JMap }
@@ -50,21 +51,21 @@ class JDIProfiler(config: Config) extends Profiler {
     log.debug("Profile command: " + (javaArgument mkString " "))
 
     val jvm = launchTarget(javaArgument mkString " ")
+
+    def reportException(exc: Exception): ProfilingException = {
+      log.info(exc.toString)
+      log.info(exc.getStackTraceString)
+      jvm.exit(1)
+      ProfilingException(benchmark, exc)
+    }
+
     try {
-      val profile = new JDIEventHandler(log, benchmark) process jvm
+      val profile = new JDIEventHandler(log, config, benchmark) process jvm
       ProfilingSuccess(benchmark, profile)
     }
     catch {
-      // TODO
-      case exc: Exception => {
-        log.info(exc.toString)
-        log.info(exc.getStackTraceString)
-        jvm.exit(1)
-        ProfilingException(benchmark, exc)
-      }
-      case exc: IOException                        => throw new Error("Unable to launch target VM: " + exc)
-      case exc: IllegalConnectorArgumentsException => throw new Error("Internal error: " + exc)
-      case exc: VMStartException                   => throw new Error("Target VM failed to initialize: " + exc.getMessage)
+      case exc: IOException => reportException(new IOException("Unable to launch target VM: " + exc))
+      case exc: Exception   => reportException(exc)
     }
   }
 

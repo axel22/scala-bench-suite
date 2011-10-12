@@ -30,7 +30,7 @@ trait Measurer extends Runner {
 object MeasurerFactory {
 
   def apply(config: Config, mode: BenchmarkMode): Measurer = mode match {
-    case StartUpState => new StartupHarness
+    case StartUpState => new StartupHarness(config)
     case _            => new SubJVMMeasurer(config, mode)
   }
 

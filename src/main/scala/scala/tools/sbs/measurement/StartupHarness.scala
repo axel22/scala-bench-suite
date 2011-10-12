@@ -13,23 +13,28 @@ package measurement
 
 import scala.compat.Platform
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.common.JVMInvokerFactory
+import scala.sys.process.Process
 
 /** Measurer for benchmarking on startup state.
  */
-class StartupHarness extends Measurer {
+class StartupHarness(config: Config) extends Measurer {
 
   def measure(benchmark: Benchmark): MeasurementResult = {
     log = benchmark createLog StartUpState
     log.info("[Benchmarking startup state]")
 
-    if (benchmark.initCommand()) {
+    val command = JVMInvokerFactory(log, config) command benchmark
+    val process = Process(command)
+    
+    if (process.! == 0) {
       val benchmarkRunner = new BenchmarkRunner(log)
       benchmarkRunner run (
         benchmark,
         _ => true,
         {
           val start = Platform.currentTime
-          benchmark.runCommand()
+          process.!
           Platform.currentTime - start
         })
     }

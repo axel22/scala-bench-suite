@@ -40,14 +40,12 @@ object ArgumentParser {
   def parse(args: Array[String]): (Config, Log, List[BenchmarkInfo]) = {
     val config = new Config(args)
     UI.config = config
+    println(UI.config.isDebug)
     val log = LogFactory(config)
-    val benchmarks =
-      if (config.parsed.residualArgs.length > 0) {
-        config.parsed.residualArgs flatMap (name => getBenchmark(name, config))
-      }
-      else {
-        (config.benchmarkDirectory.list map (_.name)).toList flatMap (name => getBenchmark(name, config))
-      }
+    val nameList =
+      if (config.parsed.residualArgs.length > 0) config.parsed.residualArgs
+      else (config.benchmarkDirectory.list map (_.name)).toList
+    val benchmarks = nameList map (name => getBenchmark(name, config)) filterNot (_ == null)
     (config, log, benchmarks)
   }
 
@@ -58,7 +56,7 @@ object ArgumentParser {
    *
    *  @return	`List(Benchmark)` if there is actually a benchmark with the given name, Nil otherwise
    */
-  def getBenchmark(name: String, config: Config): List[BenchmarkInfo] =
+  def getBenchmark(name: String, config: Config): BenchmarkInfo =
     getSource(name, config.benchmarkDirectory) match {
       case Some(src) => {
         val (mainClassName, argFile) =
@@ -70,33 +68,59 @@ object ArgumentParser {
         var shouldCompile = config.shouldCompile
         var classpathURLs = List[URL]()
         var args = List[String]()
-        try {
-          for (line <- Source.fromFile(argFile).getLines) {
-            if (line startsWith "--runs") {
-              runs = (line split " ")(1).toInt
-            }
-            else if (line startsWith "--multiplier") {
-              multiplier = (line split " ")(1).toInt
-            }
-            else if (line startsWith "--classpath") {
-              val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
-              classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
-            }
-            else if (line startsWith "--sample") {
-              sample = (line split " ")(1).toInt
-            }
-            else if (line startsWith "--noncompile") {
-              shouldCompile = false
-            }
-            else {
-              args = List[String]((line split COLON): _*)
-            }
+        var profiledClasses = config.profiledClasses
+        var excludeClasses = config.excludeClasses
+        var profiledMethod = config.profiledMethod
+        var profiledField = config.profiledField
+        try for (line <- Source.fromFile(argFile).getLines) {
+          if (line startsWith "--runs") {
+            runs = (line split " ")(1).toInt
+          }
+          else if (line startsWith "--multiplier") {
+            multiplier = (line split " ")(1).toInt
+          }
+          else if (line startsWith "--classpath") {
+            val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
+            classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
+          }
+          else if (line startsWith "--sample") {
+            sample = (line split " ")(1).toInt
+          }
+          else if (line startsWith "--noncompile") {
+            shouldCompile = false
+          }
+          else if (line startsWith "--profile-class") {
+            profiledClasses = (line split " ")(1) split ";" toList
+          }
+          else if (line startsWith "--excludes") {
+            excludeClasses = (line split " ")(1) split ";" toList
+          }
+          else if (line startsWith "--profiled-method") {
+            profiledMethod = (line split " ")(1)
+          }
+          else if (line startsWith "--profiled-field") {
+            profiledField = (line split " ")(1)
+          }
+          else {
+            args = List[String]((line split " "): _*)
           }
         }
         catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
-        List(BenchmarkInfo(mainClassName, src, args, classpathURLs, runs, multiplier, sample, shouldCompile))
+        BenchmarkInfo(
+          mainClassName,
+          src,
+          args,
+          classpathURLs,
+          runs,
+          multiplier,
+          sample,
+          shouldCompile,
+          profiledClasses,
+          excludeClasses,
+          profiledMethod,
+          profiledField)
       }
-      case _ => Nil
+      case _ => null
     }
 
   /** Checks whether a `name` in `path` directory is a benchmark.

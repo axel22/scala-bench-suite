@@ -51,6 +51,10 @@ object BenchmarkDriver {
     UI.info("Parsing arguments")
     val (config, log, benchmarkInfos) = ArgumentParser parse args
 
+    if (config.isHelp) {
+      println(config.helpMsg)
+      System exit 0
+    }
     log.debug(config.toString)
 
     // Clean up in case demanded
@@ -65,7 +69,16 @@ object BenchmarkDriver {
 
     UI.info("Compiling benchmarks")
     val compiler = BenchmarkCompilerFactory(log, config)
-    val compiled = benchmarkInfos map (_.expand(compiler, config)) filterNot (_ == null)
+
+    val compiled = benchmarkInfos map (info =>
+      try info.expand(compiler, config)
+      catch {
+        case e: ClassNotFoundException => {
+          UI.error(e.toString)
+          resultPack add ExceptionFailure(info.name, e)
+          null
+        }
+      }) filterNot (_ == null)
 
     log.debug(compiled.toString)
 
@@ -156,7 +169,7 @@ object BenchmarkDriver {
             }
           }
         }
-        catch { case e: Exception => resultPack add ExceptionFailure(benchmark, mode, e) }
+        catch { case e: Exception => resultPack add ExceptionFailure(benchmark.name, e) }
       })
       FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
 
