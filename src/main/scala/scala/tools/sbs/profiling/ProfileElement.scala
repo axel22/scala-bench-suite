@@ -106,3 +106,17 @@ case class Field(name: String) extends ProfileElement {
       <modified>{ modified }</modified>
     </field>
 }
+
+/** A garbage collector's running profile.
+ */
+case class GarbageCollection(name: String, cycle: Int, totalTime: Int) {
+
+  def toXML =
+    <gc>
+      <name>{ name }</name>
+      <cycle>{ cycle }</cycle>
+      <time>{ totalTime }</time>
+    </gc>
+
+}
+

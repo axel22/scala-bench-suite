@@ -31,7 +31,7 @@ trait MeasurementFailure extends RunFailure with MeasurementResult {
 
 }
 
-case class UnwarmableFailure extends MeasurementFailure {
+class UnwarmableFailure extends MeasurementFailure {
 
   def reason = "Benchmark could not reach steady state"
 
@@ -39,7 +39,7 @@ case class UnwarmableFailure extends MeasurementFailure {
 
 }
 
-case class UnreliableFailure extends MeasurementFailure {
+class UnreliableFailure extends MeasurementFailure {
 
   def reason = "Measurement result unriliable"
 
@@ -47,7 +47,7 @@ case class UnreliableFailure extends MeasurementFailure {
 
 }
 
-case class ProcessFailure extends MeasurementFailure {
+class ProcessFailure extends MeasurementFailure {
 
   def reason = "Measurement sub-process failed to start"
 

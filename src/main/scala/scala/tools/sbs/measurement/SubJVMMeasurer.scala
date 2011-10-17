@@ -49,9 +49,9 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
           log,
           ArrayBuffer((xml \\ "value") map (_.text.toLong): _*),
           (xml \\ "confidenceLevel").text.toInt))
-      case <UnwarmableFailure/> => UnwarmableFailure()
-      case <UnreliableFailure/> => UnreliableFailure()
-      case <ProcessFailure/> => ProcessFailure()
+      case <UnwarmableFailure/> => new UnwarmableFailure
+      case <UnreliableFailure/> => new UnreliableFailure
+      case <ProcessFailure/> => new ProcessFailure
       case <ExceptionFailure>{ ect }</ExceptionFailure> => ExceptionFailure(new Exception(ect.text))
       case _ => throw new Exception
     }
@@ -59,7 +59,7 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
   catch {
     case e: Exception => {
       log.error("Malformed XML: " + result)
-      ProcessFailure()
+      new ProcessFailure
     }
   }
 

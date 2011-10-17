@@ -39,7 +39,7 @@ class StartupHarness(config: Config) extends Measurer {
         })
     }
     else {
-      ProcessFailure()
+      new ProcessFailure
     }
   }
 

@@ -19,7 +19,7 @@ class Profile {
 
   /** All classes loaded in a benchmark running.
    */
-  private var _classes = ArrayBuffer[LoadedClass]()
+  private val _classes = ArrayBuffer[LoadedClass]()
 
   def classes = _classes
 
@@ -61,14 +61,14 @@ class Profile {
     _steps += 1
   }
 
-  /** Number of garbage collection cycle.
+  /** Garbage collectors' cycles.
    */
-  private var _gcCycle = 0
+  private val _garbageCollections = ArrayBuffer[GarbageCollection]()
 
-  def gcCycle = _gcCycle
+  def garbageCollections = _garbageCollections
 
-  def gc {
-    _gcCycle += 1
+  def gc(name: String, cycle: Int, time: Int) {
+    _garbageCollections += GarbageCollection(name, cycle, time)
   }
 
   def toXML =
@@ -77,7 +77,7 @@ class Profile {
       <steps>{ steps }</steps>
       <boxing>{ boxing }</boxing>
       <unboxing>{ unboxing }</unboxing>
-      <gc>{ gcCycle }</gc>
+      <garbagecollection>{ for (gc <- garbageCollections) yield gc.toXML }</garbagecollection>
     </profile>
 
 }

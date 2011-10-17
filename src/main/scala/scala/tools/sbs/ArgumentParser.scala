@@ -40,7 +40,6 @@ object ArgumentParser {
   def parse(args: Array[String]): (Config, Log, List[BenchmarkInfo]) = {
     val config = new Config(args)
     UI.config = config
-    println(UI.config.isDebug)
     val log = LogFactory(config)
     val nameList =
       if (config.parsed.residualArgs.length > 0) config.parsed.residualArgs

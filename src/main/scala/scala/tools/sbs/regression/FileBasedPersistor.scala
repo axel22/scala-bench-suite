@@ -140,7 +140,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     FileUtil.createFile(location.path + directory, benchmark.name + "." + mode.toString + ".xml") match {
       case Some(xmlFile) => {
         log.info("Result stored OK into " + xmlFile.path)
-        XML.saveFull(xmlFile.path, runSuccess.toXML, "UTF-8", true, null)
+        XML.save(xmlFile.path, runSuccess.toXML, "UTF-8", true, null)
         true
       }
       case None => {

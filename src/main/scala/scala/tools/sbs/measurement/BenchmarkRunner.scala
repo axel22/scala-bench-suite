@@ -86,10 +86,10 @@ class BenchmarkRunner(log: Log) {
       MeasurementSuccess(series)
     }
     else if (unwarmable) {
-      UnwarmableFailure()
+      new UnwarmableFailure
     }
     else {
-      UnreliableFailure()
+      new UnreliableFailure
     }
   }
 
