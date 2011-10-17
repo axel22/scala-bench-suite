@@ -16,6 +16,7 @@ package scala.tools.sbs
  *  <li>Benchmarking in steady state
  *  <li>Measuring memory usage
  *  <li>Profiling
+ *  <li>Pinpointing
  *  </ul>
  */
 trait BenchmarkMode {
@@ -56,5 +57,13 @@ object Profiling extends BenchmarkMode {
   val location = "profile"
 
   override val toString = "profile"
+
+}
+
+object Pinpointing extends BenchmarkMode {
+
+  val location = "pinpoint"
+
+  override val toString = "pinpoint"
 
 }

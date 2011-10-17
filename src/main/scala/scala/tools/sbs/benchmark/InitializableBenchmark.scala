@@ -25,11 +25,13 @@ import scala.tools.sbs.Config
 case class InitializableBenchmark(name: String,
                                   classpathURLs: List[URL],
                                   benchmarkObject: BenchmarkTemplate,
-                                  newContext: ClassLoader,
+                                  context: ClassLoader,
                                   profiledClasses: List[String],
                                   excludeClasses: List[String],
                                   profiledMethod: String,
                                   profiledField: String,
+                                  pinpointClass: String,
+                                  pinpointMethod: String,
                                   config: Config) extends Benchmark {
 
   val arguments = List[String]()
@@ -45,7 +47,7 @@ case class InitializableBenchmark(name: String,
   private val oldContext = Thread.currentThread().getContextClassLoader()
 
   def init() = {
-    Thread.currentThread.setContextClassLoader(newContext)
+    Thread.currentThread.setContextClassLoader(context)
     benchmarkObject.init
   }
 
@@ -58,11 +60,12 @@ case class InitializableBenchmark(name: String,
 
   def createLog(mode: BenchmarkMode): Log = LogFactory(name, mode, config)
 
-
   def toXML =
     <InitializableBenchmark>
       <name>{ name }</name>
       <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>
+      <pinpointClass>{ pinpointClass }</pinpointClass>
+      <pinpointMethod>{ pinpointMethod }</pinpointMethod>
     </InitializableBenchmark>
 
 }

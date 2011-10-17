@@ -31,7 +31,9 @@ case class BenchmarkInfo(name: String,
                          profiledClasses: List[String],
                          excludeClasses: List[String],
                          profiledMethod: String,
-                         profiledField: String) {
+                         profiledField: String,
+                         pinpointClass: String,
+                         pinpointMethod: String) {
 
   def expand(compiler: BenchmarkCompiler, config: Config): Benchmark =
     if (shouldCompile && !(compiler compile this)) {

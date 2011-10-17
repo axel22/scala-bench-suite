@@ -50,10 +50,14 @@ trait Benchmark {
    */
   def reset()
 
+  /** Class loader
+   */
+  def context: ClassLoader
+
   /** Names of the classes to be profiled the loading.
    */
   def profiledClasses: List[String]
-  
+
   /** Names of the classes to be ignored from profiling.
    */
   def excludeClasses: List[String]
@@ -65,6 +69,10 @@ trait Benchmark {
   /** Name of the field to be profiled the accessing and modifying.
    */
   def profiledField: String
+
+  def pinpointClass: String
+
+  def pinpointMethod: String
 
   /** Produces a XML element representing this benchmark.
    */

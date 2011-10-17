@@ -72,6 +72,8 @@ object ArgumentParser {
         var excludeClasses = config.excludeClasses
         var profiledMethod = config.profiledMethod
         var profiledField = config.profiledField
+        var pinpointClass = config.pinpointClass
+        var pinpointMethod = config.pinpointMethod
         try for (line <- Source.fromFile(argFile).getLines) {
           if (line startsWith "--runs") {
             runs = (line split " ")(1).toInt
@@ -101,6 +103,12 @@ object ArgumentParser {
           else if (line startsWith "--profiled-field") {
             profiledField = (line split " ")(1)
           }
+          else if (line startsWith "pinpoint-class") {
+            pinpointClass = (line split " ")(1)
+          }
+          else if (line startsWith "pinpoint-method") {
+            pinpointMethod = (line split " ")(1)
+          }
           else {
             args = List[String]((line split " "): _*)
           }
@@ -118,7 +126,9 @@ object ArgumentParser {
           profiledClasses,
           excludeClasses,
           profiledMethod,
-          profiledField)
+          profiledField,
+          pinpointClass,
+          pinpointMethod)
       }
       case _ => null
     }

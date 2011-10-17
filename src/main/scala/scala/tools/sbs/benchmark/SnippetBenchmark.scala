@@ -33,11 +33,13 @@ case class SnippetBenchmark(name: String,
                             multiplier: Int,
                             sampleNumber: Int,
                             method: Method,
-                            newContext: ClassLoader,
+                            context: ClassLoader,
                             profiledClasses: List[String],
                             excludeClasses: List[String],
                             profiledMethod: String,
                             profiledField: String,
+                            pinpointClass: String,
+                            pinpointMethod: String,
                             config: Config) extends Benchmark {
 
   /** Benchmark process.
@@ -52,7 +54,7 @@ case class SnippetBenchmark(name: String,
 
   /** Sets the running context and load benchmark classes.
    */
-  def init() = Thread.currentThread.setContextClassLoader(newContext)
+  def init() = Thread.currentThread.setContextClassLoader(context)
 
   /** Runs the benchmark object and throws Exceptions (if any).
    */
@@ -69,6 +71,8 @@ case class SnippetBenchmark(name: String,
       <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>
       <runs>{ runs.toString }</runs>
       <multiplier>{ multiplier.toString }</multiplier>
+      <pinpointClass>{ pinpointClass }</pinpointClass>
+      <pinpointMethod>{ pinpointMethod }</pinpointMethod>
     </SnippetBenchmark>
 
 }

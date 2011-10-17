@@ -39,6 +39,7 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
                           "startup-performance" / "Benchmarking in startup state" --> (_modes ::= StartUpState)
                           "memory-usage"        / "Measuring memory usage"        --> (_modes ::= MemoryUsage)
                           "profiler"            / "Profiling"                     --> (_modes ::= Profiling)
+                          "pinpoint"            / "Pinpointing regression detection" --> (_modes ::= Pinpointing)
 
   heading		     	("Per-benchmark numbers of performance measuring " +
   		                "(will be overriden by corresponding one in .arg file):")
@@ -58,6 +59,11 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val shouldBoxing      = "profile-boxing" / "profile number of boxing - unboxing" --?
   val shouldStep        = "profile-step"   / "profile number of steps performed" --?
 
+  heading                         ("Per-benchmark names for pinpointing regression detection " +
+  		                            "(will be overriden by corresponding one in .arg file):")
+  val pinpointClass      = "pinpoint-class"  / "name of the methoed to be pinpointing detected" defaultTo ""
+  val pinpointMethod     = "pinpoint-method" / "name of the field to be pinpointing detected"   defaultTo ""
+  
   heading               ("Specifying paths and additional values, ~ means sbs root:")
   protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"   defaultTo "."
   protected val binDirPath        = "bindir"         / "path from ~ to benchmark build"       defaultTo ("": String)

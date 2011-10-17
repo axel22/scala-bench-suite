@@ -10,11 +10,11 @@
 
 package scala.tools.sbs
 
-import scala.tools.sbs.profiling.Profiler
-import scala.tools.sbs.profiling.ProfilerFactory
+import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurerFactory
-import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.pinpoint.ScrutinizerFactory
+import scala.tools.sbs.profiling.ProfilerFactory
 
 /** Runs the benchmark for some purpose.
  */
@@ -29,8 +29,9 @@ trait Runner {
 object RunnerFactory {
 
   def apply(log: Log, config: Config, mode: BenchmarkMode): Runner = mode match {
-    case Profiling => ProfilerFactory(config)
-    case _         => MeasurerFactory(config, mode)
+    case Profiling   => ProfilerFactory(config)
+    case Pinpointing => ScrutinizerFactory(config)
+    case _           => MeasurerFactory(config, mode)
   }
 
 }

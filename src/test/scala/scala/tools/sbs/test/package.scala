@@ -40,8 +40,13 @@ package object test {
     def init() = ()
     def run() = ()
     def reset() = ()
-    def initCommand() = true
-    def runCommand() = ()
+    def context = null
+    def profiledClasses = List("DummyBenchmark")
+    def excludeClasses = List()
+    def profiledMethod = "run"
+    def profiledField = ""
+    def pinpointClass = ""
+    def pinpointMethod = ""
     def toXML: scala.xml.Elem = <null/>
   }
 

@@ -12,10 +12,11 @@ package scala.tools.sbs
 package measurement
 
 import scala.tools.sbs.benchmark.BenchmarkFactory
+import scala.tools.sbs.io.UI
+import scala.tools.sbs.pinpoint.PinpointHarness
 import scala.tools.sbs.BenchmarkMode
 import scala.tools.sbs.Config
 import scala.xml.XML
-import scala.tools.sbs.io.UI
 
 /** Driver for measurement in a separated JVM.
  *  Choose the harness to run and write the result to output stream.
@@ -54,6 +55,7 @@ object SubProcessMeasurerFactory {
   def apply(mode: BenchmarkMode): SubProcessMeasurer = mode match {
     case SteadyState => SteadyHarness
     case MemoryUsage => MemoryHarness
+    case Pinpointing => PinpointHarness
     case _           => throw new Exception("Wrong harness in SubProcessMeasurerFactory")
   }
 

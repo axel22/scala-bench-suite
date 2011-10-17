@@ -46,13 +46,13 @@ class BenchmarkRunner(log: Log) {
         cleanUp()
         series += measure
         log.verbose("----Measured----  " + series.last)
-//        UI.verbose("----Measured----  " + series.last)
+        UI.verbose("----Measured----  " + series.last)
       }
     }
 
     while (measureCount < MAX_MEASUREMENT && !series.isReliable) {
       log.verbose("--Start getting a series--")
-//      UI.info("--Start getting a series--")
+      UI.info("--Start getting a series--")
 
       getSeries
 
@@ -68,8 +68,7 @@ class BenchmarkRunner(log: Log) {
       }
 
       if (checkWarm(series)) {
-        log.info("--Reached steady state--")
-//        UI.info("--Reached steady state--")
+        UI.info("--Reached steady state--")
         unwarmable = false
         getSeries
       }
@@ -79,12 +78,9 @@ class BenchmarkRunner(log: Log) {
         unwarmable = true
         series.clear()
       }
-      log.info("--End measurement--")
       UI.info("--End measurement--")
       measureCount += 1
     }
-
-    benchmark.reset()
 
     if (series.isReliable) {
       MeasurementSuccess(series)

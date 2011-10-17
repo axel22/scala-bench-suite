@@ -76,46 +76,49 @@ class Series(log: Log) {
 
     if (data.length == 0) {
       log.debug("--Cleared result--")
-//      UI.debug("--Cleared result--")
+      UI.debug("--Cleared result--")
       false
     }
     else {
       val statistic = StatisticsFactory(log)
 
       val mean = statistic mean this
-      log.verbose("--Average--            " + (mean formatted "%.2f"))
-//      UI.verbose("--Average--            " + (mean formatted "%.2f"))
+      log.info("--Average--            " + (mean formatted "%.2f"))
+      UI.info("--Average--            " + (mean formatted "%.2f"))
 
       val (left, right) = statistic confidenceInterval this
-      log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+      log.info("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
         (right formatted "%.2f") + "]")
-//      UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-//        (right formatted "%.2f") + "]")
+      UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+        (right formatted "%.2f") + "]")
 
       var diff = right - left
-      log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+      log.info("--Difference--         " + (diff formatted "%.2f") + " = " +
         ((diff / mean * 100) formatted "%.2f") + "%")
-//      UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
-//        ((diff / mean * 100) formatted "%.2f") + "%")
+      UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+        ((diff / mean * 100) formatted "%.2f") + "%")
 
       while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= CI_PRECISION_THRESHOLD) {
         statistic.reduceConfidenceLevel()
 
         val (left, right) = statistic confidenceInterval this
-        log.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+        log.info("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
           (right formatted "%.2f") + "]")
-//        UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-//          (right formatted "%.2f") + "]")
+        UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
+          (right formatted "%.2f") + "]")
 
         diff = right - left
-        log.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+        log.info("--Difference--         " + (diff formatted "%.2f") + " = " +
           ((diff / mean * 100) formatted "%.2f") + "%")
-////        UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
-//          ((diff / mean * 100) formatted "%.2f") + "%")
+        UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
+          ((diff / mean * 100) formatted "%.2f") + "%")
       }
 
       if ((diff / mean) < CI_PRECISION_THRESHOLD) {
+        UI.info("--Difference--         " + (diff formatted "%.2f") + " = " +
+          ((diff / mean * 100) formatted "%.2f") + "%")
         _confidenceLevel = statistic.confidenceLevel.toInt
+        UI.info("--At confidence level " + confidenceLevel)
         true
       }
       else {

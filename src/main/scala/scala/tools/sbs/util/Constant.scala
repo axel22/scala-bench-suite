@@ -22,6 +22,10 @@ object Constant {
   val SLASH = System getProperty "file.separator"
 
   val ENDL = System getProperty "line.separator"
+  
+  val DOLLAR = "$"
+
+  val COMPANION_FIELD = "MODULE$"
 
   /** Smallest acceptable confidence level.
    */

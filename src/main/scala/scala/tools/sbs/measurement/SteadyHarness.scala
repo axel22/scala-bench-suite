@@ -25,18 +25,20 @@ object SteadyHarness extends SubProcessMeasurer {
   def measure(benchmark: Benchmark): MeasurementResult = {
     val statistic = StatisticsFactory(log)
     log.info("[Benchmarking steady state]")
-    benchmark.init()
     benchmarkRunner run (
       benchmark,
       series => (statistic CoV series) < STEADY_THRESHOLD,
       {
+        benchmark.init()
         val start = Platform.currentTime
         var i = 0
         while (i < benchmark.runs) {
           benchmark.run()
           i += 1
         }
-        Platform.currentTime - start
+        val measured = Platform.currentTime - start
+        benchmark.reset()
+        measured
       })
   }
 
