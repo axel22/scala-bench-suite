@@ -12,19 +12,39 @@ package scala.tools.sbs
 package pinpoint
 
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
 
 trait Scrutinizer extends Runner {
 
-  def run(benchmark: Benchmark): RunResult = scrutinize(benchmark)
+  protected val upperBound = manifest[PinpointBenchmark]
 
-  def scrutinize(benchmark: Benchmark): ScrutinyResult
+  val benchmarkFactory = new PinpointBenchmarkFactory(log, config)
+
+  protected def doBenchmarking(benchmark: Benchmark): BenchmarkResult =
+    scrutinize(benchmark.asInstanceOf[PinpointBenchmark])
+
+  protected def scrutinize(benchmark: PinpointBenchmark): ScrutinyResult
+
+  /** Do-nothing method.
+   */
+  protected def doGenerating(benchmark: Benchmark) = ()
 
 }
 
 object ScrutinizerFactory {
 
-  def apply(config: Config): Scrutinizer = {
-    new MethodScrutinizer(config)
+  def apply(config: Config, log: Log): Scrutinizer = {
+    new MethodScrutinizer(config, log)
   }
 
 }
+
+trait ScrutinyResult extends BenchmarkResult {
+
+  def mode: BenchmarkMode = Pinpointing
+
+}
+
+trait ScrutinySuccess extends BenchmarkSuccess with ScrutinyResult
+
+trait ScrutinyFailure extends BenchmarkFailure with ScrutinyResult

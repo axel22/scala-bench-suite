@@ -17,6 +17,7 @@ import scala.tools.cmd.Property
 import scala.tools.cmd.PropertyMapper
 import scala.tools.cmd.Interpolation
 import scala.tools.cmd.Meta
+import scala.tools.sbs.util.Constant
 
 /** sbs' command line arguments and flags go here.
  */
@@ -50,11 +51,12 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
 
   heading                         ("Per-benchmark names for profiling " +
   		                            "(will be overriden by corresponding one in .arg file):")
-  protected val _profiledClasses = "profile-class"  / "classes to be profiled, split by ;" defaultTo ""
-  protected val _excludeClasses  = "excludes"       / "classes to be ignored, split by ; 'none' for profile anything" defaultTo ""
+  protected val _profileClasses = "profile-class"    / "classes to be profiled, split by " + Constant.COLON defaultTo ""
+  protected val _profileExclude = "profile-exclude" / "classes to be ignored, split by " + Constant.COLON + 
+                                                      " 'none' for profile anything" defaultTo ""
 
-  val profiledMethod    = "profile-method" / "name of the methoed to be profiled" defaultTo ""
-  val profiledField     = "profile-field"  / "name of the field to be profiled"   defaultTo ""
+  val profileMethod     = "profile-method" / "name of the methoed to be profiled" defaultTo ""
+  val profileField      = "profile-field"  / "name of the field to be profiled"   defaultTo ""
   val shouldGC          = "profile-gc"     / "should profile gc's running" --?
   val shouldBoxing      = "profile-boxing" / "profile number of boxing - unboxing" --?
   val shouldStep        = "profile-step"   / "profile number of steps performed" --?
@@ -64,13 +66,22 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val pinpointClass      = "pinpoint-class"  / "name of the methoed to be pinpointing detected" defaultTo ""
   val pinpointMethod     = "pinpoint-method" / "name of the field to be pinpointing detected"   defaultTo ""
   
+  val pinpointBottleneckDectect   = "pinpoint-bottleneck-detect" / "whether to detect the bottleneck" --?
+  
+  protected val _pinpointPrevious = "pinpoint-previous" / "location of classes from previous version " +
+  		                                                  "used to compared during pinpointing regression detection, " +
+  		                                                  "should not be included in classpath" defaultTo ""
+  protected val _pinpointExclude  = "pinpoint-exclude"  / "classes which have methods to be excluded " +
+  		                                                  "from pinpointing regression detection, " +
+  		                                                  "split by " + Constant.COLON defaultTo ""
+  
   heading               ("Specifying paths and additional values, ~ means sbs root:")
   protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"   defaultTo "."
-  protected val binDirPath        = "bindir"         / "path from ~ to benchmark build"       defaultTo ("": String)
+  protected val binDirPath        = "bindir"         / "path from ~ to benchmark build"       defaultTo ""
   protected val historyPath       = "history"        / "path to measurement result history"   defaultTo benchmarkDirPath
   protected val classpath         = "classpath"      / "classpath for benchmarks running"     defaultTo ""
-  protected val scalaLibPath      = "scala-library"  / "path to scala-library.jar"            defaultTo ("": String)
-  protected val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"           defaultTo ("": String)
+  protected val scalaLibPath      = "scala-library"  / "path to scala-library.jar"            defaultTo ""
+  protected val scalaCompilerPath = "scala-compiler" / "path to scala-compiler.jar"           defaultTo ""
   val javaOpts                    = "javaopts"       / "flags to java on all runs"            defaultToEnv "JAVA_OPTS"
   val scalacOpts                  = "scalacopts"     / "flags to scalac on all tests"         defaultToEnv "SCALAC_OPTS"
   protected val javaPath          = "java-home"      / "path to java"         defaultTo (System getProperty "java.home")
@@ -81,9 +92,10 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val isDebug           = "debug"        / "debugging output" --?
 
   heading                 ("Other options:")
-  val isCleanup         = "cleanup"   / "delete all stale files and dirs before run" --?
-  val isNoCleanup       = "nocleanup" / "do not delete any logfiles or object dirs" --?
-  val isHelp            = "help"      / "print usage message" --?
+  val isAll             = "run-all"     / "run all benchmarks in directory" --?
+  val isCleanup         = "cleanup"     / "delete all stale files and dirs before run" --?
+  val isNoCleanLog      = "noclean-log" / "do not delete any logfiles or object dirs" --?
+  val isHelp            = "help"        / "print usage message" --?
 
 }
 

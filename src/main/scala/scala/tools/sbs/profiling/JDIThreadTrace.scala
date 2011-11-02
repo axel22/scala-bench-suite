@@ -12,7 +12,6 @@ package profiling
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.Stack
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 
 import com.sun.jdi.event.AccessWatchpointEvent
@@ -27,7 +26,8 @@ import com.sun.jdi.VirtualMachine
 
 /** This class keeps context on events in one thread.
  */
-class JDIThreadTrace(log: Log, profile: Profile, benchmark: Benchmark, thread: ThreadReference, jvm: VirtualMachine) {
+class JDIThreadTrace(
+    log: Log, profile: Profile, benchmark: ProfilingBenchmark, thread: ThreadReference, jvm: VirtualMachine) {
 
   /** Instruction steps of methods in call stack.
    */
@@ -45,7 +45,7 @@ class JDIThreadTrace(log: Log, profile: Profile, benchmark: Benchmark, thread: T
   def methodEntryEvent(event: MethodEntryEvent) {
     log.verbose(wrapName(event.method))
     steps push 0
-    if (event.method().name() equals benchmark.profiledMethod) {
+    if (event.method().name() equals benchmark.profileMethod) {
       profile
     }
     if (event.method.name contains "box") {

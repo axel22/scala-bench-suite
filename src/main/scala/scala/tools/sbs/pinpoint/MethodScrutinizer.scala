@@ -11,36 +11,33 @@
 package scala.tools.sbs
 package pinpoint
 
-import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.MeasurerFactory
-import scala.tools.sbs.Config
+import scala.tools.sbs.io.UI
 
-class MethodScrutinizer(config: Config) extends Scrutinizer {
+class MethodScrutinizer(protected val config: Config, protected val log: Log) extends Scrutinizer {
 
-  def scrutinize(benchmark: Benchmark): ScrutinyResult = {
-    log = benchmark createLog Pinpointing
-    if (benchmark.pinpointClass == "" || benchmark.pinpointMethod == "") {
-      throw new Exception("No pinpointing method specified")
+  val instrumentedURL = config.bin / ".instrumented" createDirectory () toURL
+
+  def scrutinize(benchmark: PinpointBenchmark): ScrutinyResult = {
+    val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
+
+    val detector = ScrutinyRegressionDetectorFactory(config, log, benchmark, instrumentor, instrumentedURL)
+
+    detector detect benchmark match {
+      case regressionSuccess: ScrutinyCIRegressionSuccess => regressionSuccess
+      case regressionFailure: ScrutinyRegressionFailure => if (config.pinpointBottleneckDectect) {
+        val bottleneckFound = BottleneckFinderFactory(config, log, benchmark, instrumentor, instrumentedURL).find()
+        
+        bottleneckFound.toReport foreach UI.info
+        
+        bottleneckFound.toReport foreach log.info
+        bottleneckFound
+      }
+      else {
+        regressionFailure
+      }
     }
-    instrument(benchmark)
-    MeasurerFactory(config, Pinpointing) measure benchmark
-  }
-
-  /** Modifies the `pinpointMethod` to set entry and exit time to
-   *  {@link scala.tools.sbs.pinpoint.PinpointHarness}'s static fields.
-   */
-  private def instrument(benchmark: Benchmark) {
-    val instrumentor = CodeInstrumentor(config)
-    val (clazz, method) = instrumentor.getClassAndMethod(
-      benchmark.pinpointClass,
-      benchmark.pinpointMethod,
-      config.classpathURLs ++ benchmark.classpathURLs)
-    if (method == null) {
-      throw new Exception("Cannot find method " + benchmark.pinpointMethod)
-    }
-    instrumentor.sandwich(method, PinpointHarness.javaInstructionCallStart, PinpointHarness.javaInstructionCallEnd)
-    instrumentor.writeFile(clazz, benchmark.context)
   }
 
 }

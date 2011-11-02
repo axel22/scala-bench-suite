@@ -182,82 +182,86 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  </ul>
    *
    *  @param benchmark			The benchmark to be test
-   *  @param mode					The benchmarking mode
-   *  @param measurementResult	The just measured result
+   *  @param mode				The benchmarking mode
+   *  @param current			The just measured result
    *  @param history			The list of previous results
    *
    *  @return	The test result
    */
   def testDifference(benchmark: Benchmark,
                      mode: BenchmarkMode,
-                     measurementResult: MeasurementSuccess,
+                     current: Series,
                      history: History): RegressionResult = {
-    if (history.length < 2) {
+    if (history.length < 1) {
       throw new Exception("Not enough result files specified")
     }
-    if (history.length == 2) {
-      testConfidenceIntervals(benchmark, mode, measurementResult, history)
+    if (history.length == 1) {
+      testConfidenceIntervals(benchmark, mode, current, history)
     }
     else {
-      testANOVA(benchmark, mode, measurementResult, history)
+      testANOVA(benchmark, mode, current, history)
     }
   }
 
   /** Statistically rigorously compares means of two samples using confidence intervals.
    *
    *  @param benchmark			The benchmark to be test
-   *  @param mode					The benchmarking mode
-   *  @param measurementResult	The just measured result
+   *  @param mode				The benchmarking mode
+   *  @param current			The just measured result
    *  @param history			The list of previous results
    *
    *  @return	The test result
    */
   private def testConfidenceIntervals(benchmark: Benchmark,
                                       mode: BenchmarkMode,
-                                      measurementResult: MeasurementSuccess,
+                                      current: Series,
                                       history: History): RegressionResult = {
-    var series = history.head
+    val currentMean = mean(current)
+    val currentSD = standardDeviation(current)
+    val currentN = current.length
 
-    val mean1 = mean(series)
-    val s1 = standardDeviation(series)
-    val n1 = series.length
+    val previous = history.head
 
-    series = history.last
+    val previousMean = mean(previous)
+    val previousSD = standardDeviation(previous)
+    val previousN = previous.length
 
-    val mean2 = mean(series)
-    val s2 = standardDeviation(series)
-    val n2 = series.length
-
-    val diff = mean1 - mean2
+    val diff = previousMean - currentMean
 
     if (confidenceLevel == 100 && diff == 0) {
-      RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
+      CIRegressionSuccess(
+        benchmark,
+        mode,
+        100,
+        (currentMean, currentSD),
+        ArrayBuffer((previousMean, previousSD)),
+        (0, 0))
     }
     else {
       reduceConfidenceLevel()
 
-      val s = sqrt(s1 * s1 / n1 + s2 * s2 / n2)
-      var c1: Double = 0
-      var c2: Double = 0
+      val s = sqrt(previousSD * previousSD / previousN + currentSD * currentSD / currentN)
+      var ciLeft: Double = 0
+      var ciRight: Double = 0
 
       var ok = false
 
       while (isConfidenceLevelAcceptable && !ok) {
-        if ((n1 >= 30) && (n2 >= 30)) {
-          c1 = diff - inverseGaussianDistribution * s
-          c2 = diff + inverseGaussianDistribution * s
+        if ((previousN >= 30) && (currentN >= 30)) {
+          ciLeft = diff - inverseGaussianDistribution * s
+          ciRight = diff + inverseGaussianDistribution * s
         }
         else {
-          var ndf: Int = ((s1 * s1 / n1 + s2 * s2 / n2) * (s1 * s1 / n1 + s2 * s2 / n2) /
-            ((s1 * s1 / n1) * (s1 * s1 / n1) / (n1 - 1) + (s2 * s2 / n2) * (s2 * s2 / n2) / (n2 - 1))).toInt
+          var ndf: Int = ((previousSD * previousSD / previousN + currentSD * currentSD / currentN) * (previousSD * previousSD / previousN + currentSD * currentSD / currentN) /
+            ((previousSD * previousSD / previousN) * (previousSD * previousSD / previousN) / (previousN - 1) + (currentSD * currentSD / currentN) * (currentSD * currentSD / currentN) / (currentN - 1))).toInt
           if (ndf == 0) {
             ndf = 1
           }
-          c1 = diff - inverseStudentDistribution(ndf) * s
-          c2 = diff + inverseStudentDistribution(ndf) * s
+          ciLeft = diff - inverseStudentDistribution(ndf) * s
+          ciRight = diff + inverseStudentDistribution(ndf) * s
         }
 
-        if ((c1 > 0 && c2 > 0) || (c1 < 0 && c2 < 0)) {
+        if ((ciLeft > 0 && ciRight > 0) || (ciLeft < 0 && ciRight < 0)) {
           reduceConfidenceLevel()
         }
         else {
@@ -266,16 +270,21 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       }
 
       if (!ok) {
-        ConfidenceIntervalFailure(
+        CIRegressionFailure(
+          benchmark,
+          mode,
+          (currentMean, currentSD),
+          ArrayBuffer((previousMean, previousSD)),
+          (ciLeft, ciRight))
+      }
+      else {
+        CIRegressionSuccess(
           benchmark,
           mode,
           confidenceLevel,
-          measurementResult,
-          ((mean1, standardDeviation(history.head)), (mean2, standardDeviation(history.last))),
-          (c1, c2))
-      }
-      else {
-        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
+          (currentMean, currentSD),
+          ArrayBuffer((previousMean, previousSD)),
+          (ciLeft, ciRight))
       }
     }
   }
@@ -291,51 +300,56 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    */
   private def testANOVA(benchmark: Benchmark,
                         mode: BenchmarkMode,
-                        measurementResult: MeasurementSuccess,
+                        current: Series,
                         history: History): RegressionResult = {
 
-    val sum = history.foldLeft(0: Long)((sum, p) => p.foldLeft(sum)((s, r) => s + r))
+    val sum = history.foldLeft(0: Long)((sum, p) => sum + p.sum) + current.sum
+    val overall: Double = sum / ((history.length + 1) * history.head.length)
 
-    val overall: Double = sum / (history.length * history.head.length)
+    val (currentMean, currentSD) = (mean(current), standardDeviation(current))
+    val historyMeanAndSDs = history map (s => (mean(s), standardDeviation(s)))
 
     var SSA: Double = 0
     var SSE: Double = 0
-
-    var means = ArrayBuffer[Double]()
-
-    for (alternative <- history) {
+    history foreach (alternative => {
       val alternativeMean = mean(alternative)
-      means += alternativeMean
       SSA += (alternativeMean - overall) * (alternativeMean - overall) * alternative.length
-      SSE += alternative.foldLeft(SSE) { (sse, a) => sse + (a - alternativeMean) * (a - alternativeMean) }
-    }
-
-    def meansAndSD: ArrayBuffer[(Double, Double)] =
-      history map (alternative => (mean(alternative), standardDeviation(alternative)))
+      SSE += alternative.foldLeft(SSE) { (sse, value) => sse + (value - alternativeMean) * (value - alternativeMean) }
+    })
+    SSA += (currentMean - overall) * (currentMean - overall) * current.length
+    current foreach (value => SSE += (value - currentMean) * (value - currentMean))
 
     if (confidenceLevel == 100 && SSE == 0) {
       // Memory case
       if (SSA != 0) {
-        ANOVAFailure(
+        ANOVARegressionFailure(
           benchmark,
           mode,
-          confidenceLevel,
-          measurementResult,
-          meansAndSD,
+          (currentMean, currentSD),
+          historyMeanAndSDs,
           SSA,
           SSE,
           Double.PositiveInfinity,
           Double.NaN)
       }
       else {
-        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
+        ANOVARegressionSuccess(
+          benchmark,
+          mode,
+          100,
+          (currentMean, currentSD),
+          historyMeanAndSDs,
+          SSA,
+          SSE,
+          Double.PositiveInfinity,
+          Double.NaN)
       }
     }
     else {
       // Performance case
 
-      val n1 = history.length - 1
-      val n2 = history.foldLeft(0)((s, p) => s + p.length) - history.length
+      val n1 = history.length
+      val n2 = history.foldLeft(0)((s, p) => s + p.length) + current.length - history.length - 1
       val FValue = SSA * n2 / SSE / n1
       var F: Double = 0
 
@@ -347,20 +361,29 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
         log.debug("[SSA] " + SSA + "\t[SSE] " + SSE + "\t[FValue] " + FValue + "\t[F(" + n1 + ", " + n2 + ")] " + F)
 
-        if (FValue <= F) {
-          ok = true
-        }
-        else {
-          reduceConfidenceLevel()
-        }
+        if (FValue <= F) ok = true
+        else reduceConfidenceLevel()
       }
 
-      if (ok) {
-        RegressionSuccess(benchmark, mode, confidenceLevel, measurementResult)
-      }
-      else {
-        ANOVAFailure(benchmark, mode, confidenceLevel, measurementResult, meansAndSD, SSA, SSE, FValue, F)
-      }
+      if (ok) ANOVARegressionSuccess(
+        benchmark,
+        mode,
+        confidenceLevel,
+        (currentMean, currentSD),
+        historyMeanAndSDs,
+        SSA,
+        SSE,
+        FValue,
+        F)
+      else ANOVARegressionFailure(
+        benchmark,
+        mode,
+        (currentMean, currentSD),
+        historyMeanAndSDs,
+        SSA,
+        SSE,
+        FValue,
+        F)
     }
   }
 

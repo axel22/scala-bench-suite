@@ -31,7 +31,7 @@ class BenchmarkRunner(log: Log) {
    *
    *  @return	The result if success, otherwies a `String` describes the reason.
    */
-  def run(benchmark: Benchmark, checkWarm: Series => Boolean, measure: => Long): MeasurementResult = {
+  def run(benchmark: PerformanceBenchmark, checkWarm: Series => Boolean, measure: => Long): MeasurementResult = {
 
     var series = new Series(log)
     var unwarmable = false
@@ -86,10 +86,10 @@ class BenchmarkRunner(log: Log) {
       MeasurementSuccess(series)
     }
     else if (unwarmable) {
-      new UnwarmableFailure
+      new UnwarmableMeasurementFailure
     }
     else {
-      new UnreliableFailure
+      new UnreliableMeasurementFailure
     }
   }
 

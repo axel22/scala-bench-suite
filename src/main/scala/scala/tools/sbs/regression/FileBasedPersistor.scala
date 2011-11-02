@@ -106,7 +106,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
    */
   def generate(num: Int): History = {
     var i = 0
-    val runner = RunnerFactory(log, config, mode)
+    val runner = RunnerFactory(config, log, mode)
     var justCreated = HistoryFactory(log, config, benchmark, mode)
     while (i < num) {
       runner run benchmark match {

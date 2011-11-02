@@ -12,18 +12,20 @@ package scala.tools.sbs
 package pinpoint
 
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.UI
+import scala.tools.sbs.measurement.MeasurementHarness
 import scala.tools.sbs.measurement.MeasurementResult
-import scala.tools.sbs.measurement.SubProcessMeasurer
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.STEADY_THRESHOLD
-import scala.collection.mutable.Stack
 
 /** Measurer for pinpointing regression detection.
  *  Runs just like {@link scala.tools.sbs.measurement.SteadyHarness}
  *  does, but only measures the first running time of a piece of code.
  */
-object PinpointHarness extends SubProcessMeasurer {
+object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
   
+  protected val upperBound = manifest[PinpointBenchmark]
+
   val javaInstructionCallStart = getClass.getName.replace("$", "") + ".start(" + javaExpressionCurrentTime + ");"
   val javaInstructionCallEnd = getClass.getName.replace("$", "") + ".end(" + javaExpressionCurrentTime + ");"
   private def javaExpressionCurrentTime = "System.currentTimeMillis()"
@@ -44,6 +46,7 @@ object PinpointHarness extends SubProcessMeasurer {
    *  Should be called by the instrumented class.
    */
   def start(timeStone: Long) {
+    UI.debug("Start " + timeStone)
     log.debug("Start " + timeStone)
     if (recursionDepth == 0) {
       firstTimeStone = timeStone
@@ -57,13 +60,17 @@ object PinpointHarness extends SubProcessMeasurer {
    *  If the running time, `measured`, has been calculated before, simply ignore.
    */
   def end(timeStone: Long) {
+    UI.debug("End " + timeStone)
     log.debug("End " + timeStone)
     recursionDepth -= 1
     if (recursionDepth == 0) {
       // Back to the start of the recursion
       if (measured == -1) {
+        UI.debug("Back to recursion start")
         log.debug("Back to recursion start")
         measured = timeStone - firstTimeStone
+        UI.debug("Runtime " + measured)
+        log.debug("Runtime " + measured)
       }
     }
   }
@@ -78,8 +85,9 @@ object PinpointHarness extends SubProcessMeasurer {
 
   protected val mode = Pinpointing
 
-  def measure(benchmark: Benchmark): MeasurementResult = {
+  def measure(benchmark: PinpointBenchmark): MeasurementResult = {
     val statistic = StatisticsFactory(log)
+    UI.info("[Benchmarking pinpointing regression detection]")
     log.info("[Benchmarking pinpointing regression detection]")
     benchmarkRunner run (
       benchmark,
@@ -90,7 +98,12 @@ object PinpointHarness extends SubProcessMeasurer {
         // TODO: should we sum `runs` of `measured`?
         benchmark.run()
         benchmark.reset()
-        measured
+        if (measured == -1) {
+          throw new Exception("Method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod + " is never run")
+        }
+        else {
+          measured
+        }
       })
   }
 

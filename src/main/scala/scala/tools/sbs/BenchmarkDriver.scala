@@ -11,23 +11,10 @@
 package scala.tools.sbs
 
 import scala.tools.nsc.io.Path.string2path
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.BenchmarkCompilerFactory
-import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.measurement.MeasurementFailure
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.profiling.ProfilingFailure
-import scala.tools.sbs.profiling.ProfilingSuccess
-import scala.tools.sbs.regression.History
-import scala.tools.sbs.regression.ImmeasurableFailure
-import scala.tools.sbs.regression.NoPreviousFailure
-import scala.tools.sbs.regression.Persistor
 import scala.tools.sbs.regression.PersistorFactory
-import scala.tools.sbs.regression.RegressionResult
-import scala.tools.sbs.regression.RegressionSuccess
-import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.FileUtil
 
 /** Object controls the runtime of benchmark classes to do measurements.
@@ -48,7 +35,7 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = try {
 
-    UI.info("Parsing arguments")
+    UI.info("[Parsing arguments]")
     val (config, log, benchmarkInfos) = ArgumentParser parse args
 
     if (config.isHelp) {
@@ -59,150 +46,88 @@ object BenchmarkDriver {
 
     // Clean up in case demanded
     if (config.isCleanup) {
-      UI.info("Cleaning up")
+      UI.info("[Cleaning up]")
       for (mode <- config.modes) {
         FileUtil.clean(config.history / mode.location)
       }
     }
 
-    var resultPack = new ResultPack()
+    val resultPack = new ResultPack()
 
-    UI.info("Compiling benchmarks")
+    UI.info("[Compiling benchmarks]")
     val compiler = BenchmarkCompilerFactory(log, config)
 
-    val compiled = benchmarkInfos map (info =>
-      try info.expand(compiler, config)
-      catch {
-        case e: ClassNotFoundException => {
-          UI.error(e.toString)
-          resultPack add ExceptionFailure(info.name, e)
-          null
-        }
-      }) filterNot (_ == null)
+    val compiled = benchmarkInfos filter (_.isCompiledOK(compiler, config))
 
     log.debug(compiled.toString)
 
     // Add failure compiles for reporting
-    benchmarkInfos filterNot (info => compiled exists (_.name == info.name)) foreach (resultPack add CompileFailure(_))
+    benchmarkInfos filterNot (
+      info => compiled exists (_.name == info.name)) foreach (
+        resultPack add CompileBenchmarkFailure(_))
 
-    try {
-      UI.info("Generating sample history")
-      // Generate sample history in case demanded
-      compiled filter (_.sampleNumber > 0) foreach (toGenerated =>
-        config.modes.filterNot(_ equals Profiling) foreach (
-          PersistorFactory(log, config, toGenerated, _) generate toGenerated.sampleNumber))
-    }
-    catch {
-      case e => log.debug(e.toString())
-    }
-
-    // List of benchmarks to be run and detect regression
-    val toRun = compiled filter (_.sampleNumber == 0)
-    log.debug(toRun.toString)
-
-    log.verbose("--Running--")
-    UI.info("Running")
+    UI.info("[Expanding completed]")
 
     config.modes foreach (mode => {
 
-      UI.info("Mode: " + mode)
+      UI.info("[Benchmarking mode: " + mode.description + "]")
+
+      resultPack switchMode mode
 
       FileUtil.mkDir(config.benchmarkDirectory / mode.location) match {
         case Right(s) => log.error(s)
         case _        => ()
       }
 
-      val runner = RunnerFactory(log, config, mode)
+      val runner = RunnerFactory(config, log, mode)
+      log.debug("Runner: " + runner.getClass.getName)
 
-      toRun foreach (benchmark => {
+      val benchmarks = compiled map (info =>
+        try info.expand(runner.benchmarkFactory, config)
+        catch {
+          case e: ClassNotFoundException => {
+            UI.error(e.toString)
+            resultPack add new ExceptionBenchmarkFailure(info.name, e)
+            null
+          }
+        }) filterNot (_ == null)
+
+      // Generate sample history in case demanded
+      UI.info("[Generating sample histories]")
+      try benchmarks filter (_.sampleNumber > 0) foreach (runner generate _)
+      catch {
+        case e => log.debug(e.toString())
+      }
+
+      // Benchmarking
+      UI.info("[Start benchmarking]")
+      benchmarks filter (_.sampleNumber == 0) foreach (benchmark => {
 
         UI.info("Benchmark: " + benchmark.name)
         log.info("Benchmark: " + benchmark.name)
+        log.debug("Benchmark: " + benchmark.getClass.getName)
 
-        try runner run benchmark match {
-          case success: RunSuccess => {
+        try resultPack add (runner run benchmark)
+        catch {
+          case e: Exception => {
+            UI.info("[    Run FAILED    ]")
+            log.verbose("[    Run FAILED    ]")
 
-            UI.info("[  Run OK  ]")
-            log.verbose("[  Run OK  ]")
-
-            val persistor = PersistorFactory(log, config, benchmark, mode)
-            success match {
-              case msm: MeasurementSuccess => {
-
-                UI.info("Detect regression")
-                val result = detectRegression(benchmark, mode, msm, persistor, log)
-
-                result match {
-                  case _: RegressionSuccess => {
-                    UI.info("[  OK  ]")
-                    persistor.store(msm, true)
-                  }
-                  case _: NoPreviousFailure => {
-                    UI.info("[FAILED]")
-                    persistor.store(msm, true)
-                  }
-                  case _ => {
-                    UI.info("[FAILED]")
-                    persistor.store(msm, false)
-                  }
-                }
-                resultPack add result
-              }
-              case pfl: ProfilingSuccess => {
-                resultPack add pfl
-                persistor.store(pfl, true)
-              }
-            }
-          }
-          case failure: RunFailure => {
-
-            UI.info("[Run FAILED]")
-            log.verbose("[Run FAILED]")
-
-            failure match {
-              case msm: MeasurementFailure => {
-                resultPack add ImmeasurableFailure(benchmark, mode, msm)
-              }
-              case pfl: ProfilingFailure => {
-                resultPack add pfl
-              }
-            }
+            resultPack add new ExceptionBenchmarkFailure(benchmark.name, e)
           }
         }
-        catch { case e: Exception => resultPack add ExceptionFailure(benchmark.name, e) }
       })
-      FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
-
+      if (!config.isNoCleanLog) {
+        FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
+      }
     })
     ReportFactory(config)(resultPack)
   }
   catch {
     case e: Throwable => {
-      UI.info(e.toString)
-      UI.info(e.getStackTraceString)
+      UI.error(e.toString)
+      UI.error(e.getStackTraceString)
       throw e
-    }
-  }
-
-  /** Loads previous results and uses statistically rigorous method to detect regression.
-   *
-   *  @param result	The benchmark result just measured.
-   */
-  def detectRegression(benchmark: Benchmark,
-                       mode: BenchmarkMode,
-                       result: MeasurementSuccess,
-                       persistor: Persistor,
-                       log: Log): RegressionResult = {
-
-    val history: History = persistor.load()
-    history add result.series
-
-    if (history.length < 2) {
-      NoPreviousFailure(benchmark, mode, result)
-    }
-    else {
-      val statistic = StatisticsFactory(log)
-      statistic testDifference (benchmark, mode, result, history)
     }
   }
 

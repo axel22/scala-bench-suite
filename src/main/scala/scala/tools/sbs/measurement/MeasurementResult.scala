@@ -11,13 +11,11 @@
 package scala.tools.sbs
 package measurement
 
+import scala.tools.sbs.benchmark.Benchmark
+
 /** Represents a result of a measurement phase of one benchmark on one {@link BenchmarkMode}.
  */
-trait MeasurementResult extends RunResult {
-
-  def toXML: scala.xml.Elem
-
-}
+trait MeasurementResult extends RunResult
 
 case class MeasurementSuccess(series: Series) extends RunSuccess with MeasurementResult {
 
@@ -31,36 +29,45 @@ trait MeasurementFailure extends RunFailure with MeasurementResult {
 
 }
 
-class UnwarmableFailure extends MeasurementFailure {
+class UnwarmableMeasurementFailure extends MeasurementFailure {
 
   def reason = "Benchmark could not reach steady state"
 
-  def toXML = <UnwarmableFailure/>
+  def toXML = <UnwarmableMeasurementFailure/>
 
 }
 
-class UnreliableFailure extends MeasurementFailure {
+class UnreliableMeasurementFailure extends MeasurementFailure {
 
   def reason = "Measurement result unriliable"
 
-  def toXML = <UnreliableFailure/>
+  def toXML = <UnreliableMeasurementFailure/>
 
 }
 
-class ProcessFailure extends MeasurementFailure {
+case class ProcessMeasurementFailure(exitValue: Int) extends MeasurementFailure {
 
-  def reason = "Measurement sub-process failed to start"
+  def reason = "Error in benchmark process exit value: " + exitValue
 
-  def toXML = <ProcessFailure/>
+  def toXML = <ProcessMeasurementFailure>{ exitValue }</ProcessMeasurementFailure>
 
 }
 
-case class ExceptionFailure(e: Exception) extends MeasurementFailure {
+case class UnsupportedBenchmarkMeasurementFailure(benchmark: Benchmark, mode: BenchmarkMode)
+  extends MeasurementFailure {
 
-  def reason = "Exception " + e + " raised"
+  def reason = "Benchmark " + benchmark.name + " unsupports benchmarking mode: " + mode.description
+
+  def toXML = <UnsupportedBenchmarkMeasurementFailure/>
+
+}
+
+case class ExceptionMeasurementFailure(e: Exception) extends MeasurementFailure {
+
+  def reason = e.toString + " raised"
 
   def exception = e
 
   def toXML =
-    <ExceptionFailure>{ e.toString + "\n" + e.getStackTraceString }</ExceptionFailure>
+    <ExceptionMeasurementFailure>{ e.getMessage }</ExceptionMeasurementFailure>
 }

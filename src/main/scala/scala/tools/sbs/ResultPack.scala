@@ -17,22 +17,54 @@ import scala.collection.mutable.ArrayBuffer
  */
 class ResultPack {
 
-  private var results = ArrayBuffer[BenchmarkResult]()
+  private var modes = ArrayBuffer[ReportMode](new ReportMode(DummyMode))
 
-  def add(newResult: BenchmarkResult) {
-    results += newResult
-  }
+  def switchMode(mode: BenchmarkMode) = modes :+= new ReportMode(mode)
 
-  def total = results.length
+  private def currentMode = modes.last
 
-  def ok = successes.length
+  def add(newResult: BenchmarkResult) = currentMode add newResult
+
+  def total = modes./:(0)((total, mode) => total + mode.results.length)
+
+  def ok = success.length
 
   def failed = total - ok
 
+  def foreach(mode: ReportMode => Unit) = modes foreach mode
+
+  def success = modes./:(ArrayBuffer[BenchmarkResult]())((arr, mode) => arr ++ mode.success)
+
+  def failure = modes./:(ArrayBuffer[BenchmarkResult]())((arr, mode) => arr ++ mode.failure)
+
+}
+
+class ReportMode(mode: BenchmarkMode) {
+
+  private var _results = ArrayBuffer[BenchmarkResult]()
+
+  def add(newResult: BenchmarkResult) = _results += newResult
+
+  def results = _results
+
   def foreach(f: BenchmarkResult => Unit) = results foreach f
 
-  def successes = results filterNot (failures contains _)
+  def success = results filterNot (failure contains _)
 
-  def failures = results filter (_.isInstanceOf[BenchmarkFailure])
+  def failure = results filter (_.isInstanceOf[BenchmarkFailure])
+
+  def toReport = "[" + mode.description + "]"
+
+}
+
+/** Used for reporting error on compiling results.
+ */
+object DummyMode extends BenchmarkMode {
+
+  val location = "dummy"
+
+  override val toString = "dummy"
+
+  val description = "Error on compiling"
 
 }

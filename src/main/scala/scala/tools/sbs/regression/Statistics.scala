@@ -44,7 +44,7 @@ trait Statistics {
 
   def testDifference(benchmark: Benchmark,
                      mode: BenchmarkMode,
-                     measurementResult: MeasurementSuccess,
+                     current: Series,
                      history: History): RegressionResult
 
 }

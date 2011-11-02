@@ -12,6 +12,7 @@ package scala.tools.sbs
 package profiling
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.measurement.MeasurementResult
 
 trait ProfileElement {
 
@@ -45,6 +46,9 @@ case class LoadedClass(name: String) extends ProfileElement {
     _methodInvoked += method
   }
 
+  def toReport =
+    ArrayBuffer("Loaded class " + name) ++ (fields flatMap (_.toReport)) ++ (methodInvoked flatMap (_.toReport))
+
   def toXML =
     <class>
       <name>{ name }</name>
@@ -59,7 +63,11 @@ case class LoadedClass(name: String) extends ProfileElement {
  */
 case class InvokedMethod(name: String) extends ProfileElement {
 
-  case class Invocation(steps: Int)
+  case class Invocation(steps: Int) {
+
+    def toReport = ArrayBuffer("Run for " + steps + "steps")
+
+  }
 
   /** Number of all the invocations of this method.
    */
@@ -70,6 +78,8 @@ case class InvokedMethod(name: String) extends ProfileElement {
   def hasInvoked(steps: Int) {
     _invocations += Invocation(steps)
   }
+
+  def toReport = ArrayBuffer("Invoked method: " + name) ++ (invocations map (_.steps.toString()))
 
   def toXML =
     <method>
@@ -99,6 +109,8 @@ case class Field(name: String) extends ProfileElement {
     _modified += 1
   }
 
+  def toReport = ArrayBuffer("Field: " + name, "accessed " + accessed, "modified " + modified)
+
   def toXML =
     <field>
       <name>{ name }</name>
@@ -109,7 +121,9 @@ case class Field(name: String) extends ProfileElement {
 
 /** A garbage collector's running profile.
  */
-case class GarbageCollection(name: String, cycle: Int, totalTime: Int) {
+case class GarbageCollection(name: String, cycle: Long, totalTime: Long) {
+
+  def toReport = ArrayBuffer("Garbage collector: " + name, "Cycle: " + cycle, "Total time: " + totalTime)
 
   def toXML =
     <gc>
@@ -120,3 +134,51 @@ case class GarbageCollection(name: String, cycle: Int, totalTime: Int) {
 
 }
 
+case class MemoryUsage(init: Long, used: Long, committed: Long, max: Long) {
+
+  def toReport = ArrayBuffer("Init: " + init, "Used: " + used, "Committed: " + committed, "Max: " + max)
+
+  def toXML =
+    <MemoryUsage>
+      <init>{ init }</init>
+      <used>{ used }</used>
+      <committed>{ committed }</committed>
+      <max>{ max }</max>
+    </MemoryUsage>
+
+}
+
+case class MemoryActivity(heap: MemoryUsage, nonHeap: MemoryUsage) extends MeasurementResult {
+
+  def this(heap: MemoryUsage, nonHeap: MemoryUsage, garbageCollections: Seq[GarbageCollection]) {
+    this(heap, nonHeap)
+    garbageCollections foreach (newGC => this.gc(newGC.name, newGC.cycle, newGC.totalTime))
+  }
+
+  /** Garbage collectors' cycles.
+   */
+  private val _garbageCollections = ArrayBuffer[GarbageCollection]()
+
+  def garbageCollections = _garbageCollections
+
+  def gc(name: String, cycle: Long, time: Long) {
+    _garbageCollections += GarbageCollection(name, cycle, time)
+  }
+
+  def toReport =
+    ArrayBuffer(
+      "Memory activities: ",
+      "Heap used: ") ++
+      heap.toReport ++
+      ArrayBuffer("Non heap used: ") ++
+      nonHeap.toReport ++
+      (garbageCollections flatMap (_.toReport))
+
+  def toXML =
+    <MemoryActivity>
+      <heap>{ heap.toXML }</heap>
+      <nonHeap>{ nonHeap.toXML }</nonHeap>
+      <garbagecollection>{ for (gc <- garbageCollections) yield gc.toXML }</garbagecollection>
+    </MemoryActivity>
+
+}

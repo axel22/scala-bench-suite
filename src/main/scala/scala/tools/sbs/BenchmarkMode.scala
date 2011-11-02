@@ -26,6 +26,8 @@ trait BenchmarkMode {
    */
   def location: String
 
+  def description: String
+
 }
 
 object StartUpState extends BenchmarkMode {
@@ -33,6 +35,8 @@ object StartUpState extends BenchmarkMode {
   val location = "startup"
 
   override val toString = "startup"
+
+  val description = "Benchmarking performance in start-up state"
 
 }
 
@@ -42,6 +46,8 @@ object SteadyState extends BenchmarkMode {
 
   override val toString = "steady"
 
+  val description = "Benchmarking performance in steady state"
+
 }
 
 object MemoryUsage extends BenchmarkMode {
@@ -49,6 +55,8 @@ object MemoryUsage extends BenchmarkMode {
   val location = "memory"
 
   override val toString = "memory"
+
+  val description = "Benchmarking memory consumption in steady state"
 
 }
 
@@ -58,6 +66,8 @@ object Profiling extends BenchmarkMode {
 
   override val toString = "profile"
 
+  val description = "Profiling"
+
 }
 
 object Pinpointing extends BenchmarkMode {
@@ -65,5 +75,7 @@ object Pinpointing extends BenchmarkMode {
   val location = "pinpoint"
 
   override val toString = "pinpoint"
+
+  val description = "Pinpointing regression detection"
 
 }

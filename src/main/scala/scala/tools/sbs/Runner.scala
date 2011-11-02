@@ -11,37 +11,67 @@
 package scala.tools.sbs
 
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.benchmark.BenchmarkFactory
+import scala.tools.sbs.common.RuntimeTypeChecker
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.measurement.MeasurementHarnessFactory
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.pinpoint.ScrutinizerFactory
 import scala.tools.sbs.profiling.ProfilerFactory
 
 /** Runs the benchmark for some purpose.
  */
-trait Runner {
+trait Runner extends RuntimeTypeChecker {
 
-  protected var log: Log = null
+  protected def log: Log
 
-  def run(benchmark: Benchmark): RunResult
+  protected def config: Config
+
+  def benchmarkFactory: BenchmarkFactory
+
+  /** Runs the benchmark and produces the benchmarking result.
+   */
+  def run(benchmark: Benchmark): BenchmarkResult =
+    if (check(benchmark.getClass)) {
+      doBenchmarking(benchmark)
+    }
+    else {
+      throw new MismatchBenchmarkImplementationException(benchmark, this)
+    }
+
+  protected def doBenchmarking(benchmark: Benchmark): BenchmarkResult
+
+  /** Generates sample results for later regression detections.
+   */
+  def generate(benchmark: Benchmark) =
+    if (check(benchmark.getClass)) {
+      doGenerating(benchmark)
+    }
+    else {
+      throw new MismatchBenchmarkImplementationException(benchmark, this)
+    }
+
+  protected def doGenerating(benchmark: Benchmark)
 
 }
 
 object RunnerFactory {
 
-  def apply(log: Log, config: Config, mode: BenchmarkMode): Runner = mode match {
-    case Profiling   => ProfilerFactory(config)
-    case Pinpointing => ScrutinizerFactory(config)
-    case _           => MeasurerFactory(config, mode)
+  def apply(config: Config, log: Log, mode: BenchmarkMode): Runner = mode match {
+    case Profiling                                => ProfilerFactory(config, log)
+    case Pinpointing                              => ScrutinizerFactory(config, log)
+    case StartUpState | SteadyState | MemoryUsage => MeasurerFactory(config, log, mode, MeasurementHarnessFactory)
+    case _                                        => throw new NotSupportedBenchmarkMode(mode)
   }
 
 }
 
-trait RunResult
-
-trait RunSuccess extends RunResult {
+trait RunResult {
 
   def toXML: scala.xml.Elem
 
 }
+
+trait RunSuccess extends RunResult
 
 trait RunFailure extends RunResult

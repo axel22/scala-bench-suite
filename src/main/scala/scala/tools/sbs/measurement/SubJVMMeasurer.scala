@@ -11,27 +11,40 @@
 package scala.tools.sbs
 package measurement
 
+import java.net.URL
+
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
-import scala.tools.sbs.BenchmarkMode
-import scala.tools.sbs.Config
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 
 /** Measures benchmark metric by invoking a new clean JVM.
  */
-class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
+class SubJVMMeasurer(protected val log: Log,
+                     protected val config: Config,
+                     val mode: BenchmarkMode,
+                     measurementHarness: MeasurementHarness[_])
+  extends Measurer {
 
-  def measure(benchmark: Benchmark): MeasurementResult = {
-    log = benchmark createLog mode
-    val subProcessMeasurer = SubProcessMeasurerFactory(mode)
+  /** Measures with default classpath as `config.classpathURLs ++ benchmark.classpathURLs`.
+   */
+  def measure(benchmark: PerformanceBenchmark): MeasurementResult =
+    measure(benchmark, config.classpathURLs ++ benchmark.classpathURLs)
+
+  /** Lauches a new process with a {@link MeasurementHarness} runs a
+   *  {@link scala.tools.sbs.Benchmark}. User classes will be loaded from
+   *  the given `classpathURLs`.
+   */
+  def measure(benchmark: PerformanceBenchmark, classpathURLs: List[URL]): MeasurementResult = {
     val invoker = JVMInvokerFactory(log, config)
-    val (result, error) = invoker invoke (invoker.command(subProcessMeasurer, benchmark))
+    val (result, error) = invoker invoke (invoker.command(measurementHarness, benchmark, classpathURLs))
     if (error.length > 0) {
       error foreach log.error
-      ExceptionFailure(new Exception(error mkString "\n"))
+      ExceptionMeasurementFailure(new Exception(error mkString "\n"))
     }
     else {
-      dispose(result)
+      dispose(result, benchmark, mode)
     }
   }
 
@@ -41,7 +54,7 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
    *
    *  @return	The corresponding `MeasurementResult`
    */
-  def dispose(result: String): MeasurementResult = try {
+  protected def dispose(result: String, benchmark: Benchmark, mode: BenchmarkMode): MeasurementResult = try {
     val xml = scala.xml.Utility trim (scala.xml.XML loadString result)
     xml match {
       case <MeasurementSuccess>{ _ }</MeasurementSuccess> =>
@@ -49,17 +62,30 @@ class SubJVMMeasurer(config: Config, mode: BenchmarkMode) extends Measurer {
           log,
           ArrayBuffer((xml \\ "value") map (_.text.toLong): _*),
           (xml \\ "confidenceLevel").text.toInt))
-      case <UnwarmableFailure/> => new UnwarmableFailure
-      case <UnreliableFailure/> => new UnreliableFailure
-      case <ProcessFailure/> => new ProcessFailure
-      case <ExceptionFailure>{ ect }</ExceptionFailure> => ExceptionFailure(new Exception(ect.text))
-      case _ => throw new Exception
+      case <UnwarmableMeasurementFailure/> =>
+        new UnwarmableMeasurementFailure
+      case <UnreliableMeasurementFailure/> =>
+        new UnreliableMeasurementFailure
+      case <ProcessMeasurementFailure>{ exitValue }</ProcessMeasurementFailure> =>
+        new ProcessMeasurementFailure(exitValue.text.toInt)
+      case <ExceptionMeasurementFailure>{ ect }</ExceptionMeasurementFailure> =>
+        ExceptionMeasurementFailure(new Exception(ect.text))
+      case <UnsupportedBenchmarkMeasurementFailure/> =>
+        UnsupportedBenchmarkMeasurementFailure(benchmark, mode)
+      case _ =>
+        new ProcessMeasurementFailure(0)
     }
   }
   catch {
-    case e: Exception => {
+    case e: org.xml.sax.SAXParseException => {
+      UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)
-      new ProcessFailure
+      throw e
+    }
+    case e: Exception => {
+      UI.error("Malformed XML: " + result)
+      log.error("Malformed XML: " + result)
+      throw new MalformedXMLException(this, mode, scala.xml.XML loadString result)
     }
   }
 

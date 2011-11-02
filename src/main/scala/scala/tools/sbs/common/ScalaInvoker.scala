@@ -21,6 +21,7 @@ import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
 import org.apache.commons.math.MathException
 import scala.tools.nsc.util.ClassPath
+import java.net.URL
 
 /** An implement of {@link JVMInvoker}.
  */
@@ -36,39 +37,48 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
   /** `-cp <classpath from config; classpath from benchmark>`
    */
-  private def asScalaClasspath(benchmark: Benchmark) =
-    Seq("-cp", ClassPath.fromURLs(config.classpathURLs ++ benchmark.classpathURLs: _*))
+  private def asScalaClasspath(classpathURLs: List[URL]) =
+    Seq("-cp", ClassPath.fromURLs(classpathURLs: _*))
 
   /** `-cp <classpath from config; classpath from benchmark> Runner`
    */
-  private def asRunner(runner: Runner, benchmark: Benchmark) =
-    asScalaClasspath(benchmark) ++ Seq(runner.getClass.getName replace ("$", ""))
+  private def asHarness(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]) =
+    asScalaClasspath(classpathURLs) ++ Seq(harness.getClass.getName replace ("$", ""))
 
   /** `-cp <classpath from config; classpath from benchmark> Benchmark`
    */
-  private def asBenchmark(benchmark: Benchmark) = asScalaClasspath(benchmark) ++ Seq(benchmark.name)
+  private def asBenchmark(benchmark: Benchmark, classpathURLs: List[URL]) =
+    asScalaClasspath(classpathURLs) ++ Seq(benchmark.name)
 
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala.home=<scala-home> scala.tools.nsc.MainGenericRunner
    *  -cp <classpath from config; classpath from benchmark> Benchmark benchmark.arguments`
    */
-  def asJavaArgument(benchmark: Benchmark) = asScala ++ asBenchmark(benchmark) ++ benchmark.arguments
+  def asJavaArgument(benchmark: Benchmark, classpathURLs: List[URL]) =
+    asScala ++ asBenchmark(benchmark, classpathURLs) ++ benchmark.arguments
 
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala.home=<scala-home> scala.tools.nsc.MainGenericRunner
    *  -cp <classpath from config; classpath from benchmark> Runner benchmark.toXML config.args`
+   *  Result must be a string on one line and starts with `<`.
    */
-  def asJavaArgument(runner: Runner, benchmark: Benchmark) =
-    asScala ++ asRunner(runner, benchmark) ++ Seq(benchmark.toXML.toString) ++ config.args
+  def asJavaArgument(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]) =
+    asScala ++
+      asHarness(harness, benchmark, classpathURLs) ++
+      Seq(scala.xml.Utility.trim(benchmark.toXML).toString) ++
+      config.args
 
-  def command(runner: Runner, benchmark: Benchmark) = java ++ asJavaArgument(runner, benchmark)
+  def command(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]) =
+    java ++ asJavaArgument(harness, benchmark, classpathURLs)
 
-  def command(benchmark: Benchmark) = java ++ asScala ++ asJavaArgument(benchmark)
+  def command(benchmark: Benchmark, classpathURLs: List[URL]) =
+    java ++ asScala ++ asJavaArgument(benchmark, classpathURLs)
 
   def invoke(command: Seq[String]): (String, ArrayBuffer[String]) = {
     var result = ""
     var error = ArrayBuffer[String]()
     val processBuilder = Process(command)
 
-    log.debug(command mkString " ")
+    UI.debug("Invoked command: " + (command mkString " "))
+    log.debug("Invoked command: " + (command mkString " "))
 
     val processIO = new ProcessIO(
       _ => (),
@@ -79,6 +89,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     val process = processBuilder.run(processIO)
     val success = process.exitValue
 
+    UI.debug("Sub-process exit value: " + success)
     log.debug("Sub-process exit value: " + success)
 
     (result, error)

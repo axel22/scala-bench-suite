@@ -23,6 +23,7 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
+import scala.tools.sbs.util.Constant
 
 /** Parser for the suite's arguments.
  */
@@ -43,7 +44,8 @@ object ArgumentParser {
     val log = LogFactory(config)
     val nameList =
       if (config.parsed.residualArgs.length > 0) config.parsed.residualArgs
-      else (config.benchmarkDirectory.list map (_.name)).toList
+      else if (config.isAll) (config.benchmarkDirectory.list map (_.name)).toList
+      else Nil
     val benchmarks = nameList map (name => getBenchmark(name, config)) filterNot (_ == null)
     (config, log, benchmarks)
   }
@@ -61,56 +63,31 @@ object ArgumentParser {
         val (mainClassName, argFile) =
           if (src isFile) (src.stripExtension, (src.path stripSuffix "scala") + "arg")
           else (src.name, src.path + ".arg")
-        var runs = config.runs
-        var multiplier = config.multiplier
         var sample = config.sample
         var shouldCompile = config.shouldCompile
         var classpathURLs = List[URL]()
         var args = List[String]()
-        var profiledClasses = config.profiledClasses
-        var excludeClasses = config.excludeClasses
-        var profiledMethod = config.profiledMethod
-        var profiledField = config.profiledField
-        var pinpointClass = config.pinpointClass
-        var pinpointMethod = config.pinpointMethod
-        try for (line <- Source.fromFile(argFile).getLines) {
-          if (line startsWith "--runs") {
-            runs = (line split " ")(1).toInt
-          }
-          else if (line startsWith "--multiplier") {
-            multiplier = (line split " ")(1).toInt
-          }
-          else if (line startsWith "--classpath") {
-            val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
-            classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
-          }
-          else if (line startsWith "--sample") {
-            sample = (line split " ")(1).toInt
-          }
-          else if (line startsWith "--noncompile") {
-            shouldCompile = false
-          }
-          else if (line startsWith "--profile-class") {
-            profiledClasses = (line split " ")(1) split ";" toList
-          }
-          else if (line startsWith "--excludes") {
-            excludeClasses = (line split " ")(1) split ";" toList
-          }
-          else if (line startsWith "--profiled-method") {
-            profiledMethod = (line split " ")(1)
-          }
-          else if (line startsWith "--profiled-field") {
-            profiledField = (line split " ")(1)
-          }
-          else if (line startsWith "pinpoint-class") {
-            pinpointClass = (line split " ")(1)
-          }
-          else if (line startsWith "pinpoint-method") {
-            pinpointMethod = (line split " ")(1)
-          }
-          else {
-            args = List[String]((line split " "): _*)
-          }
+
+        try {
+          val argBuffer = Source.fromFile(argFile)
+          argBuffer.getLines foreach (line =>
+            if (line startsWith "--classpath") {
+              val readCP = (line split " ")(1) split COLON map (Path(_).toCanonical.toURL)
+              classpathURLs = (readCP.toList ++ config.classpathURLs).distinct
+            }
+            else if (line startsWith "--sample") {
+              sample = (line split " ")(1).toInt
+            }
+            else if (line startsWith "--noncompile") {
+              shouldCompile = false
+            }
+            else if (line startsWith "-") {
+              // Does nothing
+            }
+            else {
+              args = List[String]((line split " "): _*)
+            })
+          argBuffer.close()
         }
         catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
         BenchmarkInfo(
@@ -118,16 +95,8 @@ object ArgumentParser {
           src,
           args,
           classpathURLs,
-          runs,
-          multiplier,
           sample,
-          shouldCompile,
-          profiledClasses,
-          excludeClasses,
-          profiledMethod,
-          profiledField,
-          pinpointClass,
-          pinpointMethod)
+          shouldCompile)
       }
       case _ => null
     }

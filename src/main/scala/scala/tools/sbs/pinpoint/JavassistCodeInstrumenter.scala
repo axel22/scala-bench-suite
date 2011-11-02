@@ -14,23 +14,26 @@ package pinpoint
 import java.net.URL
 
 import scala.tools.sbs.common.Reflector
-import scala.tools.sbs.Config
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 
+import CodeInstrumentor.ClassPool
 import CodeInstrumentor.Instruction
 import CodeInstrumentor.InstrumentingClass
+import CodeInstrumentor.InstrumentingExpression
 import CodeInstrumentor.InstrumentingMethod
-import javassist.ClassPool
+import CodeInstrumentor.MethodCallExpression
 
 /** Uses javassist API to do instrumentation.
  */
-class JavassistCodeInstrumenter(config: Config) extends CodeInstrumentor {
+class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String]) extends CodeInstrumentor {
 
-  def inject(index: Int, instruction: Instruction, method: InstrumentingMethod) {
-    method.insertAt(index, instruction)
-  }
+  private val proceedExpression: Instruction = "$_ = $proceed($$);"
+
+  private def embrace(instruction: Instruction): Instruction = "{" + instruction + "}"
 
   def getClass(className: String, classpathURLs: List[URL]): InstrumentingClass = {
-    val classPool = ClassPool.getDefault
+    val classPool = new ClassPool(ClassPool.getDefault)
     classpathURLs foreach (cp => classPool appendClassPath cp.getPath)
     try {
       classPool get className
@@ -78,16 +81,79 @@ class JavassistCodeInstrumenter(config: Config) extends CodeInstrumentor {
     }
   }
 
-  def sandwich(method: InstrumentingMethod, upper: Instruction, lower: Instruction): Unit = {
+  def getMethod(methodName: String, className: String, classpathURLs: List[URL]): InstrumentingMethod =
+    getClassAndMethod(className, methodName, classpathURLs) _2
+
+  def callListOf(method: InstrumentingMethod): List[MethodCallExpression] = {
+    var callList = List[MethodCallExpression]()
+    method instrument new javassist.expr.ExprEditor {
+      override def edit(call: MethodCallExpression) = {
+        val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
+        if (!exclude.exists(declaringClassName startsWith _)) {
+          callList :+= call
+          UI.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
+          log.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
+        }
+      }
+    }
+    callList
+  }
+
+  def inject(method: InstrumentingMethod, index: Int, instruction: Instruction) =
+    method.insertAt(index, instruction)
+
+  def sandwich(method: InstrumentingMethod, upper: Instruction, lower: Instruction) {
     method insertBefore upper
     method insertAfter lower
   }
 
-  def writeFile(clazz: InstrumentingClass, context: ClassLoader) {
+  /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
+   *  before the given `InstrumentingExpression`.
+   */
+  def insertBefore(expression: InstrumentingExpression, instruction: Instruction) {
+    UI.debug("Insert before: " + embrace(instruction + proceedExpression))
+    expression replace embrace(instruction + proceedExpression)
+  }
+
+  /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
+   *  after the given `InstrumentingExpression`.
+   */
+  def insertAfter(expression: InstrumentingExpression, instruction: Instruction) =
+    expression replace embrace(proceedExpression + instruction)
+
+  def sandwich(expression: InstrumentingExpression, upper: Instruction, lower: Instruction) {
+    expression replace embrace(upper + proceedExpression + lower)
+  }
+
+  def sandwichCallList(method: InstrumentingMethod, first: Int, upper: Instruction, last: Int, lower: Instruction) {
+    var index = 0
+    method instrument new javassist.expr.ExprEditor {
+      override def edit(call: MethodCallExpression) {
+        val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
+        if (!exclude.exists(declaringClassName startsWith _)) {
+          if ((index == first) && (index == last)) {
+            call replace embrace(upper + proceedExpression + lower)
+          }
+          else if (index == first) {
+            call replace embrace(upper + proceedExpression)
+          }
+          else if (index == last) {
+            call replace embrace(proceedExpression + lower)
+          }
+          index += 1
+        }
+      }
+    }
+  }
+
+  def overwrite(clazz: InstrumentingClass, context: ClassLoader) {
     clazz writeFile (Reflector(config).locationOf(clazz.getName, context) match {
       case Some(url) => url.getPath
       case None      => config.bin.path
     })
   }
+
+  def writeFile(clazz: InstrumentingClass, location: URL) =
+    clazz writeFile location.getPath
 
 }

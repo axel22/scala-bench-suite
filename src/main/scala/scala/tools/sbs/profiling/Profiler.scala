@@ -18,16 +18,27 @@ import scala.tools.sbs.benchmark.Benchmark
  */
 trait Profiler extends Runner {
 
-  def run(benchmark: Benchmark): RunResult = profile(benchmark)
+  protected val upperBound = manifest[ProfilingBenchmark]
 
-  def profile(benchmark: Benchmark): ProfilingResult
+  val benchmarkFactory = new ProfilingBenchmarkFactory(log, config)
+
+  protected def doBenchmarking(benchmark: Benchmark): BenchmarkResult = {
+    profile(benchmark.asInstanceOf[ProfilingBenchmark])
+  }
+
+  protected def profile(benchmark: ProfilingBenchmark): ProfilingResult
+  
+  /** Does nothing method.
+   */
+  protected def doGenerating(benchmark: Benchmark) = ()
+
 
 }
 
 object ProfilerFactory {
 
-  def apply(config: Config): Runner = {
-    new JDIProfiler(config)
+  def apply(config: Config, log: Log): Profiler = {
+    new JDIProfiler(config, log)
   }
 
 }

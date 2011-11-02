@@ -19,11 +19,11 @@ trait Reflector {
 
   /** Loads the class with the given name in the given classpath.
    */
-  def getClass(name: String, classpathURLs: List[URL]): (Class[_], ClassLoader)
+  def getClass(name: String, classpathURLs: List[URL]): Class[_]
 
   /** Gets the compinion object with the given name in the given classpath.
    */
-  def getObject[T](name: String, classpathURLs: List[URL]): (T, ClassLoader)
+  def getObject[T](name: String, classpathURLs: List[URL]): T
 
   /** Gets the location where the class with given name was loaded.
    */

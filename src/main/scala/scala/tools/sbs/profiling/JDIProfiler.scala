@@ -12,40 +12,26 @@ package scala.tools.sbs
 package profiling
 
 import java.io.IOException
-import java.util.{ Map => JMap }
+import java.util.{Map => JMap}
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
+import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.Config
-import scala.tools.sbs.Profiling
 
 import com.sun.jdi.connect.Connector
-import com.sun.jdi.connect.IllegalConnectorArgumentsException
 import com.sun.jdi.connect.LaunchingConnector
-import com.sun.jdi.connect.VMStartException
 import com.sun.jdi.Bootstrap
 import com.sun.jdi.VirtualMachine
 
 /** Java Debug Interface based implement of {@link Profiler}.
  */
-class JDIProfiler(config: Config) extends Profiler {
+class JDIProfiler(protected val config: Config, protected val log: Log) extends Profiler {
 
-  def profile(benchmark: Benchmark): ProfilingResult = {
-    log = benchmark createLog Profiling
-    val javaArgument = JVMInvokerFactory(log, config) asJavaArgument benchmark
-    /*List(
-      "-cp",
-      "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar;" +
-        "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar",
-      "-Dscala.home=D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final",
-      "scala.tools.nsc.MainGenericRunner",
-      "-cp",
-      "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-library.jar;" +
-        "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\lib\\scala-compiler.jar;" +
-        config.bin.path,
-      benchmark.name) ++ benchmark.arguments*/
+  protected def profile(benchmark: ProfilingBenchmark): ProfilingResult = {
+    val javaArgument =
+      JVMInvokerFactory(log, config).asJavaArgument(benchmark, config.classpathURLs ++ benchmark.classpathURLs)
 
     UI.debug("Profile command: " + (javaArgument mkString " "))
     log.debug("Profile command: " + (javaArgument mkString " "))
@@ -53,15 +39,30 @@ class JDIProfiler(config: Config) extends Profiler {
     val jvm = launchTarget(javaArgument mkString " ")
 
     def reportException(exc: Exception): ProfilingException = {
-      log.info(exc.toString)
-      log.info(exc.getStackTraceString)
+      log.error(exc.toString)
+      log.error(exc.getStackTraceString)
       jvm.exit(1)
       ProfilingException(benchmark, exc)
     }
 
     try {
-      val profile = new JDIEventHandler(log, config, benchmark) process jvm
-      ProfilingSuccess(benchmark, profile)
+      val profile =
+        if ((benchmark.profileMethod == "") &&
+          (benchmark.profileField == "") &&
+          !config.shouldGC &&
+          !config.shouldBoxing) {
+          new JDIEventHandler(log, config, benchmark) process jvm
+        }
+        else {
+          new Profile
+        }
+      if (config.shouldGC) {
+
+        new MemoryProfiler(log, config).profile(benchmark, profile)
+      }
+      else {
+        ProfilingSuccess(benchmark, profile)
+      }
     }
     catch {
       case exc: IOException => reportException(new IOException("Unable to launch target VM: " + exc))

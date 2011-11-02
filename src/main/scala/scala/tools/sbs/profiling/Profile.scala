@@ -61,14 +61,12 @@ class Profile {
     _steps += 1
   }
 
-  /** Garbage collectors' cycles.
-   */
-  private val _garbageCollections = ArrayBuffer[GarbageCollection]()
+  var _memoryActivity: MemoryActivity = _
 
-  def garbageCollections = _garbageCollections
+  def memoryActivity = _memoryActivity
 
-  def gc(name: String, cycle: Int, time: Int) {
-    _garbageCollections += GarbageCollection(name, cycle, time)
+  def useMemory(usage: MemoryActivity) {
+    _memoryActivity = usage
   }
 
   def toXML =
@@ -77,7 +75,7 @@ class Profile {
       <steps>{ steps }</steps>
       <boxing>{ boxing }</boxing>
       <unboxing>{ unboxing }</unboxing>
-      <garbagecollection>{ for (gc <- garbageCollections) yield gc.toXML }</garbagecollection>
+      <memoryUsage>{ memoryActivity.toXML }</memoryUsage>
     </profile>
 
 }

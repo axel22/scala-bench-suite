@@ -62,6 +62,8 @@ class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: B
 
   def tail = new ArrayBufferHistory(log, config, benchmark, mode, data.tail)
 
+  def +:(elem: Series) = new ArrayBufferHistory(log, config, benchmark, mode, data :+ elem)
+
   def length = data.length
 
   def map[B, That](f: Series => B)(implicit bf: CanBuildFrom[ArrayBuffer[Series], B, That]): That = data map f

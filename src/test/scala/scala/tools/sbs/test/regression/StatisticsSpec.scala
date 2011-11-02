@@ -4,10 +4,11 @@ package regression
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.regression.ANOVAFailure
-import scala.tools.sbs.regression.ConfidenceIntervalFailure
+import scala.tools.sbs.regression.ANOVARegressionFailure
+import scala.tools.sbs.regression.ANOVARegressionSuccess
+import scala.tools.sbs.regression.CIRegressionFailure
+import scala.tools.sbs.regression.CIRegressionSuccess
 import scala.tools.sbs.regression.HistoryFactory
-import scala.tools.sbs.regression.RegressionSuccess
 import scala.tools.sbs.regression.Statistics
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.LEAST_CONFIDENCE_LEVEL
@@ -102,9 +103,8 @@ class StatisticsSpec extends Spec {
       statistics = StatisticsFactory(testLog)
       val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
-      history add about1kSeries1
-      var result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
-      expect(RegressionSuccess(DummyBenchmark, SteadyState, 99, success1k1))(result)
+      var result = statistics.testDifference(DummyBenchmark, SteadyState, about1kSeries1, history)
+      assert(result.isInstanceOf[CIRegressionSuccess])
     }
 
     it("returns BenchmarkSuccess object 3 Series are `same same`") {
@@ -112,9 +112,8 @@ class StatisticsSpec extends Spec {
       val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
-      history add about1kSeries1
-      var result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
-      expect(RegressionSuccess(DummyBenchmark, SteadyState, 99, success1k1))(result)
+      var result = statistics.testDifference(DummyBenchmark, SteadyState, about1kSeries1, history)
+      assert(result.isInstanceOf[ANOVARegressionSuccess])
     }
 
     it("returns BenchmarkFailure object if 3 Series are statistically significant different") {
@@ -122,24 +121,22 @@ class StatisticsSpec extends Spec {
       val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
-      history add about5k5Series
-      val result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
-      assert(result.isInstanceOf[ANOVAFailure])
+      val result = statistics.testDifference(DummyBenchmark, SteadyState, about5k5Series, history)
+      assert(result.isInstanceOf[ANOVARegressionFailure])
     }
 
     it("returns BenchmarkFailure object if old and new Series are statistically significant different") {
       statistics = StatisticsFactory(testLog)
       val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       history add about1kSeries3
-      history add about5k5Series
-      val result = statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
-      assert(result.isInstanceOf[ConfidenceIntervalFailure])
+      val result = statistics.testDifference(DummyBenchmark, SteadyState, about5k5Series, history)
+      assert(result.isInstanceOf[CIRegressionFailure])
     }
 
     it("raises Exception if history is less than 1") {
       val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
       intercept[Exception] {
-        statistics.testDifference(DummyBenchmark, SteadyState, success1k1, history)
+        statistics.testDifference(DummyBenchmark, SteadyState, about1kSeries1, history)
       }
     }
 

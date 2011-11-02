@@ -20,7 +20,10 @@ import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
 import scala.tools.sbs.util.Constant.SLASH
+import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.FileUtil
+
+import org.apache.commons.math.MathException
 
 /** Configurations for sbs running.
  */
@@ -28,13 +31,6 @@ case class Config(args: Array[String])
     extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   def helpMsg = BenchmarkSpec.helpMsg
-
-  val excludeClasses =
-    if (_excludeClasses equals "") List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.common.math.*")
-    else if (_excludeClasses equals "none") Nil
-    else (_excludeClasses split ";") toList
-
-  val profiledClasses = (_profiledClasses split ";") toList
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
    */
@@ -84,6 +80,22 @@ case class Config(args: Array[String])
       benchmarkDirectory
     }
   }
+
+  val profileExclude =
+    if (_profileExclude == "") List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.common.math.*")
+    else if (_profileExclude equals "none") Nil
+    else (_profileExclude split Constant.COLON) toList
+
+  val profileClasses = (_profileClasses split Constant.COLON) toList
+
+  val pinpointExclude =
+    if (_pinpointExclude == "") List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.common.math.*")
+    else if (_pinpointExclude == "none") Nil
+    else (_pinpointExclude split Constant.COLON) toList
+
+  val pinpointPrevious = Directory(
+    if (_pinpointPrevious == "") ".pinpointprevious"
+    else _pinpointPrevious)
 
   /** `List` of {@link BenchmarkMode}. May include:
    *  <ul>

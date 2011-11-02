@@ -11,13 +11,11 @@
 package scala.tools.sbs
 package benchmark
 
+import scala.tools.nsc.io.Directory
+
 /** User's benchmarks should extend this `trait` for convinience.
  */
 trait BenchmarkTemplate {
-
-  val runs = 1
-
-  val multiplier = 2
 
   val sampleNumber = 0
 

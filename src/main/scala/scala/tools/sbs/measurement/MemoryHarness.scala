@@ -17,11 +17,13 @@ import scala.tools.sbs.benchmark.Benchmark
 
 /** Measurer for benchmarking on memory usage. Should be run on a clean new JVM.
  */
-object MemoryHarness extends SubProcessMeasurer {
+object MemoryHarness extends MeasurementHarness[PerformanceBenchmark] {
 
   protected val mode = MemoryUsage
+  
+  protected val upperBound = manifest[PerformanceBenchmark]
 
-  def measure(benchmark: Benchmark): MeasurementResult = {
+  def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime
     benchmarkRunner run (

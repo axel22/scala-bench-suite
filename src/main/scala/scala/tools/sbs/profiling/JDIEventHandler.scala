@@ -40,7 +40,7 @@ import com.sun.jdi.VirtualMachine
 
 /** Handles JDI events.
  */
-class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
+class JDIEventHandler(log: Log, config: Config, benchmark: ProfilingBenchmark) {
 
   /** Connected to target JVM.
    */
@@ -93,11 +93,11 @@ class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
     tdr setSuspendPolicy EventRequest.SUSPEND_ALL
     tdr enable
 
-    println(benchmark.profiledClasses)
-    println(benchmark.excludeClasses)
-    benchmark.profiledClasses foreach (pattern => {
+    println(benchmark.profileClasses)
+    println(benchmark.profileExclude)
+    benchmark.profileClasses foreach (pattern => {
       val cpr = mgr.createClassPrepareRequest
-      benchmark.excludeClasses foreach (cpr addClassExclusionFilter _)
+      benchmark.profileExclude foreach (cpr addClassExclusionFilter _)
       cpr addClassFilter pattern
       cpr setSuspendPolicy EventRequest.SUSPEND_ALL
       cpr enable
@@ -153,7 +153,7 @@ class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
       val mgr = jvm.eventRequestManager
 
       // Add watchpoint requests
-      event.referenceType.visibleFields.asScala.toSeq find (_.name == benchmark.profiledField) match {
+      event.referenceType.visibleFields.asScala.toSeq find (_.name == benchmark.profileField) match {
         case Some(field) => {
           val mwrReq = mgr createModificationWatchpointRequest field
           mwrReq setSuspendPolicy EventRequest.SUSPEND_NONE
@@ -170,7 +170,7 @@ class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
       if (config.shouldStep) {
         try {
           val str = mgr.createStepRequest(event.thread, StepRequest.STEP_MIN, StepRequest.STEP_INTO)
-          benchmark.excludeClasses foreach (str addClassExclusionFilter _)
+          benchmark.profileExclude foreach (str addClassExclusionFilter _)
           str setSuspendPolicy EventRequest.SUSPEND_NONE
           str enable
         }
@@ -182,7 +182,7 @@ class JDIEventHandler(log: Log, config: Config, benchmark: Benchmark) {
       menr addClassFilter event.referenceType.name
       menr setSuspendPolicy EventRequest.SUSPEND_NONE
       menr enable
-      
+
       // Add method exit request
       val mexr = mgr.createMethodExitRequest
       mexr addClassFilter event.referenceType.name

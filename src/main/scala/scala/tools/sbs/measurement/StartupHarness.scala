@@ -12,22 +12,24 @@ package scala.tools.sbs
 package measurement
 
 import scala.compat.Platform
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.common.JVMInvokerFactory
 import scala.sys.process.Process
+import scala.tools.sbs.common.JVMInvokerFactory
+import scala.tools.sbs.io.Log
 
 /** Measurer for benchmarking on startup state.
  */
-class StartupHarness(config: Config) extends Measurer {
+class StartupHarness(protected val log: Log, protected val config: Config) extends Measurer {
 
-  def measure(benchmark: Benchmark): MeasurementResult = {
-    log = benchmark createLog StartUpState
+  override protected val mode: BenchmarkMode = StartUpState
+
+  def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
     log.info("[Benchmarking startup state]")
 
-    val command = JVMInvokerFactory(log, config) command benchmark
+    val command = JVMInvokerFactory(log, config).command(benchmark, config.classpathURLs ++ benchmark.classpathURLs)
     val process = Process(command)
-    
-    if (process.! == 0) {
+    val exitValue = process !
+
+    if (exitValue == 0) {
       val benchmarkRunner = new BenchmarkRunner(log)
       benchmarkRunner run (
         benchmark,
@@ -39,7 +41,7 @@ class StartupHarness(config: Config) extends Measurer {
         })
     }
     else {
-      new ProcessFailure
+      new ProcessMeasurementFailure(exitValue)
     }
   }
 

@@ -16,6 +16,7 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.CI_PRECISION_THRESHOLD
+import scala.tools.sbs.util.Constant.ENDL
 
 /** Class represents the result of a success measurement.
  */
@@ -53,6 +54,8 @@ class Series(log: Log) {
     data += ele
     this
   }
+  
+  def sum = data.sum
 
   def foldLeft[B](z: B)(op: (B, Long) => B) = data.foldLeft[B](z)(op)
 
@@ -75,66 +78,63 @@ class Series(log: Log) {
   def isReliable: Boolean = {
 
     if (data.length == 0) {
-      log.debug("--Cleared result--")
-      UI.debug("--Cleared result--")
+      log.debug("--Cleared result--" + ENDL)
+      UI.debug("--Cleared result--" + ENDL)
       false
     }
     else {
       val statistic = StatisticsFactory(log)
 
+      log.info("Series: " + this.toString)
+
       val mean = statistic mean this
+
       log.info("--Average--            " + (mean formatted "%.2f"))
       UI.info("--Average--            " + (mean formatted "%.2f"))
 
-      val (left, right) = statistic confidenceInterval this
-      log.info("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-        (right formatted "%.2f") + "]")
-      UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-        (right formatted "%.2f") + "]")
-
+      var (left, right) = statistic confidenceInterval this
       var diff = right - left
-      log.info("--Difference--         " + (diff formatted "%.2f") + " = " +
-        ((diff / mean * 100) formatted "%.2f") + "%")
-      UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
-        ((diff / mean * 100) formatted "%.2f") + "%")
+
+      def toPrint =
+        "--At confidence level  " + statistic.confidenceLevel + "%:" + ENDL +
+          "           ----Confident Interval [" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]" + ENDL +
+          "           ----Difference         " + (diff formatted "%.2f") + " ~ " + ((diff / mean * 100) formatted "%.2f") + "%"
+
+      log.verbose(toPrint)
+      UI.verbose(toPrint)
 
       while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= CI_PRECISION_THRESHOLD) {
         statistic.reduceConfidenceLevel()
-
-        val (left, right) = statistic confidenceInterval this
-        log.info("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-          (right formatted "%.2f") + "]")
-        UI.verbose("--Confident Interval-- [" + (left formatted "%.2f") + "; " +
-          (right formatted "%.2f") + "]")
-
+        val ci = statistic confidenceInterval this
+        left = ci._1
+        right = ci._2
         diff = right - left
-        log.info("--Difference--         " + (diff formatted "%.2f") + " = " +
-          ((diff / mean * 100) formatted "%.2f") + "%")
-        UI.verbose("--Difference--         " + (diff formatted "%.2f") + " = " +
-          ((diff / mean * 100) formatted "%.2f") + "%")
+
+        log.verbose(toPrint)
+        UI.verbose(toPrint)
       }
 
-      if ((diff / mean) < CI_PRECISION_THRESHOLD) {
-        UI.info("--Difference--         " + (diff formatted "%.2f") + " = " +
-          ((diff / mean * 100) formatted "%.2f") + "%")
-        _confidenceLevel = statistic.confidenceLevel.toInt
-        UI.info("--At confidence level " + confidenceLevel)
-        true
-      }
-      else {
-        false
-      }
+      log.info(toPrint)
+      log.info("")
+      UI.info(toPrint)
+      UI.info("")
+
+      _confidenceLevel = statistic.confidenceLevel.toInt
+      (diff / mean) < CI_PRECISION_THRESHOLD
     }
   }
 
   /**
    */
   override def toString(): String =
-    data.foldLeft("Benchmarking result at " + confidenceLevel + "%: ") { (str, l) => str + "--" + l }
+    data.foldLeft("At " + confidenceLevel + "%: ") { (str, l) => str + "[" + l + "] " }
 
   /** All of the xml should be on only one line for parsing from sub process.
    */
   def toXML =
-    <Series><confidenceLevel>{ confidenceLevel }</confidenceLevel><data>{ for (l <- data) yield <value>{ l.toString }</value> }</data></Series>
+    <Series>
+      <confidenceLevel>{ confidenceLevel }</confidenceLevel>
+      <data>{ for (l <- data) yield <value>{ l.toString }</value> }</data>
+    </Series>
 
 }

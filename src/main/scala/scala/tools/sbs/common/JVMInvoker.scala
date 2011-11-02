@@ -11,10 +11,11 @@
 package scala.tools.sbs
 package common
 
+import java.net.URL
+
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.Measurer
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
 
 /** Trait used to invoke a new separated JVM.
  */
@@ -36,18 +37,18 @@ trait JVMInvoker {
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.
    */
-  def command(runner: Runner, benchmark: Benchmark): Seq[String]
+  def command(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 
   /** OS command to invoke an new JVM which has `benchmark` as the main scala class.
    */
-  def command(benchmark: Benchmark): Seq[String]
+  def command(benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 
   /** OS command argument to run with java.
    *  Ex: `Seq("-cp", ".", "scala.tools.nsc.MainGenericRunner", "-vesion")`.
    */
-  def asJavaArgument(benchmark: Benchmark): Seq[String]
+  def asJavaArgument(benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 
-  def asJavaArgument(runner: Runner, benchmark: Benchmark): Seq[String]
+  def asJavaArgument(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 
 }
 

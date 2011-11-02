@@ -14,39 +14,39 @@ package benchmark
 import java.lang.reflect.Method
 import java.lang.Thread
 import java.net.URL
-import scala.sys.process.Process
+
 import scala.sys.process.ProcessBuilder
+import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
-import scala.tools.sbs.util.Constant.COLON
-import scala.tools.sbs.BenchmarkMode
-import scala.tools.sbs.Config
-import scala.tools.nsc.util.ClassPath
 
 /** An implement of {@link Benchmark} trait.
  *  `method` is the `main(args: Array[String])` method of the benchmark `object`.
  */
-case class SnippetBenchmark(name: String,
-                            arguments: List[String],
-                            classpathURLs: List[URL],
-                            runs: Int,
-                            multiplier: Int,
-                            sampleNumber: Int,
-                            method: Method,
-                            context: ClassLoader,
-                            profiledClasses: List[String],
-                            excludeClasses: List[String],
-                            profiledMethod: String,
-                            profiledField: String,
-                            pinpointClass: String,
-                            pinpointMethod: String,
-                            config: Config) extends Benchmark {
+abstract class SnippetBenchmark(_name: String,
+                                _arguments: List[String],
+                                _classpathURLs: List[URL],
+                                _src: Path,
+                                _sampleNumber: Int,
+                                method: Method,
+                                _context: ClassLoader,
+                                config: Config) extends Benchmark {
+
+  def name = _name
+
+  def arguments = _arguments
+
+  def classpathURLs = _classpathURLs
+
+  def src = _src
+
+  def sampleNumber = _sampleNumber
+  
+  def context = _context
 
   /** Benchmark process.
    */
   private var process: ProcessBuilder = null
-
-  def createLog(mode: BenchmarkMode): Log = LogFactory(name, mode, config)
 
   /** Current class loader context.
    */
@@ -64,15 +64,14 @@ case class SnippetBenchmark(name: String,
    */
   def reset() = Thread.currentThread.setContextClassLoader(oldContext)
 
+  def createLog(mode: BenchmarkMode): Log = LogFactory(name, mode, config)
+
   def toXML =
     <SnippetBenchmark>
       <name>{ name }</name>
       <arguments>{ for (arg <- arguments) yield <arg>{ arg }</arg> }</arguments>
       <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>
-      <runs>{ runs.toString }</runs>
-      <multiplier>{ multiplier.toString }</multiplier>
-      <pinpointClass>{ pinpointClass }</pinpointClass>
-      <pinpointMethod>{ pinpointMethod }</pinpointMethod>
+      <src>{ src.path }</src>
     </SnippetBenchmark>
 
 }

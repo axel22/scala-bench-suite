@@ -14,31 +14,21 @@ package benchmark
 import java.lang.Thread
 import java.net.URL
 
+import scala.tools.nsc.io.Path
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
-import scala.tools.sbs.BenchmarkMode
-import scala.tools.sbs.Config
 
 /** Represents benchmarks that have to be initialized before performance check.
  *  `benchmarkObject`: The actual benchmark loaded using reflection.
  */
-case class InitializableBenchmark(name: String,
-                                  classpathURLs: List[URL],
-                                  benchmarkObject: BenchmarkTemplate,
-                                  context: ClassLoader,
-                                  profiledClasses: List[String],
-                                  excludeClasses: List[String],
-                                  profiledMethod: String,
-                                  profiledField: String,
-                                  pinpointClass: String,
-                                  pinpointMethod: String,
-                                  config: Config) extends Benchmark {
+abstract case class InitializableBenchmark(name: String,
+                                           classpathURLs: List[URL],
+                                           src: Path,
+                                           benchmarkObject: BenchmarkTemplate,
+                                           context: ClassLoader,
+                                           config: Config) extends Benchmark {
 
   val arguments = List[String]()
-
-  val runs = benchmarkObject.runs
-
-  val multiplier = benchmarkObject.multiplier
 
   val sampleNumber = benchmarkObject.sampleNumber
 
@@ -64,8 +54,7 @@ case class InitializableBenchmark(name: String,
     <InitializableBenchmark>
       <name>{ name }</name>
       <classpath>{ for (cp <- classpathURLs) yield <cp> { cp.getPath } </cp> }</classpath>
-      <pinpointClass>{ pinpointClass }</pinpointClass>
-      <pinpointMethod>{ pinpointMethod }</pinpointMethod>
+      <src>{ src.path }</src>
     </InitializableBenchmark>
 
 }

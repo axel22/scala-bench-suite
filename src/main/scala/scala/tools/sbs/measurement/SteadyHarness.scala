@@ -18,11 +18,13 @@ import scala.tools.sbs.benchmark.Benchmark
 
 /** Measurer for benchmarking on steady state. Should be run on a clean new JVM.
  */
-object SteadyHarness extends SubProcessMeasurer {
+object SteadyHarness extends MeasurementHarness[PerformanceBenchmark] {
 
   protected val mode = SteadyState
+  
+  protected val upperBound = manifest[PerformanceBenchmark]
 
-  def measure(benchmark: Benchmark): MeasurementResult = {
+  def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
     val statistic = StatisticsFactory(log)
     log.info("[Benchmarking steady state]")
     benchmarkRunner run (

@@ -1,21 +1,19 @@
 package scala.tools.sbs
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.LogFactory
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.measurement.MeasurementSuccess
+import scala.tools.sbs.measurement.PerformanceBenchmark
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.benchmark.BenchmarkFactory
-import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.MeasurementSuccess
 
 package object test {
 
-  val testDir = Directory("sbs.test").createDirectory()
+  val testDir = Directory("D:/University/5thYear/Internship/Working/sbs/sbs.test").createDirectory()
   val args = Array(
     "--benchmarkdir",
-    "D:/University/5thYear/Internship/Working/benchmark",
+    "D:/University/5thYear/Internship/Working/sbs/sbs.test",
     "--runs",
     "11",
     "--multiplier",
@@ -24,10 +22,11 @@ package object test {
     "--show-log",
     "test.Benchmark")
   val testConfig = new Config(args)
+  UI.config = testConfig
 
   val testLog = LogFactory(testConfig)
 
-  object DummyBenchmark extends Benchmark {
+  object DummyBenchmark extends PerformanceBenchmark {
     override def name = "dummy"
     def src = testDir
     def arguments = List[String]()
@@ -41,12 +40,14 @@ package object test {
     def run() = ()
     def reset() = ()
     def context = null
-    def profiledClasses = List("DummyBenchmark")
-    def excludeClasses = List()
-    def profiledMethod = "run"
-    def profiledField = ""
-    def pinpointClass = ""
-    def pinpointMethod = ""
+    def profileClasses = List("DummyBenchmark")
+    def profileExclude = List("")
+    def profileMethod = "run"
+    def profileField = ""
+    def pinpointClass = "DummyBenchmark"
+    def pinpointMethod = "run"
+    def pinpointExclude = List("")
+    def pinpointPrevious = Directory("")
     def toXML: scala.xml.Elem = <null/>
   }
 

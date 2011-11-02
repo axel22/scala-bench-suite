@@ -13,6 +13,7 @@ package benchmark
 
 import java.net.URL
 
+import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.BenchmarkMode
 
@@ -29,10 +30,6 @@ trait Benchmark {
   /** Classpath of the benchmark.
    */
   def classpathURLs: List[URL]
-
-  def runs: Int
-
-  def multiplier: Int
 
   def sampleNumber: Int
 
@@ -53,26 +50,6 @@ trait Benchmark {
   /** Class loader
    */
   def context: ClassLoader
-
-  /** Names of the classes to be profiled the loading.
-   */
-  def profiledClasses: List[String]
-
-  /** Names of the classes to be ignored from profiling.
-   */
-  def excludeClasses: List[String]
-
-  /** Name of the method to be profiled the invocations.
-   */
-  def profiledMethod: String
-
-  /** Name of the field to be profiled the accessing and modifying.
-   */
-  def profiledField: String
-
-  def pinpointClass: String
-
-  def pinpointMethod: String
 
   /** Produces a XML element representing this benchmark.
    */

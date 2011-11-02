@@ -35,6 +35,8 @@ trait History {
 
   def tail: History
 
+  def +:(elem: Series): History
+
   def length: Int
 
   def map[B, That](f: Series => B)(implicit bf: CanBuildFrom[ArrayBuffer[Series], B, That]): That
