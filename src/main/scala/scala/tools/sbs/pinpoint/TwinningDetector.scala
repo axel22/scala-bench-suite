@@ -101,7 +101,7 @@ trait TwinningDetector[Detected] {
                         previous: MeasurementSuccess): RegressionResult = {
     val history = HistoryFactory(log, config, benchmark, Pinpointing)
     history add previous.series
-    StatisticsFactory(log) testDifference (benchmark, Pinpointing, current.series, history)
+    StatisticsFactory(config, log) testDifference (benchmark, current.series, history)
   }
 
 }

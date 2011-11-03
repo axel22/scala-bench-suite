@@ -13,10 +13,8 @@ package pinpoint
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.pinpoint.CodeInstrumentor.MethodCallExpression
 import scala.tools.sbs.regression.CIRegression
-import scala.tools.sbs.util.Constant
 
 abstract class BottleneckFound(benchmark: Benchmark) extends ScrutinyResult {
 
@@ -34,17 +32,17 @@ case class Bottleneck(benchmark: Benchmark,
   with ScrutinySuccess {
 
   override def toReport = {
-    val to =
-      if (position.length > 1)
-        ArrayBuffer(Constant.INDENT + "  to method call " +
-          position.last.getClassName + "." + position.last.getMethodName +
-          " at line " + position.last.getLineNumber, "")
-      else ArrayBuffer("")
     ArrayBuffer(
-      Constant.INDENT + "Bottleneck found:",
-      Constant.INDENT + "  from method call " +
+      "Bottleneck found:",
+      "  from method call " +
         position.head.getClassName + "." + position.head.getMethodName +
-        " at line " + position.head.getLineNumber) ++ to ++ super.toReport
+        " at line " + position.head.getLineNumber) ++
+      (if (position.length > 1)
+        ArrayBuffer("  to method call " +
+        position.last.getClassName + "." + position.last.getMethodName +
+        " at line " + position.last.getLineNumber, "")
+      else Nil) ++
+      super.toReport
   }
 
 }
@@ -58,6 +56,6 @@ case class NoBottleneck(benchmark: Benchmark,
   with CIRegression
   with ScrutinyFailure {
 
-  override def toReport = ArrayBuffer(Constant.INDENT + "No bottleneck found.", "") ++ super.toReport
+  override def toReport = ArrayBuffer("No bottleneck found.", "") ++ super.toReport
 
 }

@@ -59,6 +59,7 @@ class SubJVMMeasurer(protected val log: Log,
     xml match {
       case <MeasurementSuccess>{ _ }</MeasurementSuccess> =>
         MeasurementSuccess(new Series(
+          config,
           log,
           ArrayBuffer((xml \\ "value") map (_.text.toLong): _*),
           (xml \\ "confidenceLevel").text.toInt))

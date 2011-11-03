@@ -27,7 +27,7 @@ import com.sun.jdi.VirtualMachine
 /** This class keeps context on events in one thread.
  */
 class JDIThreadTrace(
-    log: Log, profile: Profile, benchmark: ProfilingBenchmark, thread: ThreadReference, jvm: VirtualMachine) {
+  log: Log, profile: Profile, benchmark: ProfilingBenchmark, thread: ThreadReference, jvm: VirtualMachine) {
 
   /** Instruction steps of methods in call stack.
    */
@@ -36,9 +36,7 @@ class JDIThreadTrace(
   /** Convert the `com.sun.jdi.Method` name into the format of <name>.<argument types>.<return type>
    */
   private def wrapName(method: com.sun.jdi.Method) =
-    method.declaringType.name + "." +
-      method.argumentTypeNames.asScala.toSeq.foldLeft(method.name + " -> ")((name, tpe) => name + tpe + " -> ") +
-      method.returnTypeName
+    method.declaringType.name + "." + method.name + method.signature
 
   /** Push new method on the call stack.
    */

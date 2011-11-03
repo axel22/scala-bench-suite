@@ -22,29 +22,29 @@ import scala.tools.sbs.io.Log
 
 trait PerformanceBenchmark extends Benchmark {
 
-  def runs: Int
-
   def multiplier: Int
+  
+  def measurement: Int
 
 }
 
 class PerformanceBenchmarkFactory(protected val log: Log, protected val config: Config) extends BenchmarkFactory {
 
-  protected val runsOpt = "--runs"
-
   protected val multiplierOpt = "--multiplier"
+
+  protected val measurementOpt = "--measurement"
 
   /** Creates a `Benchmark` from the given arguments.
    */
   def createFrom(info: BenchmarkInfo): Benchmark = {
-    val argMap = BenchmarkInfo.readInfo(info.src, List(runsOpt, multiplierOpt))
-    val runs = argMap get runsOpt match {
-      case Some(arg) => arg.toInt
-      case _         => config.runs
-    }
+    val argMap = BenchmarkInfo.readInfo(info.src, List(multiplierOpt, measurementOpt))
     val multiplier = argMap get multiplierOpt match {
       case Some(arg) => arg.toInt
       case _         => config.multiplier
+    }
+    val measurement = argMap get measurementOpt match {
+      case Some(arg) => arg.toInt
+      case _         => config.measurement
     }
     load(
       info,
@@ -54,8 +54,8 @@ class PerformanceBenchmarkFactory(protected val log: Log, protected val config: 
         info.classpathURLs,
         info.src,
         info.sampleNumber,
-        runs,
         multiplier,
+        measurement,
         method,
         context,
         config),

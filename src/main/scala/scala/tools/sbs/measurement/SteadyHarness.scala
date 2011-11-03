@@ -13,8 +13,6 @@ package measurement
 
 import scala.compat.Platform
 import scala.tools.sbs.regression.StatisticsFactory
-import scala.tools.sbs.util.Constant.STEADY_THRESHOLD
-import scala.tools.sbs.benchmark.Benchmark
 
 /** Measurer for benchmarking on steady state. Should be run on a clean new JVM.
  */
@@ -25,16 +23,16 @@ object SteadyHarness extends MeasurementHarness[PerformanceBenchmark] {
   protected val upperBound = manifest[PerformanceBenchmark]
 
   def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
-    val statistic = StatisticsFactory(log)
+    val statistic = StatisticsFactory(config, log)
     log.info("[Benchmarking steady state]")
     benchmarkRunner run (
       benchmark,
-      series => (statistic CoV series) < STEADY_THRESHOLD,
+      series => (statistic CoV series) < config.precisionThreshold,
       {
         benchmark.init()
         val start = Platform.currentTime
         var i = 0
-        while (i < benchmark.runs) {
+        while (i < benchmark.multiplier) {
           benchmark.run()
           i += 1
         }

@@ -16,7 +16,6 @@ import scala.tools.sbs.io.UI
 import scala.tools.sbs.measurement.MeasurementHarness
 import scala.tools.sbs.measurement.MeasurementResult
 import scala.tools.sbs.regression.StatisticsFactory
-import scala.tools.sbs.util.Constant.STEADY_THRESHOLD
 
 /** Measurer for pinpointing regression detection.
  *  Runs just like {@link scala.tools.sbs.measurement.SteadyHarness}
@@ -86,12 +85,12 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
   protected val mode = Pinpointing
 
   def measure(benchmark: PinpointBenchmark): MeasurementResult = {
-    val statistic = StatisticsFactory(log)
+    val statistic = StatisticsFactory(config, log)
     UI.info("[Benchmarking pinpointing regression detection]")
     log.info("[Benchmarking pinpointing regression detection]")
     benchmarkRunner run (
       benchmark,
-      series => (statistic CoV series) < STEADY_THRESHOLD,
+      series => (statistic CoV series) < config.precisionThreshold,
       {
         reset()
         benchmark.init()

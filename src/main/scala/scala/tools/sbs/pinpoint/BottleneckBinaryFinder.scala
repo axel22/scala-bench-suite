@@ -60,7 +60,7 @@ class BottleneckBinaryFinder(protected val log: Log,
       /** Creates only incase necessary.
        */
       def currentBottleneck = regressionFailure match {
-        case CIRegressionFailure(_, _, current, previous, ci) => {
+        case CIRegressionFailure(_, current, previous, ci) => {
           Bottleneck(
             benchmark,
             callList.slice(callIndexList.head, callIndexList.last + 1),

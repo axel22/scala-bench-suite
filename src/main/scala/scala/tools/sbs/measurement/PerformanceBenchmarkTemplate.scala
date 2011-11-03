@@ -15,8 +15,8 @@ import scala.tools.sbs.benchmark.BenchmarkTemplate
 
 trait PerformanceBenchmarkTemplate extends BenchmarkTemplate {
 
-  val runs = 1
+  val multiplier = 1
 
-  val multiplier = 2
+  val measurement = 2
 
 }

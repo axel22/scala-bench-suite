@@ -78,7 +78,6 @@ trait ANOVARegression extends RegressionDetected {
 }
 
 case class CIRegressionSuccess(benchmark: Benchmark,
-                               mode: BenchmarkMode,
                                confidenceLevel: Int,
                                current: (Double, Double),
                                previous: ArrayBuffer[(Double, Double)],
@@ -87,7 +86,6 @@ case class CIRegressionSuccess(benchmark: Benchmark,
   with CIRegression
 
 case class ANOVARegressionSuccess(benchmark: Benchmark,
-                                  mode: BenchmarkMode,
                                   confidenceLevel: Int,
                                   current: (Double, Double),
                                   previous: ArrayBuffer[(Double, Double)],
@@ -98,7 +96,7 @@ case class ANOVARegressionSuccess(benchmark: Benchmark,
   extends RegressionSuccess(benchmark)
   with ANOVARegression
 
-case class NoPreviousMeasurement(benchmark: Benchmark, mode: BenchmarkMode, measurementSuccess: MeasurementSuccess)
+case class NoPreviousMeasurement(benchmark: Benchmark, measurementSuccess: MeasurementSuccess)
   extends RegressionResult with BenchmarkSuccess {
 
   def benchmarkName = benchmark.name
@@ -114,7 +112,6 @@ abstract class RegressionFailure(benchmark: Benchmark) extends RegressionResult 
 }
 
 case class CIRegressionFailure(benchmark: Benchmark,
-                               mode: BenchmarkMode,
                                current: (Double, Double),
                                previous: ArrayBuffer[(Double, Double)],
                                CI: (Double, Double))
@@ -122,7 +119,6 @@ case class CIRegressionFailure(benchmark: Benchmark,
   with CIRegression
 
 case class ANOVARegressionFailure(benchmark: Benchmark,
-                                  mode: BenchmarkMode,
                                   current: (Double, Double),
                                   previous: ArrayBuffer[(Double, Double)],
                                   SSA: Double,
@@ -132,7 +128,7 @@ case class ANOVARegressionFailure(benchmark: Benchmark,
   extends RegressionFailure(benchmark)
   with ANOVARegression
 
-case class ImmeasurableFailure(benchmark: Benchmark, mode: BenchmarkMode, failure: MeasurementFailure)
+case class ImmeasurableFailure(benchmark: Benchmark, failure: MeasurementFailure)
   extends RegressionFailure(benchmark) {
 
   def toReport = ArrayBuffer(Constant.INDENT + failure.reason)

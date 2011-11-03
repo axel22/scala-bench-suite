@@ -29,24 +29,4 @@ object Constant {
 
   val COMPANION_FIELD = "MODULE$"
 
-  /** Smallest acceptable confidence level.
-   */
-  val LEAST_CONFIDENCE_LEVEL = 90
-
-  /** Precision thredshold of confidance interval.
-   */
-  val CI_PRECISION_THRESHOLD = 0.02
-
-  /** Thredshold to detect whether the benchmark has reached steady state.
-   */
-  val STEADY_THRESHOLD = 0.02
-
-  /** Maximum counter for measurements of a series.
-   */
-  val MAX_MEASUREMENT = 1
-
-  /** Maximum multiplier for waming up.
-   */
-  val MAX_WARM = 5
-
 }

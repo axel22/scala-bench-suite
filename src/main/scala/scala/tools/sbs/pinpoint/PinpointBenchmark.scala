@@ -58,14 +58,14 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
   override def createFrom(info: BenchmarkInfo): Benchmark = {
     val argMap = BenchmarkInfo.readInfo(
       info.src,
-      List(runsOpt, multiplierOpt, pinpointClassOpt, pinpointMethodOpt, pinpointExcludeOpt, pinpointPreviousOpt))
-    val runs = argMap get runsOpt match {
-      case Some(arg) => arg.toInt
-      case _         => config.runs
-    }
+      List(multiplierOpt, measurementOpt, pinpointClassOpt, pinpointMethodOpt, pinpointExcludeOpt, pinpointPreviousOpt))
     val multiplier = argMap get multiplierOpt match {
       case Some(arg) => arg.toInt
       case _         => config.multiplier
+    }
+    val measurement = argMap get measurementOpt match {
+      case Some(arg) => arg.toInt
+      case _         => config.measurement
     }
     val pinpointClass = argMap get pinpointClassOpt match {
       case Some(arg) => arg
@@ -91,8 +91,8 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
         info.classpathURLs,
         info.src,
         info.sampleNumber,
-        runs,
         multiplier,
+        measurement,
         pinpointClass,
         pinpointMethod,
         pinpointExclude,

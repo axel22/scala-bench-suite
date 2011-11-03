@@ -104,10 +104,10 @@ trait Measurer extends Runner {
       case mesurement: MeasurementSuccess => {
         val history = PersistorFactory(log, config, benchmark, mode).load()
         if (history.length < 1) {
-          NoPreviousMeasurement(benchmark, mode, mesurement)
+          NoPreviousMeasurement(benchmark, mesurement)
         }
         else {
-          StatisticsFactory(log) testDifference (benchmark, mode, mesurement.series, history)
+          StatisticsFactory(config, log) testDifference (benchmark, mesurement.series, history)
         }
       }
       case _ => {
@@ -119,7 +119,7 @@ trait Measurer extends Runner {
     PersistorFactory(log, config, benchmark, mode).store(metric, success)
 
   protected def failure(benchmark: Benchmark, failed: MeasurementFailure): BenchmarkResult =
-    ImmeasurableFailure(benchmark, mode, failed)
+    ImmeasurableFailure(benchmark, failed)
 
 }
 

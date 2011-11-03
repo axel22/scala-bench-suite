@@ -109,7 +109,7 @@ class SeriesSpec extends Spec {
   }
 
   def init(arr: ArrayBuffer[Long]) {
-    s = new Series(testLog, arr, 100)
+    s = new Series(testConfig, testLog, arr, 100)
   }
 
 }

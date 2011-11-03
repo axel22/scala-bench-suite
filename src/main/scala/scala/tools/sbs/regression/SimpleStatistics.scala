@@ -17,7 +17,6 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.measurement.MeasurementSuccess
 import scala.tools.sbs.measurement.Series
-import scala.tools.sbs.util.Constant.LEAST_CONFIDENCE_LEVEL
 import scala.tools.sbs.BenchmarkMode
 
 import org.apache.commons.math.distribution.FDistributionImpl
@@ -26,7 +25,7 @@ import org.apache.commons.math.distribution.TDistributionImpl
 
 /** An simple implement of {@link Statistics}.
  */
-class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
+class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends Statistics {
 
   /** Reduces the confidence level time by time to by 5% each time,
    *  except 2 cases:
@@ -46,7 +45,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       alpha = 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
     }
-    else if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) {
+    else if (confidenceLevel >= config.leastConfidenceLevel) {
       alpha += 0.05
       log.verbose("Confidence level was reduced to " + confidenceLevel + "%")
     }
@@ -58,7 +57,7 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
   /** @return `true` if the confidence level is GE `1 - MAX_ALPHA`, `false` otherwise
    */
-  def isConfidenceLevelAcceptable = if (confidenceLevel >= LEAST_CONFIDENCE_LEVEL) true else false
+  def isConfidenceLevelAcceptable = if (confidenceLevel >= config.leastConfidenceLevel) true else false
 
   def resetConfidenceInterval() {
     alpha = 0
@@ -189,17 +188,16 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @return	The test result
    */
   def testDifference(benchmark: Benchmark,
-                     mode: BenchmarkMode,
                      current: Series,
                      history: History): RegressionResult = {
     if (history.length < 1) {
       throw new Exception("Not enough result files specified")
     }
     if (history.length == 1) {
-      testConfidenceIntervals(benchmark, mode, current, history)
+      testConfidenceIntervals(benchmark, current, history)
     }
     else {
-      testANOVA(benchmark, mode, current, history)
+      testANOVA(benchmark, current, history)
     }
   }
 
@@ -213,7 +211,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @return	The test result
    */
   private def testConfidenceIntervals(benchmark: Benchmark,
-                                      mode: BenchmarkMode,
                                       current: Series,
                                       history: History): RegressionResult = {
     val currentMean = mean(current)
@@ -231,7 +228,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
     if (confidenceLevel == 100 && diff == 0) {
       CIRegressionSuccess(
         benchmark,
-        mode,
         100,
         (currentMean, currentSD),
         ArrayBuffer((previousMean, previousSD)),
@@ -272,7 +268,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       if (!ok) {
         CIRegressionFailure(
           benchmark,
-          mode,
           (currentMean, currentSD),
           ArrayBuffer((previousMean, previousSD)),
           (ciLeft, ciRight))
@@ -280,7 +275,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       else {
         CIRegressionSuccess(
           benchmark,
-          mode,
           confidenceLevel,
           (currentMean, currentSD),
           ArrayBuffer((previousMean, previousSD)),
@@ -299,7 +293,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
    *  @return	The test result
    */
   private def testANOVA(benchmark: Benchmark,
-                        mode: BenchmarkMode,
                         current: Series,
                         history: History): RegressionResult = {
 
@@ -324,7 +317,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       if (SSA != 0) {
         ANOVARegressionFailure(
           benchmark,
-          mode,
           (currentMean, currentSD),
           historyMeanAndSDs,
           SSA,
@@ -335,7 +327,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
       else {
         ANOVARegressionSuccess(
           benchmark,
-          mode,
           100,
           (currentMean, currentSD),
           historyMeanAndSDs,
@@ -367,7 +358,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
 
       if (ok) ANOVARegressionSuccess(
         benchmark,
-        mode,
         confidenceLevel,
         (currentMean, currentSD),
         historyMeanAndSDs,
@@ -377,7 +367,6 @@ class SimpleStatistics(log: Log, var alpha: Double = 0) extends Statistics {
         F)
       else ANOVARegressionFailure(
         benchmark,
-        mode,
         (currentMean, currentSD),
         historyMeanAndSDs,
         SSA,

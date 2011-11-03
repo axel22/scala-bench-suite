@@ -90,7 +90,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
       val confidenceLevel = (xml \\ "confidenceLevel").text.toInt
       var dataSeries = ArrayBuffer[Long]()
       (xml \\ "value") foreach (dataSeries += _.text.toLong)
-      new Series(log, dataSeries, confidenceLevel)
+      new Series(config, log, dataSeries, confidenceLevel)
     }
     catch {
       case e => {

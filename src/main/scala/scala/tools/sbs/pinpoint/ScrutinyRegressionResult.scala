@@ -26,11 +26,9 @@ class ScrutinyCIRegressionSuccess(_benchmark: Benchmark,
                                   _confidenceLevel: Int,
                                   _current: (Double, Double),
                                   _previous: ArrayBuffer[(Double, Double)],
-                                  _CI: (Double, Double),
-                                  override val mode: BenchmarkMode = Pinpointing)
+                                  _CI: (Double, Double))
   extends CIRegressionSuccess(
     _benchmark,
-    Pinpointing,
     _confidenceLevel,
     _current,
     _previous,
@@ -71,11 +69,9 @@ trait ScrutinyRegressionFailure extends ScrutinyFailure with ScrutinyRegressionR
 class ScrutinyCIRegressionFailure(_benchmark: Benchmark,
                                   _current: (Double, Double),
                                   _previous: ArrayBuffer[(Double, Double)],
-                                  _CI: (Double, Double),
-                                  override val mode: BenchmarkMode = Pinpointing)
+                                  _CI: (Double, Double))
   extends CIRegressionFailure(
     _benchmark,
-    Pinpointing,
     _current,
     _previous,
     _CI)
@@ -109,11 +105,9 @@ object ScrutinyCIRegressionFailure {
 }
 
 class ScrutinyImmeasurableFailure(_benchmark: Benchmark,
-                                  _failure: MeasurementFailure,
-                                  override val mode: BenchmarkMode = Pinpointing)
+                                  _failure: MeasurementFailure)
   extends ImmeasurableFailure(
     _benchmark,
-    Pinpointing,
     _failure: MeasurementFailure)
   with ScrutinyRegressionFailure {
 

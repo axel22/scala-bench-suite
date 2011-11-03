@@ -15,10 +15,10 @@ class BenchmarkParsingSpec extends Spec {
         "--help",
         "--benchmarkdir",
         "D:/University/5thYear/Internship/Working/benchmark",
-        "--runs",
-        "11",
-        "--profiler",
         "--multiplier",
+        "11",
+        "--profile",
+        "--measurement",
         "31",
         "--scala-library",
         "D:\\University\\5thYear\\Internship\\Working\\scala-2.9.1.final\\bin\\scala-library.jar",
@@ -31,8 +31,8 @@ class BenchmarkParsingSpec extends Spec {
       expect(true)(conf.isHelp)
       expect(Directory("D:/University/5thYear/Internship/Working/benchmark").toCanonical.path)(conf.benchmarkDirectory.path)
       expect(Directory("D:/University/5thYear/Internship/Working/benchmark/bin").toCanonical.path)(conf.bin.path)
-      expect(11)(conf.runs)
-      expect(31)(conf.multiplier)
+      expect(31)(conf.measurement)
+      expect(11)(conf.multiplier)
       expect(true)(conf.shouldCompile)
       expect(List(Profiling, SteadyState))(conf.modes)
     }

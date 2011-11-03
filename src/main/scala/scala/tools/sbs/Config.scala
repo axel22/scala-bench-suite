@@ -31,6 +31,8 @@ case class Config(args: Array[String])
     extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   def helpMsg = BenchmarkSpec.helpMsg
+  
+  val precisionThreshold = _precisionThreshold / 100D
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
    */

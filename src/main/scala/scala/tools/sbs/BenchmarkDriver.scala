@@ -71,6 +71,7 @@ object BenchmarkDriver {
     config.modes foreach (mode => {
 
       UI.info("[Benchmarking mode: " + mode.description + "]")
+      log.debug("Mode: " + mode.description)
 
       resultPack switchMode mode
 
@@ -85,18 +86,17 @@ object BenchmarkDriver {
       val benchmarks = compiled map (info =>
         try info.expand(runner.benchmarkFactory, config)
         catch {
-          case e: ClassNotFoundException => {
+          case e @ (_: ClassNotFoundException | _: ClassCastException) => {
             UI.error(e.toString)
-            resultPack add new ExceptionBenchmarkFailure(info.name, e)
+            log.error(e.toString)
             null
           }
         }) filterNot (_ == null)
 
-      // Generate sample history in case demanded
       UI.info("[Generating sample histories]")
       try benchmarks filter (_.sampleNumber > 0) foreach (runner generate _)
       catch {
-        case e => log.debug(e.toString())
+        case e => log.debug(e.toString)
       }
 
       // Benchmarking

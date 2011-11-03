@@ -15,12 +15,11 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.regression.StatisticsFactory
-import scala.tools.sbs.util.Constant.CI_PRECISION_THRESHOLD
 import scala.tools.sbs.util.Constant.ENDL
 
 /** Class represents the result of a success measurement.
  */
-class Series(log: Log) {
+class Series(config: Config, log: Log) {
 
   /** The value series.
    */
@@ -32,8 +31,8 @@ class Series(log: Log) {
   private var _confidenceLevel: Int = 100
   def confidenceLevel = _confidenceLevel
 
-  def this(log: Log, series: ArrayBuffer[Long], confidenceLevel: Int) {
-    this(log)
+  def this(config: Config, log: Log, series: ArrayBuffer[Long], confidenceLevel: Int) {
+    this(config, log)
     data = series
     _confidenceLevel = confidenceLevel
   }
@@ -42,7 +41,7 @@ class Series(log: Log) {
 
   def head = data.head
 
-  def tail = new Series(log, data.tail, _confidenceLevel)
+  def tail = new Series(config, log, data.tail, _confidenceLevel)
 
   def last = data.last
 
@@ -54,7 +53,7 @@ class Series(log: Log) {
     data += ele
     this
   }
-  
+
   def sum = data.sum
 
   def foldLeft[B](z: B)(op: (B, Long) => B) = data.foldLeft[B](z)(op)
@@ -78,32 +77,33 @@ class Series(log: Log) {
   def isReliable: Boolean = {
 
     if (data.length == 0) {
-      log.debug("--Cleared result--" + ENDL)
-      UI.debug("--Cleared result--" + ENDL)
+      log.debug("  Cleared result  " + ENDL)
+      UI.debug("  Cleared result  " + ENDL)
       false
     }
     else {
-      val statistic = StatisticsFactory(log)
+      val statistic = StatisticsFactory(config, log)
 
       log.info("Series: " + this.toString)
+      UI.verbose("Series: " + this.toString)
 
       val mean = statistic mean this
 
-      log.info("--Average--            " + (mean formatted "%.2f"))
-      UI.info("--Average--            " + (mean formatted "%.2f"))
+      log.info("  Average              " + (mean formatted "%.2f"))
+      UI.info("  Average              " + (mean formatted "%.2f"))
 
       var (left, right) = statistic confidenceInterval this
       var diff = right - left
 
       def toPrint =
-        "--At confidence level  " + statistic.confidenceLevel + "%:" + ENDL +
-          "           ----Confident Interval [" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]" + ENDL +
-          "           ----Difference         " + (diff formatted "%.2f") + " ~ " + ((diff / mean * 100) formatted "%.2f") + "%"
+        "  At confidence level  " + statistic.confidenceLevel + "%:" + ENDL +
+          "               Confident Interval [" + (left formatted "%.2f") + "; " + (right formatted "%.2f") + "]" + ENDL +
+          "               Difference         " + (diff formatted "%.2f") + " ~ " + ((diff / mean * 100) formatted "%.2f") + "%"
 
       log.verbose(toPrint)
       UI.verbose(toPrint)
 
-      while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= CI_PRECISION_THRESHOLD) {
+      while (statistic.isConfidenceLevelAcceptable && (diff / mean) >= config.precisionThreshold) {
         statistic.reduceConfidenceLevel()
         val ci = statistic confidenceInterval this
         left = ci._1
@@ -120,7 +120,7 @@ class Series(log: Log) {
       UI.info("")
 
       _confidenceLevel = statistic.confidenceLevel.toInt
-      (diff / mean) < CI_PRECISION_THRESHOLD
+      (diff / mean) < config.precisionThreshold
     }
   }
 

@@ -65,7 +65,7 @@ case class InvokedMethod(name: String) extends ProfileElement {
 
   case class Invocation(steps: Int) {
 
-    def toReport = ArrayBuffer("Run for " + steps + "steps")
+    override def toString = "    Run for " + steps + " steps"
 
   }
 
@@ -79,7 +79,7 @@ case class InvokedMethod(name: String) extends ProfileElement {
     _invocations += Invocation(steps)
   }
 
-  def toReport = ArrayBuffer("Invoked method: " + name) ++ (invocations map (_.steps.toString()))
+  def toReport = ArrayBuffer("  Invoked method: " + name) ++ (invocations map (_.toString))
 
   def toXML =
     <method>
@@ -109,7 +109,7 @@ case class Field(name: String) extends ProfileElement {
     _modified += 1
   }
 
-  def toReport = ArrayBuffer("Field: " + name, "accessed " + accessed, "modified " + modified)
+  def toReport = ArrayBuffer("  Field: " + name, "    accessed " + accessed, "    modified " + modified)
 
   def toXML =
     <field>
@@ -123,7 +123,7 @@ case class Field(name: String) extends ProfileElement {
  */
 case class GarbageCollection(name: String, cycle: Long, totalTime: Long) {
 
-  def toReport = ArrayBuffer("Garbage collector: " + name, "Cycle: " + cycle, "Total time: " + totalTime)
+  def toReport = ArrayBuffer("  Garbage collector: " + name, "    Cycle: " + cycle, "    Total time: " + totalTime)
 
   def toXML =
     <gc>

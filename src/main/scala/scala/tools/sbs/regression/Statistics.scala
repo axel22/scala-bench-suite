@@ -11,10 +11,9 @@
 package scala.tools.sbs
 package regression
 
-import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.measurement.Series
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.measurement.Series
 
 /** Class stores the significant level and computes statistical arguments for a given sample.
  */
@@ -43,7 +42,6 @@ trait Statistics {
   def confidenceLevel: Int
 
   def testDifference(benchmark: Benchmark,
-                     mode: BenchmarkMode,
                      current: Series,
                      history: History): RegressionResult
 
@@ -51,8 +49,8 @@ trait Statistics {
 
 object StatisticsFactory {
 
-  def apply(log: Log, alpha: Double = 0): Statistics = {
-    new SimpleStatistics(log, alpha)
+  def apply(config: Config, log: Log, alpha: Double = 0): Statistics = {
+    new SimpleStatistics(config, log, alpha)
   }
 
 }

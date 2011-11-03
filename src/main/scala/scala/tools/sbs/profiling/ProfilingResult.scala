@@ -30,11 +30,10 @@ case class ProfilingSuccess(benchmark: ProfilingBenchmark, profile: Profile)
 
   def toReport =
     (profile.classes flatMap (_.toReport)) ++
-      ArrayBuffer(
-        "Steps performed: " + profile.steps,
-        "Boxing: " + profile.boxing,
-        "Unboxing: " + profile.unboxing) ++
-        profile.memoryActivity.toReport
+      (if (profile.steps > 0) ArrayBuffer("  All steps performed: " + profile.steps) else Nil) ++
+      (if (profile.boxing > 0) ArrayBuffer("  Boxing: " + profile.boxing) else Nil) ++
+      (if (profile.unboxing > 0) ArrayBuffer("  Unboxing: " + profile.boxing) else Nil) ++
+      (if (profile.memoryActivity != null) profile.memoryActivity.toReport else Nil)
 
 }
 

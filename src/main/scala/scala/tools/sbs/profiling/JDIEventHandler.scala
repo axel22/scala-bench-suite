@@ -93,8 +93,6 @@ class JDIEventHandler(log: Log, config: Config, benchmark: ProfilingBenchmark) {
     tdr setSuspendPolicy EventRequest.SUSPEND_ALL
     tdr enable
 
-    println(benchmark.profileClasses)
-    println(benchmark.profileExclude)
     benchmark.profileClasses foreach (pattern => {
       val cpr = mgr.createClassPrepareRequest
       benchmark.profileExclude foreach (cpr addClassExclusionFilter _)

@@ -16,6 +16,7 @@ import java.util.Date
 
 import scala.tools.nsc.io.File
 import scala.tools.sbs.util.Constant.ENDL
+import scala.tools.sbs.util.Constant
 import scala.tools.sbs.util.FileUtil
 
 /** An implement of {@link Report}, reporting of a simple text file.
@@ -56,6 +57,8 @@ class TextFileReport(config: Config) extends Report {
 
     pack foreach (mode => {
       write(mode toReport)
+      write("")
+      break
       mode foreach (r => {
         write("Benchmark: " + r.benchmarkName)
         emit(r)
@@ -69,7 +72,7 @@ class TextFileReport(config: Config) extends Report {
       case _: BenchmarkSuccess => ok
       case _                   => failed
     }
-    result.toReport foreach write
+    result.toReport foreach (line => write(Constant.INDENT + line))
   }
 
 }

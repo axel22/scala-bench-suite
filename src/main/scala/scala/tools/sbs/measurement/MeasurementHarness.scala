@@ -25,7 +25,7 @@ import scala.xml.XML
 trait MeasurementHarness[BenchmarkType <: Benchmark] extends ObjectHarness with RuntimeTypeChecker {
 
   protected var log: Log = null
-  protected var benchmarkRunner: BenchmarkRunner = null
+  protected var benchmarkRunner: SeriesAchiever = null
   protected var config: Config = null
   protected def mode: BenchmarkMode
 
@@ -37,7 +37,7 @@ trait MeasurementHarness[BenchmarkType <: Benchmark] extends ObjectHarness with 
     val benchmark = BenchmarkFactory(UI, config, mode) createFrom (XML loadString args.head)
     if (check(benchmark.getClass)) {
       log = benchmark createLog mode
-      benchmarkRunner = new BenchmarkRunner(log)
+      benchmarkRunner = new SeriesAchiever(config, log)
       try reportResult(this measure benchmark.asInstanceOf[BenchmarkType])
       catch { case e: Exception => reportResult(new ExceptionMeasurementFailure(e)) }
     }

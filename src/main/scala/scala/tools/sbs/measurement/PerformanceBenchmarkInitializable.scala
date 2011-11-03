@@ -32,8 +32,8 @@ class PerformanceBenchmarkInitializable(name: String,
     config)
   with PerformanceBenchmark {
 
-  final val runs = 1
+  final val multiplier = 1
 
-  val multiplier = benchmarkObject.multiplier
+  val measurement = benchmarkObject.measurement
 
 }

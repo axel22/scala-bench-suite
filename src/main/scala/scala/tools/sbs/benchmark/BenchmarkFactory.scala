@@ -49,13 +49,13 @@ trait BenchmarkFactory {
         newSnippet(method, clazz.getClassLoader)
       }
       catch {
-        case s: NoSuchMethodException => try {
+        case _: NoSuchMethodException => try {
           newInitializable(clazz.getClassLoader)
         }
         catch {
-          case c: ClassCastException => throw new ClassCastException(
+          case _: ClassCastException => throw new ClassCastException(
             info.name + " should implement scala.tools.sbs.benchmark.BenchmarkTemplate")
-          case c: ClassNotFoundException => throw new ClassNotFoundException(
+          case _: ClassNotFoundException => throw new ClassNotFoundException(
             info.name + " should be an object or a class (not trait nor abstract)")
         }
       }

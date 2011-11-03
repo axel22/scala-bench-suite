@@ -32,50 +32,54 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
     |Usage: sbs [<options>] [<benchmark> <benchmark> ...]
     |  <benchmark>: a path to a benchmark, typically a .scala file or a directory.
     |          Examples: benchmark.scala, ~/files/abcxyz
-    |
+    |  All the per-benchmark <options> will be overriden by corresponding ones in
+    |   - .arg file with the same name with the snippet benchmark
+    |   - values overriden from templates with the initializable benchmark
     |  Benchmark mode:""".stripMargin)
 
   protected var _modes: List[BenchmarkMode] = Nil
-                          "steady-performance"  / "Benchmarking in steady state"  --> (_modes ::= SteadyState)
-                          "startup-performance" / "Benchmarking in startup state" --> (_modes ::= StartUpState)
-                          "memory-usage"        / "Measuring memory usage"        --> (_modes ::= MemoryUsage)
-                          "profiler"            / "Profiling"                     --> (_modes ::= Profiling)
+                          "steady-performance"  / "Benchmarking in steady state"     --> (_modes ::= SteadyState)
+                          "startup-performance" / "Benchmarking in startup state"    --> (_modes ::= StartUpState)
+                          "memory-usage"        / "Measuring memory usage"           --> (_modes ::= MemoryUsage)
+                          "profile"             / "Profiling"                        --> (_modes ::= Profiling)
                           "pinpoint"            / "Pinpointing regression detection" --> (_modes ::= Pinpointing)
 
-  heading		     	("Per-benchmark numbers of performance measuring " +
-  		                "(will be overriden by corresponding one in .arg file):")
-  val runs              = "runs"       / "number running per measurement"        defaultTo 1
-  val multiplier        = "multiplier" / "number of  measurements"               defaultTo 11
-  val sample            = "sample"     / "number of pre-created samples"         defaultTo 0
-  val shouldCompile     = !("noncompile" / "should re-compile the snippets" --?)
+  heading("Statistics metrics:")
+  val leastConfidenceLevel = "least-confidence-level" / "smallest acceptable confidence level" defaultTo 90
+  val _precisionThreshold  = "precision-threshold"    / "%"                                    defaultTo 2
+  val reMeasurement        = "re-measurement"         / "maximum # for re-measurements"        defaultTo 1
+  val warmRepeat           = "warm-repeat"            / "maximum # of repetition to waming up" defaultTo 5
 
-  heading                         ("Per-benchmark names for profiling " +
-  		                            "(will be overriden by corresponding one in .arg file):")
-  protected val _profileClasses = "profile-class"    / "classes to be profiled, split by " + Constant.COLON defaultTo ""
-  protected val _profileExclude = "profile-exclude" / "classes to be ignored, split by " + Constant.COLON + 
-                                                      " 'none' for profile anything" defaultTo ""
+  heading("Per-benchmark numbers of performance:")
+  val multiplier        = "multiplier"  / "# of times to run per measurement" defaultTo 1
+  val measurement       = "measurement"  / "# of measurements"                 defaultTo 11
+  val sample            = "sample"       / "# of pre-created samples"          defaultTo 0
+  val shouldCompile     = !("noncompile" / "not re-compile the benchmarks if set" --?)
 
-  val profileMethod     = "profile-method" / "name of the methoed to be profiled" defaultTo ""
-  val profileField      = "profile-field"  / "name of the field to be profiled"   defaultTo ""
-  val shouldGC          = "profile-gc"     / "should profile gc's running" --?
-  val shouldBoxing      = "profile-boxing" / "profile number of boxing - unboxing" --?
-  val shouldStep        = "profile-step"   / "profile number of steps performed" --?
+  heading("Per-benchmark names for profiling:")
+  protected val _profileClasses = "profile-classes" / "classes to be profiled" defaultTo ""
+                                  ""                / ("  split by " + Constant.COLON)
+  protected val _profileExclude = "profile-exclude" / "classes to be ignored"  defaultTo ""
+                                  ""                / ("  split by " + Constant.COLON)
 
-  heading                         ("Per-benchmark names for pinpointing regression detection " +
-  		                            "(will be overriden by corresponding one in .arg file):")
-  val pinpointClass      = "pinpoint-class"  / "name of the methoed to be pinpointing detected" defaultTo ""
-  val pinpointMethod     = "pinpoint-method" / "name of the field to be pinpointing detected"   defaultTo ""
+  val profileMethod     = "profile-method" / "the method to be profiled"  defaultTo ""
+  val profileField      = "profile-field"  / "the field to be profiled"   defaultTo ""
+  val shouldGC          = "profile-gc"     / "whether to profile gc's running" --?
+  val shouldBoxing      = "profile-boxing" / "whether to profile number of boxing - unboxing" --?
+  val shouldStep        = "profile-step"   / "whether to profile number of steps performed" --?
+
+  heading("Per-benchmark names for pinpointing regression detection:")
+  val pinpointClass      = "pinpoint-class"  / "the insterested class"  defaultTo ""
+  val pinpointMethod     = "pinpoint-method" / "the insterested method" defaultTo ""
   
-  val pinpointBottleneckDectect   = "pinpoint-bottleneck-detect" / "whether to detect the bottleneck" --?
+  val pinpointBottleneckDectect   = "pinpoint-bottleneck" / "whether to detect the bottleneck" --?
   
-  protected val _pinpointPrevious = "pinpoint-previous" / "location of classes from previous version " +
-  		                                                  "used to compared during pinpointing regression detection, " +
-  		                                                  "should not be included in classpath" defaultTo ""
-  protected val _pinpointExclude  = "pinpoint-exclude"  / "classes which have methods to be excluded " +
-  		                                                  "from pinpointing regression detection, " +
-  		                                                  "split by " + Constant.COLON defaultTo ""
+  protected val _pinpointPrevious = "pinpoint-previous" / "location of the previous build" defaultTo ""
+                                    ""                  /  "  should not be included in classpath"
+  protected val _pinpointExclude  = "pinpoint-exclude"  / "classes to be ignored"          defaultTo ""
+                                    ""                  / ("  split by " + Constant.COLON)
   
-  heading               ("Specifying paths and additional values, ~ means sbs root:")
+  heading("Specifying paths and additional values, ~ means sbs root:")
   protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory"   defaultTo "."
   protected val binDirPath        = "bindir"         / "path from ~ to benchmark build"       defaultTo ""
   protected val historyPath       = "history"        / "path to measurement result history"   defaultTo benchmarkDirPath
@@ -86,15 +90,15 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val scalacOpts                  = "scalacopts"     / "flags to scalac on all tests"         defaultToEnv "SCALAC_OPTS"
   protected val javaPath          = "java-home"      / "path to java"         defaultTo (System getProperty "java.home")
 
-  heading                 ("Options influencing output:")
+  heading("Options influencing output:")
   val isShowLog         = "show-log"     / "show log" --?
   val isVerbose         = "verbose"      / "be more verbose" --?
   val isDebug           = "debug"        / "debugging output" --?
 
-  heading                 ("Other options:")
+  heading("Other options:")
   val isAll             = "run-all"     / "run all benchmarks in directory" --?
   val isCleanup         = "cleanup"     / "delete all stale files and dirs before run" --?
-  val isNoCleanLog      = "noclean-log" / "do not delete any logfiles or object dirs" --?
+  val isNoCleanLog      = "noclean-log" / "do not delete any logfiles" --?
   val isHelp            = "help"        / "print usage message" --?
 
 }
