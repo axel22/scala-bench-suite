@@ -12,12 +12,13 @@ package scala.tools.sbs
 package profiling
 
 import java.lang.reflect.Method
+
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.common.Reflector
-import scala.tools.sbs.util.Constant
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.util.Constant
 
 trait ProfilingBenchmark extends Benchmark {
 

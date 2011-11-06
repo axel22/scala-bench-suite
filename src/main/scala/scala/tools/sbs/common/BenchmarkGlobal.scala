@@ -17,7 +17,6 @@ import scala.tools.nsc.Settings
 import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.util.Constant.COLON
-import scala.tools.sbs.Config
 
 /** An implement of {@link BenchmarkCompiler}.
  */

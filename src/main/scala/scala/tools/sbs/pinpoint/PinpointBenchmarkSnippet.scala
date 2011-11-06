@@ -17,7 +17,7 @@ import java.net.URL
 import scala.collection.immutable.List
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.Path
-import scala.tools.sbs.measurement.PerformanceBenchmarkSnippet
+import scala.tools.sbs.performance.PerformanceBenchmarkSnippet
 
 class PinpointBenchmarkSnippet(name: String,
                                arguments: List[String],

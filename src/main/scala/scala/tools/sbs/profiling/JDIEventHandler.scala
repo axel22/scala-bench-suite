@@ -14,9 +14,7 @@ import java.lang.InterruptedException
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.HashMap
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.Config
 
 import com.sun.jdi.event.AccessWatchpointEvent
 import com.sun.jdi.event.ClassPrepareEvent

@@ -1,12 +1,13 @@
 package scala.tools.sbs
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.measurement.PerformanceBenchmark
-import scala.tools.sbs.measurement.Series
+import scala.tools.sbs.performance.MeasurementSuccess
+import scala.tools.sbs.performance.PerformanceBenchmark
+import scala.tools.sbs.performance.Series
 
 package object test {
 

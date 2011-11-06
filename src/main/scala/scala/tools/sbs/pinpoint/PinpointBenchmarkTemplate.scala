@@ -12,7 +12,7 @@ package scala.tools.sbs
 package pinpoint
 
 import scala.tools.nsc.io.Directory
-import scala.tools.sbs.measurement.PerformanceBenchmarkTemplate
+import scala.tools.sbs.performance.PerformanceBenchmarkTemplate
 
 trait PinpointBenchmarkTemplate extends PerformanceBenchmarkTemplate {
 

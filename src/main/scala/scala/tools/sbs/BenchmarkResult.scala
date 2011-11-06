@@ -1,6 +1,5 @@
 package scala.tools.sbs
 
-import scala.Array.canBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.util.Constant

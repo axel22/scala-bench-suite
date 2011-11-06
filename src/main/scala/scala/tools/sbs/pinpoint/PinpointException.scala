@@ -11,8 +11,8 @@
 package scala.tools.sbs
 package pinpoint
 
-import scala.tools.sbs.pinpoint.CodeInstrumentor.InstrumentingExpression
-import scala.tools.sbs.pinpoint.CodeInstrumentor.MethodCallExpression
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.InstrumentingExpression
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
 import scala.tools.sbs.util.Constant
 
 class PinpointException(message: String) extends BenchmarkException(message)
@@ -41,3 +41,6 @@ case class NoPinpointingMethodException(benchmark: PinpointBenchmark)
   extends PinpointException("No pinpointing method specified in " + benchmark.name)
 
 class ANOVAUnsupportedException extends PinpointException("Currently ANOVA test is unsupported")
+
+case class UninstrumentableException(className: String)
+  extends PinpointException("Cannot instrument class " + className)

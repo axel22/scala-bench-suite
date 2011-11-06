@@ -11,9 +11,9 @@
 package scala.tools.sbs
 package pinpoint
 
-import java.net.URL
-
+import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 
 trait ScrutinyRegressionDetector {
 
@@ -26,7 +26,9 @@ object ScrutinyRegressionDetectorFactory {
   def apply(config: Config,
             log: Log,
             benchmark: PinpointBenchmark,
-            instrumentor: CodeInstrumentor, instrumentedURL: URL): ScrutinyRegressionDetector =
-    new MethodRegressionDetector(config, log, benchmark, instrumentor, instrumentedURL)
+            instrumentor: CodeInstrumentor,
+            instrumented: Directory,
+            backup: Directory): ScrutinyRegressionDetector =
+    new MethodRegressionDetector(config, log, benchmark, instrumentor, instrumented, backup)
 
 }

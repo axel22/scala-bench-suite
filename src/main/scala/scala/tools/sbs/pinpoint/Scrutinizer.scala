@@ -39,11 +39,7 @@ object ScrutinizerFactory {
 
 }
 
-trait ScrutinyResult extends BenchmarkResult {
-
-  def mode: BenchmarkMode = Pinpointing
-
-}
+trait ScrutinyResult extends BenchmarkResult
 
 trait ScrutinySuccess extends BenchmarkSuccess with ScrutinyResult
 

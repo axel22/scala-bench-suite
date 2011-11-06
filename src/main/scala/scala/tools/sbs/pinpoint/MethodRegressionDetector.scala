@@ -11,20 +11,32 @@
 package scala.tools.sbs
 package pinpoint
 
-import java.net.URL
+import scala.tools.nsc.io.Path.string2path
+import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.MeasurementResult
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.regression.CIRegressionFailure
-import scala.tools.sbs.regression.CIRegressionSuccess
-import scala.tools.sbs.measurement.MeasurementFailure
+import scala.tools.sbs.performance.regression.CIRegressionFailure
+import scala.tools.sbs.performance.regression.CIRegressionSuccess
+import scala.tools.sbs.performance.MeasurementFailure
+import scala.tools.sbs.performance.MeasurementSuccess
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
+import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
+import scala.tools.sbs.pinpoint.strategy.PinpointHarness
+import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 
 class MethodRegressionDetector(protected val config: Config,
                                protected val log: Log,
                                benchmark: PinpointBenchmark,
                                instrumentor: CodeInstrumentor,
-                               instrumentedURL: URL)
-  extends ScrutinyRegressionDetector
+                               instrumented: Directory,
+                               backup: Directory)
+  extends InstrumentationMeasurer(
+    config,
+    log,
+    benchmark,
+    instrumentor,
+    instrumented,
+    backup)
+  with ScrutinyRegressionDetector
   with TwinningDetector[ScrutinyRegressionResult] {
 
   def detect(stupidDummyNotTobeUsedBenchmark: PinpointBenchmark): ScrutinyRegressionResult = {
@@ -56,29 +68,22 @@ class MethodRegressionDetector(protected val config: Config,
       })
   }
 
-  private lazy val measureCurrent = classpathBasedMeasure(config.classpathURLs ++ benchmark.classpathURLs)
+  private lazy val measureCurrent = instrumentAndMeasure(
+    method => instrumentor.sandwich(
+      method,
+      PinpointHarness.javaInstructionCallStart,
+      PinpointHarness.javaInstructionCallEnd),
+    config.classpathURLs ++ benchmark.classpathURLs)
 
-  private lazy val measurePrevious =
-    classpathBasedMeasure(benchmark.pinpointPrevious.toURL :: config.classpathURLs ++ benchmark.classpathURLs)
-
-  private def classpathBasedMeasure(classpathURLs: List[URL]): MeasurementResult = {
-    instrument(benchmark, classpathURLs)
-    PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedURL :: classpathURLs)
-  }
-
-  /** Modifies the `pinpointMethod` to set entry and exit time to
-   *  {@link scala.tools.sbs.pinpoint.PinpointHarness}'s static fields.
-   */
-  private def instrument(benchmark: PinpointBenchmark, classpathURLs: List[URL]) {
-    val (clazz, method) = instrumentor.getClassAndMethod(
-      benchmark.pinpointClass,
-      benchmark.pinpointMethod,
-      classpathURLs)
-    if (method == null) {
-      throw new PinpointingMethodNotFoundException(benchmark)
-    }
-    instrumentor.sandwich(method, PinpointHarness.javaInstructionCallStart, PinpointHarness.javaInstructionCallEnd)
-    instrumentor.writeFile(clazz, instrumentedURL)
-  }
+  private lazy val measurePrevious = super.measurePrevious(
+    benchmark.pinpointPrevious,
+    benchmark.context,
+    backup,
+    instrumentAndMeasure(
+      method => instrumentor.sandwich(
+        method,
+        PinpointHarness.javaInstructionCallStart,
+        PinpointHarness.javaInstructionCallEnd),
+      config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
 
 }

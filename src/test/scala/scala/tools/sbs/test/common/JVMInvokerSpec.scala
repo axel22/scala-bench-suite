@@ -1,12 +1,13 @@
-package scala.tools.sbs.test
+package scala.tools.sbs
+package test
 package common
 
+import scala.tools.nsc.util.ClassPath
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.BenchmarkMode
-import org.scalatest.Spec
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.common.ObjectHarness
-import scala.tools.nsc.util.ClassPath
+
+import org.scalatest.Spec
 
 class JVMInvokerSpec extends Spec {
 

@@ -11,17 +11,16 @@
 package scala.tools.sbs
 package common
 
+import java.net.URL
+
 import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 import scala.sys.process.Process
 import scala.sys.process.ProcessIO
+import scala.tools.nsc.util.ClassPath
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.util.Constant.COLON
-import org.apache.commons.math.MathException
-import scala.tools.nsc.util.ClassPath
-import java.net.URL
 
 /** An implement of {@link JVMInvoker}.
  */

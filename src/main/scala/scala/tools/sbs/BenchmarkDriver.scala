@@ -14,7 +14,6 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.common.BenchmarkCompilerFactory
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.regression.PersistorFactory
 import scala.tools.sbs.util.FileUtil
 
 /** Object controls the runtime of benchmark classes to do measurements.

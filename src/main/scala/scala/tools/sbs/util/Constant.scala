@@ -11,8 +11,6 @@
 package scala.tools.sbs
 package util
 
-import java.lang.System
-
 /** Utilities for benchmarking.
  */
 object Constant {

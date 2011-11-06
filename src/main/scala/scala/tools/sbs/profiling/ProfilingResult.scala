@@ -11,17 +11,12 @@
 package scala.tools.sbs
 package profiling
 
-import scala.tools.sbs.benchmark.Benchmark
 import scala.collection.mutable.ArrayBuffer
 
 /** A {@link RunResult} from a running of {@link Runner}.
  *  In the mean time, also a {@link BenchmarkResult} for reporting.
  */
-trait ProfilingResult extends BenchmarkResult {
-
-  def mode = Profiling
-
-}
+trait ProfilingResult extends BenchmarkResult
 
 case class ProfilingSuccess(benchmark: ProfilingBenchmark, profile: Profile)
   extends BenchmarkSuccess with ProfilingResult {

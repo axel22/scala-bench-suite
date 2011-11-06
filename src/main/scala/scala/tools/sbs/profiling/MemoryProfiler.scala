@@ -11,11 +11,9 @@
 package scala.tools.sbs
 package profiling
 
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
-import scala.tools.sbs.Config
 
 class MemoryProfiler(log: Log, config: Config) {
 

@@ -41,7 +41,7 @@ abstract class SnippetBenchmark(_name: String,
   def src = _src
 
   def sampleNumber = _sampleNumber
-  
+
   def context = _context
 
   /** Benchmark process.

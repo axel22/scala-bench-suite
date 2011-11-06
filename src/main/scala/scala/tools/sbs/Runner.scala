@@ -14,8 +14,8 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.common.RuntimeTypeChecker
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.MeasurementHarnessFactory
-import scala.tools.sbs.measurement.MeasurerFactory
+import scala.tools.sbs.performance.MeasurementHarnessFactory
+import scala.tools.sbs.performance.MeasurerFactory
 import scala.tools.sbs.pinpoint.ScrutinizerFactory
 import scala.tools.sbs.profiling.ProfilerFactory
 
