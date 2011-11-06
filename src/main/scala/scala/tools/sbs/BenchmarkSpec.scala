@@ -68,7 +68,11 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val shouldBoxing      = "profile-boxing" / "whether to profile number of boxing - unboxing" --?
   val shouldStep        = "profile-step"   / "whether to profile number of steps performed" --?
 
-  heading("Per-benchmark names for pinpointing regression detection:")
+  heading("Per-benchmark names of methods for instrumenting:")
+  protected val _instrumentMethods = "instrument-methods" / "methods to be instrumented" defaultTo ""
+                                  ""                / ("  split by " + Constant.COLON)
+
+                                  heading("Per-benchmark names for pinpointing regression detection:")
   val pinpointClass      = "pinpoint-class"  / "the insterested class"  defaultTo ""
   val pinpointMethod     = "pinpoint-method" / "the insterested method" defaultTo ""
   
