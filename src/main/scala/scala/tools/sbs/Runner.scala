@@ -18,6 +18,7 @@ import scala.tools.sbs.measurement.MeasurementHarnessFactory
 import scala.tools.sbs.measurement.MeasurerFactory
 import scala.tools.sbs.pinpoint.ScrutinizerFactory
 import scala.tools.sbs.profiling.ProfilerFactory
+import scala.tools.sbs.instrumenting.InstrumenterFactory
 
 /** Runs the benchmark for some purpose.
  */
@@ -58,7 +59,8 @@ trait Runner extends RuntimeTypeChecker {
 object RunnerFactory {
 
   def apply(config: Config, log: Log, mode: BenchmarkMode): Runner = mode match {
-    case Profiling                                => ProfilerFactory(config, log)
+  	case Instrumenting							  => InstrumenterFactory(config,log)
+	case Profiling                                => ProfilerFactory(config, log)
     case Pinpointing                              => ScrutinizerFactory(config, log)
     case StartUpState | SteadyState | MemoryUsage => MeasurerFactory(config, log, mode, MeasurementHarnessFactory)
     case _                                        => throw new NotSupportedBenchmarkMode(mode)

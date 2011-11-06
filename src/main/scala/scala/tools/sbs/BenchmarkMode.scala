@@ -70,6 +70,16 @@ object Profiling extends BenchmarkMode {
 
 }
 
+object Instrumenting extends BenchmarkMode {
+
+  val location = "instrument"
+
+  override val toString = "instrument"
+
+  val description = "Instrumenting"
+
+}
+
 object Pinpointing extends BenchmarkMode {
 
   val location = "pinpoint"

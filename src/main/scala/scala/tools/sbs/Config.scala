@@ -90,6 +90,8 @@ case class Config(args: Array[String])
 
   val profileClasses = (_profileClasses split Constant.COLON) toList
 
+  val instrumentMethods = (_instrumentMethods split Constant.COLON) toList
+
   val pinpointExclude =
     if (_pinpointExclude == "") List("java.*", "javax.*", "sun.*", "com.sun.*", "org.apache.common.math.*")
     else if (_pinpointExclude == "none") Nil
