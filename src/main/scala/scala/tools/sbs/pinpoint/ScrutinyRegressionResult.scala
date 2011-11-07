@@ -13,12 +13,10 @@ package pinpoint
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.measurement.MeasurementFailure
-import scala.tools.sbs.measurement.MeasurementResult
-import scala.tools.sbs.measurement.MeasurementSuccess
-import scala.tools.sbs.regression.CIRegressionFailure
-import scala.tools.sbs.regression.CIRegressionSuccess
-import scala.tools.sbs.regression.ImmeasurableFailure
+import scala.tools.sbs.performance.regression.CIRegressionFailure
+import scala.tools.sbs.performance.regression.CIRegressionSuccess
+import scala.tools.sbs.performance.regression.ImmeasurableFailure
+import scala.tools.sbs.performance.MeasurementFailure
 
 trait ScrutinyRegressionResult extends ScrutinyResult
 

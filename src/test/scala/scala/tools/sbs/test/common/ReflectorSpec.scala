@@ -1,6 +1,8 @@
-package scala.tools.sbs.test
+package scala.tools.sbs
+package test
 package common
 
+import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.nsc.Global
@@ -174,9 +176,9 @@ class ReflectorSpec extends Spec {
       val out = reflectDir
       init(classA, out)
       val clazz = reflector.getClass(A, List(out.toURL))
-      expect(Some(out.toURL))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(Some(out))(reflector.locationOf(A, clazz.getClassLoader))
     }
-    
+
     it("should return the location where a class loaded: parent rather than child dir") {
       val parent = reflectDir
       init(classA, parent)
@@ -186,9 +188,9 @@ class ReflectorSpec extends Spec {
       compile(child)
 
       val clazz = reflector.getClass(A, List(parent.toURL, child.toURL))
-      expect(Some(parent.toURL))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(Some(parent))(reflector.locationOf(A, clazz.getClassLoader))
     }
-    
+
     it("should return the location where a class loaded: child rather than parent dir") {
       val parent = reflectDir
       init(classA, parent)
@@ -198,7 +200,7 @@ class ReflectorSpec extends Spec {
       compile(child)
 
       val clazz = reflector.getClass(A, List(child.toURL, parent.toURL))
-      expect(Some(child.toURL))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(Some(child))(reflector.locationOf(A, clazz.getClassLoader))
     }
 
   }

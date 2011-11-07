@@ -15,7 +15,7 @@ import java.net.URL
 
 import scala.collection.immutable.List
 import scala.tools.nsc.io.Path
-import scala.tools.sbs.measurement.PerformanceBenchmarkInitializable
+import scala.tools.sbs.performance.PerformanceBenchmarkInitializable
 
 class PinpointBenchmarkInitializable(name: String,
                                      classpathURLs: List[URL],

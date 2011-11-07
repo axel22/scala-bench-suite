@@ -1,4 +1,5 @@
-package scala.tools.sbs.test
+package scala.tools.sbs
+package test
 package common
 
 import scala.tools.sbs.common.RuntimeTypeChecker

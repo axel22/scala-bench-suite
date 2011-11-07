@@ -10,8 +10,6 @@
 
 package scala.tools.sbs
 
-import java.lang.System
-
 import scala.tools.cmd.Instance
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
@@ -28,10 +26,10 @@ import org.apache.commons.math.MathException
 /** Configurations for sbs running.
  */
 case class Config(args: Array[String])
-    extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
+  extends { val parsed = BenchmarkSpec(args: _*) } with BenchmarkSpec with Instance {
 
   def helpMsg = BenchmarkSpec.helpMsg
-  
+
   val precisionThreshold = _precisionThreshold / 100D
 
   /** cwd where benchmarking taking place, also the sources directory for all benchmarks.
@@ -109,7 +107,7 @@ case class Config(args: Array[String])
    *  <li>Profiling
    *  </ul>
    */
-  val modes = if (_modes == Nil) List(SteadyState, StartUpState, MemoryUsage, Profiling) else _modes
+  val modes = _modes
 
   /** `File` path of scala-library.jar.
    */

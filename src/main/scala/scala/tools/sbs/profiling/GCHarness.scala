@@ -14,8 +14,8 @@ package profiling
 import java.lang.management.ManagementFactory
 
 import scala.collection.JavaConverters.asScalaBufferConverter
-import scala.tools.sbs.measurement.MeasurementHarness
-import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.performance.MeasurementHarness
+import scala.tools.sbs.performance.MeasurementResult
 
 /** Extracts garbage collection information.
  */
@@ -24,7 +24,7 @@ object GCHarness extends MeasurementHarness[ProfilingBenchmark] {
   override val mode = Profiling
 
   protected val upperBound = manifest[ProfilingBenchmark]
-  
+
   def measure(benchmark: ProfilingBenchmark): MeasurementResult = {
     val gcMXBeans = ManagementFactory.getGarbageCollectorMXBeans.asScala.toList
     val memMXBean = ManagementFactory.getMemoryMXBean

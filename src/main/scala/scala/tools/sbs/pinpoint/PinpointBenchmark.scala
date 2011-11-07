@@ -16,12 +16,11 @@ import java.lang.reflect.Method
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.benchmark.BenchmarkInfo
 import scala.tools.sbs.common.Reflector
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.measurement.PerformanceBenchmark
-import scala.tools.sbs.measurement.PerformanceBenchmarkFactory
+import scala.tools.sbs.performance.PerformanceBenchmark
+import scala.tools.sbs.performance.PerformanceBenchmarkFactory
 import scala.tools.sbs.util.Constant
 
 trait PinpointBenchmark extends PerformanceBenchmark {

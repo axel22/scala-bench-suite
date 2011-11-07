@@ -10,7 +10,6 @@
 
 package scala.tools.sbs
 
-import scala.annotation.implicitNotFound
 import scala.collection.mutable.ArrayBuffer
 
 /** Holds all the benchmarking results from one sbs running.

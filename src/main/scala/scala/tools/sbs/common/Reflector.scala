@@ -13,6 +13,8 @@ package common
 
 import java.net.URL
 
+import scala.tools.nsc.io.Path
+
 /** All the reflecting stuff should be done here.
  */
 trait Reflector {
@@ -27,7 +29,7 @@ trait Reflector {
 
   /** Gets the location where the class with given name was loaded.
    */
-  def locationOf(name: String, classLoader: ClassLoader): Option[URL]
+  def locationOf(name: String, classLoader: ClassLoader): Option[Path]
 
 }
 

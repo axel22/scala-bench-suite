@@ -13,7 +13,6 @@ package scala.tools.sbs
 import java.lang.System
 import java.net.URL
 
-import scala.Array.canBuildFrom
 import scala.io.Source
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
@@ -23,7 +22,6 @@ import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.LogFactory
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COLON
-import scala.tools.sbs.util.Constant
 
 /** Parser for the suite's arguments.
  */

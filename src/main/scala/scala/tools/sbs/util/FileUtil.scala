@@ -11,7 +11,7 @@
 package scala.tools.sbs
 package util
 
-import java.io.{ File => JFile }
+import java.io.{File => JFile}
 import java.io.FileWriter
 import java.lang.Thread.sleep
 import java.lang.System
@@ -126,5 +126,17 @@ object FileUtil {
   def mkDir(path: Path): Either[Directory, String] =
     try Left(path.createDirectory())
     catch { case _ => Right("Cannot create directory: " + path.path) }
+
+  /** Moves a `File` from a `Directory` to another one with their
+   *  realative paths
+   */
+  def move(file: File, from: Directory, to: Directory): Boolean =
+    try {
+      val relative = from relativize file
+      relative.segments.init./:(to)((parent, child) => parent / child createDirectory ())
+      if (file copyTo (to / relative)) file delete
+      else false
+    }
+    catch { case _ => false }
 
 }

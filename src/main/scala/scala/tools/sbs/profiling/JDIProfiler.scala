@@ -15,7 +15,6 @@ import java.io.IOException
 import java.util.{Map => JMap}
 
 import scala.collection.JavaConverters.asScalaBufferConverter
-import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI

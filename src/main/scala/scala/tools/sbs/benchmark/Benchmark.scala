@@ -15,7 +15,6 @@ import java.net.URL
 
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.BenchmarkMode
 
 /** Represent a benchmark entity, that is an object for the suite to run, measure and detect regression.
  */

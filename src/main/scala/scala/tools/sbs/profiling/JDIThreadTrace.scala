@@ -10,7 +10,6 @@
 package scala.tools.sbs
 package profiling
 
-import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.collection.mutable.Stack
 import scala.tools.sbs.io.Log
 

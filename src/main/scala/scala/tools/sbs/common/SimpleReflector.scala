@@ -13,10 +13,11 @@ package common
 
 import java.net.URL
 
+import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.sbs.benchmark.BenchmarkTemplate
-import scala.tools.sbs.util.Constant.DOLLAR
 import scala.tools.sbs.util.Constant.COMPANION_FIELD
+import scala.tools.sbs.util.Constant.DOLLAR
 
 /** A simple implement of {@link Reflection}.
  */
@@ -40,10 +41,10 @@ class SimpleReflector(config: Config) extends Reflector {
     }
   }
 
-  def locationOf(name: String, classLoader: ClassLoader): Option[URL] = {
+  def locationOf(name: String, classLoader: ClassLoader): Option[Path] = {
     try {
       val clazz = Class forName (name, false, classLoader)
-      Some(clazz.getProtectionDomain.getCodeSource.getLocation)
+      Some(Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical)
     }
     catch {
       case _: ClassNotFoundException => None

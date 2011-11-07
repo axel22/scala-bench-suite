@@ -12,7 +12,7 @@ package scala.tools.sbs
 package profiling
 
 import scala.collection.mutable.ArrayBuffer
-import scala.tools.sbs.measurement.MeasurementResult
+import scala.tools.sbs.performance.MeasurementResult
 
 trait ProfileElement {
 

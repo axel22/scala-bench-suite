@@ -11,8 +11,8 @@
 package scala.tools.sbs
 package profiling
 
-import scala.tools.sbs.io.Log
 import scala.tools.sbs.benchmark.Benchmark
+import scala.tools.sbs.io.Log
 
 /** Trait for some kinds of profiling.
  */
@@ -27,11 +27,10 @@ trait Profiler extends Runner {
   }
 
   protected def profile(benchmark: ProfilingBenchmark): ProfilingResult
-  
+
   /** Does nothing method.
    */
   protected def doGenerating(benchmark: Benchmark) = ()
-
 
 }
 
