@@ -6,6 +6,8 @@ scalaVersion := "2.9.1"
 
 scalacOptions += "-deprecation"
 
+mainClass in (Compile, run) := Some("scala.tools.sbs.BenchmarkDriver")
+
 libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-compiler" % _ )
 
 libraryDependencies += "org.apache.commons" % "commons-math" % "2.2"
