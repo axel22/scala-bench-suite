@@ -29,11 +29,13 @@ abstract class InstrumentationMeasurer(config: Config,
                                        instrumented: Directory,
                                        backup: Directory) {
 
-  protected def instrumentAndMeasure(instrument: InstrumentingMethod => Unit,
+  protected def instrumentAndMeasure(declaringClass: String,
+                                     instrumentingMethod: String,
+                                     instrument: InstrumentingMethod => Unit,
                                      classpathURLs: List[java.net.URL]): MeasurementResult = {
     val (clazz, method) = instrumentor.getClassAndMethod(
-      benchmark.pinpointClass,
-      benchmark.pinpointMethod,
+      declaringClass,
+      instrumentingMethod,
       classpathURLs)
     if (method == null) {
       throw new PinpointingMethodNotFoundException(benchmark)

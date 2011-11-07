@@ -30,17 +30,24 @@ class MethodScrutinizer(protected val config: Config, protected val log: Log) ex
 
     detector detect benchmark match {
       case regressionSuccess: ScrutinyCIRegressionSuccess => regressionSuccess
-      case regressionFailure: ScrutinyRegressionFailure => if (config.pinpointBottleneckDectect) {
-        val bottleneckFound = BottleneckFinderFactory(config, log, benchmark, instrumentor, instrumented, backup).find()
+      case regressionFailure: ScrutinyCIRegressionFailure if (config.pinpointBottleneckDectect) => {
+        val bottleneckFound = BottleneckFinderFactory(
+          config,
+          log,
+          benchmark,
+          benchmark.pinpointClass,
+          benchmark.pinpointMethod,
+          instrumentor,
+          instrumented,
+          backup) find ()
 
         bottleneckFound.toReport foreach UI.info
         bottleneckFound.toReport foreach log.info
+        UI.info("")
 
         bottleneckFound
       }
-      else {
-        regressionFailure
-      }
+      case anythingelse => anythingelse
     }
   }
 

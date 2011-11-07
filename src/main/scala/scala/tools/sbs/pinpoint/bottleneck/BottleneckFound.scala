@@ -57,6 +57,6 @@ case class NoBottleneck(benchmark: Benchmark,
   with CIRegression
   with ScrutinyFailure {
 
-  override def toReport = ArrayBuffer("No bottleneck found.", "") ++ super.toReport
+  override def toReport = ArrayBuffer("No bottleneck found", "") ++ super.toReport
 
 }

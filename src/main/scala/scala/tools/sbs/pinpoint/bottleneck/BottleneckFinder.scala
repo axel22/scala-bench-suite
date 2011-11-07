@@ -14,6 +14,7 @@ package bottleneck
 
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 
 /** Uses instrumentation method to point out the method call
@@ -30,9 +31,41 @@ object BottleneckFinderFactory {
   def apply(config: Config,
             log: Log,
             benchmark: PinpointBenchmark,
+            declaringClass: String,
+            diggingMethod: String,
             instrumentor: CodeInstrumentor,
             instrumented: Directory,
             backup: Directory): BottleneckFinder =
-    new BottleneckBinaryFinder(log, config, benchmark, instrumentor, instrumented, backup)
+    new BottleneckDiggingFinder(
+      config,
+      log,
+      benchmark,
+      declaringClass,
+      diggingMethod,
+      instrumentor,
+      instrumented,
+      backup)
+
+  def apply(config: Config,
+            log: Log,
+            benchmark: PinpointBenchmark,
+            declaringClass: String,
+            bottleneckMethod: String,
+            callIndexList: List[Int],
+            callList: List[MethodCallExpression],
+            instrumentor: CodeInstrumentor,
+            instrumented: Directory,
+            backup: Directory): BottleneckFinder =
+    new BottleneckBinaryFinder(
+      config,
+      log,
+      benchmark,
+      declaringClass,
+      bottleneckMethod,
+      callIndexList,
+      callList,
+      instrumentor,
+      instrumented,
+      backup)
 
 }

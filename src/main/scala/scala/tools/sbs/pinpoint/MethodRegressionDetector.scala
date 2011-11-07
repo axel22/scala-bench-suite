@@ -11,9 +11,9 @@
 package scala.tools.sbs
 package pinpoint
 
-import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.MeasurementFailure
@@ -21,6 +21,7 @@ import scala.tools.sbs.performance.MeasurementSuccess
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
+import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 
 class MethodRegressionDetector(protected val config: Config,
@@ -36,13 +37,19 @@ class MethodRegressionDetector(protected val config: Config,
     instrumentor,
     instrumented,
     backup)
-  with ScrutinyRegressionDetector
-  with TwinningDetector[ScrutinyRegressionResult] {
+  with TwinningDetector
+  with PreviousVersionExploiter
+  with ScrutinyRegressionDetector {
 
   def detect(stupidDummyNotTobeUsedBenchmark: PinpointBenchmark): ScrutinyRegressionResult = {
     if (benchmark.pinpointClass == "" || benchmark.pinpointMethod == "") {
       throw new NoPinpointingMethodException(benchmark)
     }
+
+    UI.info("Detecting performance regression of method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
+    log.info("Detecting performance regression of method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
+    UI.info("")
+
     twinningDetect(
       benchmark,
       measureCurrent,
@@ -59,27 +66,25 @@ class MethodRegressionDetector(protected val config: Config,
         }
         case _ => throw new ANOVAUnsupportedException
       },
-      (current, previous) => current match {
-        case failure: MeasurementFailure => ScrutinyImmeasurableFailure(benchmark, failure)
-        case _ => previous match {
-          case failure: MeasurementFailure => ScrutinyImmeasurableFailure(benchmark, failure)
-          case _                           => throw new AlgorithmFlowException(this.getClass)
-        }
-      })
+      failure => ScrutinyImmeasurableFailure(benchmark, failure))
   }
 
   private lazy val measureCurrent = instrumentAndMeasure(
+    benchmark.pinpointClass,
+    benchmark.pinpointMethod,
     method => instrumentor.sandwich(
       method,
       PinpointHarness.javaInstructionCallStart,
       PinpointHarness.javaInstructionCallEnd),
     config.classpathURLs ++ benchmark.classpathURLs)
 
-  private lazy val measurePrevious = super.measurePrevious(
+  private lazy val measurePrevious = exploit(
     benchmark.pinpointPrevious,
     benchmark.context,
     backup,
     instrumentAndMeasure(
+      benchmark.pinpointClass,
+      benchmark.pinpointMethod,
       method => instrumentor.sandwich(
         method,
         PinpointHarness.javaInstructionCallStart,

@@ -14,23 +14,28 @@ package bottleneck
 
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.ANOVARegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.regression.RegressionFailure
-import scala.tools.sbs.performance.MeasurementResult
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
+import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 
 /** Uses a binary-search-like algorithm to find the bottleneck in a
  *  method call list of a method.
  */
-class BottleneckBinaryFinder(protected val log: Log,
-                             protected val config: Config,
+class BottleneckBinaryFinder(protected val config: Config,
+                             protected val log: Log,
                              benchmark: PinpointBenchmark,
+                             declaringClass: String,
+                             bottleneckMethod: String,
+                             callIndexList: List[Int],
+                             callList: List[MethodCallExpression],
                              instrumentor: CodeInstrumentor,
                              instrumented: Directory,
                              backup: Directory)
@@ -41,32 +46,11 @@ class BottleneckBinaryFinder(protected val log: Log,
     instrumentor,
     instrumented,
     backup)
-  with BottleneckFinder
-  with TwinningDetector[BottleneckFound] {
+  with TwinningDetector
+  with PreviousVersionExploiter
+  with BottleneckFinder {
 
-  def find(): BottleneckFound = {
-    val currentMethod = instrumentor.getMethod(
-      benchmark.pinpointMethod,
-      benchmark.pinpointClass,
-      config.classpathURLs ++ benchmark.classpathURLs)
-
-    val previousMethod = instrumentor.getMethod(
-      benchmark.pinpointMethod,
-      benchmark.pinpointClass,
-      benchmark.pinpointPrevious.toURL :: config.classpathURLs ++ benchmark.classpathURLs)
-
-    val currentCallingList = instrumentor callListOf currentMethod
-    val previousCallingList = instrumentor callListOf previousMethod
-    if ((currentCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature))) !=
-      (previousCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature)))) {
-      throw new MismatchExpressionList(benchmark, currentCallingList, previousCallingList)
-    }
-
-    var callIndexList = List[Int]()
-    currentCallingList foreach (_ => callIndexList :+= callIndexList.length)
-
-    binaryFind(callIndexList, currentCallingList)
-  }
+  def find(): BottleneckFound = binaryFind(callIndexList, callList)
 
   private def binaryFind(callIndexList: List[Int], callList: List[MethodCallExpression]): BottleneckFound = {
     def narrow(regressionFailure: RegressionFailure): BottleneckFound = {
@@ -112,6 +96,19 @@ class BottleneckBinaryFinder(protected val log: Log,
       else { currentBottleneck }
     }
 
+    UI.info("  Finding bottleneck between " +
+      "method call " + callList.head.getClassName + "." + callList.head.getMethodName + callList.head.getSignature +
+      " at line " + callList.head.getLineNumber +
+      " and " + callList.last.getClassName + "." + callList.last.getMethodName + callList.last.getSignature +
+      " at line " + callList.last.getLineNumber)
+    UI.info("")
+
+    log.info("  Finding bottleneck between " +
+      "method call " + callList.head.getClassName + "." + callList.head.getMethodName + callList.head.getSignature +
+      " at line " + callList.head.getLineNumber +
+      " and " + callList.last.getClassName + "." + callList.last.getMethodName + callList.last.getSignature +
+      " at line " + callList.last.getLineNumber)
+
     twinningDetect(
       benchmark,
       measureCurrent(callIndexList),
@@ -123,27 +120,29 @@ class BottleneckBinaryFinder(protected val log: Log,
           throw new ANOVAUnsupportedException
       },
       narrow,
-      (_, _) => throw new BottleneckUndetectableException(benchmark, callList))
+      _ => throw new BottleneckUndetectableException(benchmark, callList))
   }
 
-  private def measureCurrent(callIndexList: List[Int]): MeasurementResult =
+  private def measureCurrent(callIndexList: List[Int]) = instrumentAndMeasure(
+    declaringClass,
+    bottleneckMethod,
+    method => instrumentor.sandwichCallList(
+      method,
+      callIndexList.head, PinpointHarness.javaInstructionCallStart,
+      callIndexList.last, PinpointHarness.javaInstructionCallEnd),
+    config.classpathURLs ++ benchmark.classpathURLs)
+
+  private def measurePrevious(callIndexList: List[Int]) = exploit(
+    benchmark.pinpointPrevious,
+    benchmark.context,
+    backup,
     instrumentAndMeasure(
+      declaringClass,
+      bottleneckMethod,
       method => instrumentor.sandwichCallList(
         method,
         callIndexList.head, PinpointHarness.javaInstructionCallStart,
         callIndexList.last, PinpointHarness.javaInstructionCallEnd),
-      config.classpathURLs ++ benchmark.classpathURLs)
-
-  private def measurePrevious(callIndexList: List[Int]): MeasurementResult =
-    super.measurePrevious(
-      benchmark.pinpointPrevious,
-      benchmark.context,
-      backup,
-      instrumentAndMeasure(
-        method => instrumentor.sandwichCallList(
-          method,
-          callIndexList.head, PinpointHarness.javaInstructionCallStart,
-          callIndexList.last, PinpointHarness.javaInstructionCallEnd),
-        config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+      config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
 
 }

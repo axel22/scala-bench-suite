@@ -31,11 +31,12 @@ case class MismatchExpressionList(benchmark: PinpointBenchmark,
     "in method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
 
 case class BottleneckUndetectableException(benchmark: PinpointBenchmark, callingList: List[InstrumentingExpression])
-  extends PinpointException(
-    "Measurement failure from line " + callingList.head.getLineNumber +
+  extends PinpointException("Measurement failure " + (
+    if (callingList == Nil) ""
+    else "from line " + callingList.head.getLineNumber +
       " to line " + callingList.last.getLineNumber +
-      " in method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod +
-      " from benchmark " + benchmark.name)
+      " in method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod) +
+    " from benchmark " + benchmark.name)
 
 case class NoPinpointingMethodException(benchmark: PinpointBenchmark)
   extends PinpointException("No pinpointing method specified in " + benchmark.name)

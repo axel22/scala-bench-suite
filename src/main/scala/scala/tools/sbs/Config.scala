@@ -105,7 +105,7 @@ case class Config(args: Array[String])
    *  <li>Profiling
    *  </ul>
    */
-  val modes = if (_modes == Nil) List(SteadyState, StartUpState, MemoryUsage, Profiling) else _modes
+  val modes = _modes
 
   /** `File` path of scala-library.jar.
    */
