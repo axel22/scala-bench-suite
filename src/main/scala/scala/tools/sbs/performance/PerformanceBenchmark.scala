@@ -63,7 +63,7 @@ class PerformanceBenchmarkFactory(protected val log: Log, protected val config: 
         info.name,
         info.classpathURLs,
         info.src,
-        Reflector(config).getObject[PerformanceBenchmarkTemplate](
+        Reflector(config, log).getObject[PerformanceBenchmarkTemplate](
           info.name, config.classpathURLs ++ info.classpathURLs),
         context,
         config))

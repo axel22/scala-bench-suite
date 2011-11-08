@@ -16,12 +16,14 @@ import java.net.URL
 import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.sbs.benchmark.BenchmarkTemplate
+import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COMPANION_FIELD
 import scala.tools.sbs.util.Constant.DOLLAR
 
 /** A simple implement of {@link Reflection}.
  */
-class SimpleReflector(config: Config) extends Reflector {
+class SimpleReflector(config: Config, log: Log) extends Reflector {
 
   def getClass(name: String, classpathURLs: List[URL]): Class[_] = {
     val classLoader = ScalaClassLoader.fromURLs(classpathURLs, classOf[BenchmarkTemplate].getClassLoader)
@@ -41,13 +43,17 @@ class SimpleReflector(config: Config) extends Reflector {
     }
   }
 
-  def locationOf(name: String, classLoader: ClassLoader): Option[Path] = {
+  def locationOf(name: String, classLoader: ClassLoader): Path = {
     try {
       val clazz = Class forName (name, false, classLoader)
-      Some(Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical)
+      Path(clazz.getProtectionDomain.getCodeSource.getLocation.getPath).toCanonical
     }
     catch {
-      case _: ClassNotFoundException => None
+      case f: ClassNotFoundException => {
+        UI.error("Class not found: " + name)
+        log.debug("Class not found: " + name)
+        throw f
+      }
     }
   }
 

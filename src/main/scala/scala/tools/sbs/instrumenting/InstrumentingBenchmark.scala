@@ -53,7 +53,7 @@ class InstrumentingBenchmarkFactory(protected val log: Log, protected val config
         info.name,
         info.classpathURLs,
         info.src,
-        Reflector(config).getObject[InstrumentingBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
+        Reflector(config, log).getObject[InstrumentingBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
         context,
         config))
   }

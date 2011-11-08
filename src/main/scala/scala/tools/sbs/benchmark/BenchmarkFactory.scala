@@ -41,7 +41,7 @@ trait BenchmarkFactory {
                      newInitializable: ClassLoader => InitializableBenchmark): Benchmark = {
     val classpathURLs = config.classpathURLs ++ info.classpathURLs
     try {
-      val clazz = Reflector(config).getClass(info.name, classpathURLs)
+      val clazz = Reflector(config, log).getClass(info.name, classpathURLs)
       try {
         val method = clazz.getMethod("main", classOf[Array[String]])
         if (!Modifier.isStatic(method.getModifiers)) {

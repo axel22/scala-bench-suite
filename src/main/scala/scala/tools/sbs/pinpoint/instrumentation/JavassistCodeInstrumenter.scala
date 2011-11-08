@@ -91,7 +91,7 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     method instrument new javassist.expr.ExprEditor {
       override def edit(call: MethodCallExpression) = {
         val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
-        if (!exclude.exists(declaringClassName startsWith _)) {
+        if (!exclude.exists(declaringClassName matches _)) {
           callList :+= call
           UI.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
           log.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
@@ -132,7 +132,7 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     method instrument new javassist.expr.ExprEditor {
       override def edit(call: MethodCallExpression) {
         val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
-        if (!exclude.exists(declaringClassName startsWith _)) {
+        if (!exclude.exists(declaringClassName matches _)) {
           if ((index == first) && (index == last)) {
             call replace embrace(upper + proceedExpression + lower)
           }
@@ -148,12 +148,8 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     }
   }
 
-  def overwrite(clazz: InstrumentingClass, context: ClassLoader) {
-    clazz writeFile (Reflector(config).locationOf(clazz.getName, context) match {
-      case Some(path) => path.path
-      case None       => config.bin.path
-    })
-  }
+  def overwrite(clazz: InstrumentingClass, context: ClassLoader) =
+    clazz writeFile (Reflector(config, log).locationOf(clazz.getName, context).path)
 
   def writeFile(clazz: InstrumentingClass, location: Directory) =
     clazz writeFile location.path

@@ -103,7 +103,7 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
         info.name,
         info.classpathURLs,
         info.src,
-        Reflector(config).getObject[PinpointBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
+        Reflector(config, log).getObject[PinpointBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
         context,
         config))
   }

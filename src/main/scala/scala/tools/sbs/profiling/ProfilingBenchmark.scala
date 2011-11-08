@@ -89,7 +89,7 @@ class ProfilingBenchmarkFactory(protected val log: Log, protected val config: Co
         info.name,
         info.classpathURLs,
         info.src,
-        Reflector(config).getObject[ProfilingBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
+        Reflector(config, log).getObject[ProfilingBenchmarkTemplate](info.name, config.classpathURLs ++ info.classpathURLs),
         context,
         config))
   }

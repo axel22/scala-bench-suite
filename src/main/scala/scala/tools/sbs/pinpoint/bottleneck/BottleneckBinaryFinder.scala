@@ -96,18 +96,20 @@ class BottleneckBinaryFinder(protected val config: Config,
       else { currentBottleneck }
     }
 
-    UI.info("  Finding bottleneck between " +
-      "method call " + callList.head.getClassName + "." + callList.head.getMethodName + callList.head.getSignature +
-      " at line " + callList.head.getLineNumber +
-      " and " + callList.last.getClassName + "." + callList.last.getMethodName + callList.last.getSignature +
-      " at line " + callList.last.getLineNumber)
-    UI.info("")
+    val start = callList(callIndexList.head)
+    val end = callList(callIndexList.last)
+    def position(call: MethodCallExpression) =
+      call.getClassName + "." + call.getMethodName + call.getSignature + " at line " + call.getLineNumber
 
-    log.info("  Finding bottleneck between " +
-      "method call " + callList.head.getClassName + "." + callList.head.getMethodName + callList.head.getSignature +
-      " at line " + callList.head.getLineNumber +
-      " and " + callList.last.getClassName + "." + callList.last.getMethodName + callList.last.getSignature +
-      " at line " + callList.last.getLineNumber)
+    if (callIndexList.length == 1) {
+      UI.info("  Checking whether method call " + position(start) + " is a bottleneck")
+      log.info("  Checking whether method call " + position(start) + " is a bottleneck")
+    }
+    else {
+      UI.info("  Finding bottleneck between " + "method call " + position(start) + " and " + position(end))
+      log.info("  Finding bottleneck between " + "method call " + position(start) + " and " + position(end))
+    }
+    UI.info("")
 
     twinningDetect(
       benchmark,

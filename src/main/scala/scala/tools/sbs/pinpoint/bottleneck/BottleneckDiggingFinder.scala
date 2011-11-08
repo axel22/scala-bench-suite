@@ -55,7 +55,12 @@ class BottleneckDiggingFinder(protected val config: Config,
 
     val currentCallingList = instrumentor callListOf currentMethod
 
-    if (currentCallingList == Nil) throw new BottleneckUndetectableException(benchmark, Nil)
+    if (currentCallingList == Nil) {
+      UI.info("  No detectable method call found")
+      UI.info("")
+      log.info("  No detectable method call found")
+      throw new BottleneckUndetectableException(benchmark, Nil)
+    }
 
     UI.debug("Not empty calling list from: " + currentMethod.getLongName)
     log.debug("Not empty calling list from: " + currentMethod.getLongName)
@@ -63,6 +68,8 @@ class BottleneckDiggingFinder(protected val config: Config,
     val previousCallingList = instrumentor callListOf previousMethod
     if ((currentCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature))) !=
       (previousCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature)))) {
+      UI.error("Mismatch expression lists, skip further detection")
+      log.error("Mismatch expression lists, skip further detection")
       throw new MismatchExpressionList(benchmark, currentCallingList, previousCallingList)
     }
 
@@ -90,13 +97,15 @@ class BottleneckDiggingFinder(protected val config: Config,
     UI.info("")
 
     currentLevelBottleneck match {
-      case Bottleneck(_, position, _, _, _) if (position.length == 1) =>
+      case Bottleneck(_, position, _, _, _) if ((position.length == 1) &&
+        !(benchmark.pinpointExclude exists (declaringClass matches _))) =>
         try {
           UI.verbose("  Digging into: " +
             position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
           log.verbose("  Digging into: " +
             position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
-          BottleneckFinderFactory(
+
+          val lowerLevelBottleneckFound = BottleneckFinderFactory(
             config,
             log,
             benchmark,
@@ -105,6 +114,11 @@ class BottleneckDiggingFinder(protected val config: Config,
             instrumentor,
             instrumented,
             backup) find ()
+
+          lowerLevelBottleneckFound match {
+            case _: NoBottleneck => currentLevelBottleneck
+            case _               => lowerLevelBottleneckFound
+          }
         }
         catch {
           case e => {
