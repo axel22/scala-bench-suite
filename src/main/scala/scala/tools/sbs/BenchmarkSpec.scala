@@ -61,6 +61,10 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   protected val _profileExclude = "profile-exclude" / "classes to be ignored" defaultTo ""
                                   ""                / ("  split by " + Constant.COLON)
 
+  heading                        ("Per-benchmark names for instrumenting:")
+  protected val _instrumentMethods = "instrument-methods" / "methods to be instrumented" defaultTo ""
+                                  ""                / ("  split by " + Constant.COLON)
+
   val profileMethod = "profile-method" / "the method to be profiled" defaultTo ""
   val profileField  = "profile-field"  / "the field to be profiled" defaultTo ""
   val shouldGC      = "profile-gc"     / "whether to profile gc's running" --?
