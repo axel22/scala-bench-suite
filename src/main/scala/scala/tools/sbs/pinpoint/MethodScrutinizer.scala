@@ -15,7 +15,6 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.pinpoint.bottleneck.BottleneckFinderFactory
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 
 class MethodScrutinizer(protected val config: Config, protected val log: Log) extends Scrutinizer {
 
@@ -24,29 +23,31 @@ class MethodScrutinizer(protected val config: Config, protected val log: Log) ex
   val backup = config.bin / ".backup" createDirectory ()
 
   def scrutinize(benchmark: PinpointBenchmark): ScrutinyResult = {
-    val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
 
-    val detector = ScrutinyRegressionDetectorFactory(config, log, benchmark, instrumentor, instrumented, backup)
+    val detector = ScrutinyRegressionDetectorFactory(config, log, benchmark, instrumented, backup)
 
     detector detect benchmark match {
       case regressionSuccess: ScrutinyCIRegressionSuccess => regressionSuccess
-      case regressionFailure: ScrutinyCIRegressionFailure if (config.pinpointBottleneckDectect) => {
-        val bottleneckFound = BottleneckFinderFactory(
-          config,
-          log,
-          benchmark,
-          benchmark.pinpointClass,
-          benchmark.pinpointMethod,
-          instrumentor,
-          instrumented,
-          backup) find ()
+      case regressionFailure: ScrutinyCIRegressionFailure if (config.pinpointBottleneckDectect) =>
+        try {
+          val bottleneckFound = BottleneckFinderFactory(
+            config,
+            log,
+            benchmark,
+            benchmark.pinpointClass,
+            benchmark.pinpointMethod,
+            instrumented,
+            backup) find ()
 
-        bottleneckFound.toReport foreach UI.info
-        bottleneckFound.toReport foreach log.info
-        UI.info("")
+          bottleneckFound.toReport foreach UI.info
+          bottleneckFound.toReport foreach log.info
+          UI.info("")
 
-        bottleneckFound
-      }
+          bottleneckFound
+        }
+        catch {
+          case _: MismatchExpressionList => regressionFailure
+        }
       case anythingelse => anythingelse
     }
   }

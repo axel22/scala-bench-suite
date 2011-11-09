@@ -19,7 +19,6 @@ import scala.tools.sbs.common.Reflector
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.io.UI
 
-import CodeInstrumentor.ClassPool
 import CodeInstrumentor.Instruction
 import CodeInstrumentor.InstrumentingClass
 import CodeInstrumentor.InstrumentingExpression
@@ -35,13 +34,18 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
   private def embrace(instruction: Instruction): Instruction = "{" + instruction + "}"
 
   def getClass(className: String, classpathURLs: List[URL]): InstrumentingClass = {
-    val classPool = new ClassPool(ClassPool.getDefault)
+    val classPool = new javassist.ClassPool
+    // Append these first to force javassist to load the right class from user classpath
     classpathURLs foreach (cp => classPool appendClassPath cp.getPath)
+    classPool.appendSystemPath
     try {
       classPool get className
     }
     catch {
-      case _: javassist.NotFoundException => null
+      case _: javassist.NotFoundException =>
+        UI.error("Class " + className + " cannot be found")
+        log.error("Class " + className + " cannot be found")
+        null
     }
   }
 
@@ -90,11 +94,10 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     var callList = List[MethodCallExpression]()
     method instrument new javassist.expr.ExprEditor {
       override def edit(call: MethodCallExpression) = {
-        val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
-        if (!exclude.exists(declaringClassName matches _)) {
+        if (!exclude.exists(call.getClassName matches _)) {
           callList :+= call
-          UI.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
-          log.debug("Method call collected: " + declaringClassName + "." + call.getMethodName)
+          UI.debug("Method call collected: " + call.getClassName + "." + call.getMethodName)
+          log.debug("Method call collected: " + call.getClassName + "." + call.getMethodName)
         }
       }
     }
@@ -130,10 +133,14 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
   def sandwichCallList(method: InstrumentingMethod, first: Int, upper: Instruction, last: Int, lower: Instruction) {
     var index = 0
     method instrument new javassist.expr.ExprEditor {
+
       override def edit(call: MethodCallExpression) {
-        val declaringClassName = call.getClassName.replace("$class", "").replace("$", "")
-        if (!exclude.exists(declaringClassName matches _)) {
-          if ((index == first) && (index == last)) {
+        if (!exclude.exists(call.getClassName matches _)) {
+
+          UI.debug("Method call: " + call.getClassName + "." + call.getMethodName + call.getSignature)
+          log.debug("Method call: " + call.getClassName + "." + call.getMethodName + call.getSignature)
+
+          try if ((index == first) && (index == last)) {
             call replace embrace(upper + proceedExpression + lower)
           }
           else if (index == first) {
@@ -142,9 +149,15 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
           else if (index == last) {
             call replace embrace(proceedExpression + lower)
           }
+          catch {
+            case e =>
+              UI.error(e.toString)
+              throw e
+          }
           index += 1
         }
       }
+
     }
   }
 

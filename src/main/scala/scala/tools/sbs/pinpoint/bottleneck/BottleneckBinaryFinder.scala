@@ -20,7 +20,6 @@ import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.regression.RegressionFailure
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
@@ -36,14 +35,12 @@ class BottleneckBinaryFinder(protected val config: Config,
                              bottleneckMethod: String,
                              callIndexList: List[Int],
                              callList: List[MethodCallExpression],
-                             instrumentor: CodeInstrumentor,
                              instrumented: Directory,
                              backup: Directory)
   extends InstrumentationMeasurer(
     config,
     log,
     benchmark,
-    instrumentor,
     instrumented,
     backup)
   with TwinningDetector
@@ -128,7 +125,7 @@ class BottleneckBinaryFinder(protected val config: Config,
   private def measureCurrent(callIndexList: List[Int]) = instrumentAndMeasure(
     declaringClass,
     bottleneckMethod,
-    method => instrumentor.sandwichCallList(
+    (method, instrumentor) => instrumentor.sandwichCallList(
       method,
       callIndexList.head, PinpointHarness.javaInstructionCallStart,
       callIndexList.last, PinpointHarness.javaInstructionCallEnd),
@@ -141,7 +138,7 @@ class BottleneckBinaryFinder(protected val config: Config,
     instrumentAndMeasure(
       declaringClass,
       bottleneckMethod,
-      method => instrumentor.sandwichCallList(
+      (method, instrumentor) => instrumentor.sandwichCallList(
         method,
         callIndexList.head, PinpointHarness.javaInstructionCallStart,
         callIndexList.last, PinpointHarness.javaInstructionCallEnd),

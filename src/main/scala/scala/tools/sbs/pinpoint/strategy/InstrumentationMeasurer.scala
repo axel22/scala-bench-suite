@@ -12,27 +12,28 @@ package scala.tools.sbs
 package pinpoint
 package strategy
 
-import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.Path
 import scala.tools.sbs.common.Backuper
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.performance.MeasurementResult
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.InstrumentingMethod
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
+import scala.tools.sbs.pinpoint.PinpointBenchmark
 import scala.tools.sbs.util.FileUtil
+
+import instrumentation.CodeInstrumentor.InstrumentingMethod
+import instrumentation.CodeInstrumentor
 
 abstract class InstrumentationMeasurer(config: Config,
                                        log: Log,
                                        benchmark: PinpointBenchmark,
-                                       instrumentor: CodeInstrumentor,
                                        instrumented: Directory,
                                        backup: Directory) {
 
   protected def instrumentAndMeasure(declaringClass: String,
                                      instrumentingMethod: String,
-                                     instrument: InstrumentingMethod => Unit,
+                                     instrument: (InstrumentingMethod, CodeInstrumentor) => Unit,
                                      classpathURLs: List[java.net.URL]): MeasurementResult = {
+    val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
     val (clazz, method) = instrumentor.getClassAndMethod(
       declaringClass,
       instrumentingMethod,
@@ -40,7 +41,7 @@ abstract class InstrumentationMeasurer(config: Config,
     if (method == null) {
       throw new PinpointingMethodNotFoundException(benchmark)
     }
-    instrument(method)
+    instrument(method, instrumentor)
     instrumentor.writeFile(clazz, instrumented)
     val classFile = Path(clazz.getURL.getPath)
     val backuper = Backuper(

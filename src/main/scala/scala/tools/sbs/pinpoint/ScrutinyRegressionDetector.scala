@@ -26,9 +26,8 @@ object ScrutinyRegressionDetectorFactory {
   def apply(config: Config,
             log: Log,
             benchmark: PinpointBenchmark,
-            instrumentor: CodeInstrumentor,
             instrumented: Directory,
             backup: Directory): ScrutinyRegressionDetector =
-    new MethodRegressionDetector(config, log, benchmark, instrumentor, instrumented, backup)
+    new MethodRegressionDetector(config, log, benchmark, instrumented, backup)
 
 }

@@ -99,11 +99,6 @@ object CodeInstrumentor {
   type InstrumentingMethod = javassist.CtMethod
   type InstrumentingExpression = javassist.expr.Expr
   type MethodCallExpression = javassist.expr.MethodCall
-  type ClassPool = javassist.ClassPool
-
-  object ClassPool extends javassist.ClassPool {
-    def getDefault() = javassist.ClassPool.getDefault()
-  }
 
   def apply(config: Config, log: Log, exclude: List[String]): CodeInstrumentor = {
     new JavassistCodeInstrumenter(config, log, exclude)

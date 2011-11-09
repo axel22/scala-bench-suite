@@ -18,7 +18,6 @@ import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.MeasurementFailure
 import scala.tools.sbs.performance.MeasurementSuccess
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
@@ -27,14 +26,12 @@ import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 class MethodRegressionDetector(protected val config: Config,
                                protected val log: Log,
                                benchmark: PinpointBenchmark,
-                               instrumentor: CodeInstrumentor,
                                instrumented: Directory,
                                backup: Directory)
   extends InstrumentationMeasurer(
     config,
     log,
     benchmark,
-    instrumentor,
     instrumented,
     backup)
   with TwinningDetector
@@ -72,7 +69,7 @@ class MethodRegressionDetector(protected val config: Config,
   private lazy val measureCurrent = instrumentAndMeasure(
     benchmark.pinpointClass,
     benchmark.pinpointMethod,
-    method => instrumentor.sandwich(
+    (method, instrumentor) => instrumentor.sandwich(
       method,
       PinpointHarness.javaInstructionCallStart,
       PinpointHarness.javaInstructionCallEnd),
@@ -85,7 +82,7 @@ class MethodRegressionDetector(protected val config: Config,
     instrumentAndMeasure(
       benchmark.pinpointClass,
       benchmark.pinpointMethod,
-      method => instrumentor.sandwich(
+      (method, instrumentor) => instrumentor.sandwich(
         method,
         PinpointHarness.javaInstructionCallStart,
         PinpointHarness.javaInstructionCallEnd),

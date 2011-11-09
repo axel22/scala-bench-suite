@@ -23,7 +23,6 @@ class BottleneckDiggingFinder(protected val config: Config,
                               benchmark: PinpointBenchmark,
                               declaringClass: String,
                               diggingMethod: String,
-                              instrumentor: CodeInstrumentor,
                               instrumented: Directory,
                               backup: Directory)
   extends PreviousVersionExploiter
@@ -34,6 +33,8 @@ class BottleneckDiggingFinder(protected val config: Config,
     // TODO: issue with jar files:
     // - extracts
     // - backup
+
+    val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
 
     val currentMethod = instrumentor.getMethod(
       diggingMethod,
@@ -86,7 +87,6 @@ class BottleneckDiggingFinder(protected val config: Config,
       diggingMethod,
       callIndexList,
       currentCallingList,
-      instrumentor,
       instrumented,
       backup) find ()
 
@@ -111,7 +111,6 @@ class BottleneckDiggingFinder(protected val config: Config,
             benchmark,
             position.head.getClassName,
             position.head.getMethodName,
-            instrumentor,
             instrumented,
             backup) find ()
 
