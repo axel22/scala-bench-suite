@@ -26,7 +26,7 @@ import instrumentation.CodeInstrumentor
 abstract class InstrumentationMeasurer(config: Config,
                                        log: Log,
                                        benchmark: PinpointBenchmark,
-                                       instrumented: Directory,
+                                       instrumentedOut: Directory,
                                        backup: Directory) {
 
   protected def instrumentAndMeasure(declaringClass: String,
@@ -42,7 +42,7 @@ abstract class InstrumentationMeasurer(config: Config,
       throw new PinpointingMethodNotFoundException(benchmark)
     }
     instrument(method, instrumentor)
-    instrumentor.writeFile(clazz, instrumented)
+    instrumentor.writeFile(clazz, instrumentedOut)
     val classFile = Path(clazz.getURL.getPath)
     val backuper = Backuper(
       log,
@@ -50,9 +50,9 @@ abstract class InstrumentationMeasurer(config: Config,
       (clazz.getName split "/.")./:(classFile)((path, _) => path.parent).toDirectory,
       backup)
     backuper.backup
-    val result = PinpointMeasurerFactory(config, log).measure(benchmark, instrumented.toURL :: classpathURLs)
+    val result = PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedOut.toURL :: classpathURLs)
     backuper.restore
-    FileUtil clean instrumented
+    FileUtil clean instrumentedOut
     result
   }
 

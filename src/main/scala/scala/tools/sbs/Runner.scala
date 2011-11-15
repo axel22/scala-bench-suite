@@ -14,6 +14,7 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.common.RuntimeTypeChecker
 import scala.tools.sbs.io.Log
+import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.MeasurementHarnessFactory
 import scala.tools.sbs.performance.MeasurerFactory
 import scala.tools.sbs.pinpoint.ScrutinizerFactory
@@ -34,7 +35,9 @@ trait Runner extends RuntimeTypeChecker {
    */
   def run(benchmark: Benchmark): BenchmarkResult =
     if (check(benchmark.getClass)) {
-      doBenchmarking(benchmark)
+      val result = doBenchmarking(benchmark)
+      result.toReport foreach UI.info
+      result
     }
     else {
       throw new MismatchBenchmarkImplementationException(benchmark, this)
@@ -59,10 +62,10 @@ trait Runner extends RuntimeTypeChecker {
 object RunnerFactory {
 
   def apply(config: Config, log: Log, mode: BenchmarkMode): Runner = mode match {
-  	case Instrumenting							  => InstrumenterFactory(config,log)
-	case Profiling                                => ProfilerFactory(config, log)
+    case Profiling                                => ProfilerFactory(config, log)
     case Pinpointing                              => ScrutinizerFactory(config, log)
     case StartUpState | SteadyState | MemoryUsage => MeasurerFactory(config, log, mode, MeasurementHarnessFactory)
+    case Instrumenting                            => InstrumenterFactory(config, log)
     case _                                        => throw new NotSupportedBenchmarkMode(mode)
   }
 

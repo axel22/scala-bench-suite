@@ -25,3 +25,5 @@ sbt-launch.jar
 .classpath
 
 .project
+
+lib/tools.jar

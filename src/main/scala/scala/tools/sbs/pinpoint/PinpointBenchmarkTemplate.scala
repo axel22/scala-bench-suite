@@ -24,4 +24,6 @@ trait PinpointBenchmarkTemplate extends PerformanceBenchmarkTemplate {
 
   val pinpointPrevious = Directory(".pinpointprevious")
 
+  val pinpointDepth = -1
+
 }

@@ -40,4 +40,6 @@ class PinpointBenchmarkInitializable(name: String,
 
   def pinpointPrevious = benchmarkObject.pinpointPrevious
 
+  def pinpointDepth = benchmarkObject.pinpointDepth
+
 }

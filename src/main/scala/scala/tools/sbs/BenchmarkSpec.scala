@@ -37,11 +37,13 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
     |  Benchmark mode:""".stripMargin)
 
   protected var _modes: List[BenchmarkMode] = Nil
-                              "steady-performance"  / "Benchmarking in steady state" --> (_modes ::= SteadyState)
-                              "startup-performance" / "Benchmarking in startup state" --> (_modes ::= StartUpState)
-                              "memory-usage"        / "Measuring memory usage" --> (_modes ::= MemoryUsage)
-                              "profile"             / "Profiling" --> (_modes ::= Profiling)
+                              "steady-performance"  / "Benchmarking in steady state"     --> (_modes ::= SteadyState)
+                              "startup-performance" / "Benchmarking in startup state"    --> (_modes ::= StartUpState)
+                              "memory-usage"        / "Measuring memory usage"           --> (_modes ::= MemoryUsage)
+                              "profile"             / "Profiling"                        --> (_modes ::= Profiling)
                               "pinpoint"            / "Pinpointing regression detection" --> (_modes ::= Pinpointing)
+                              "all"                 / "run all benchmarking modes"       -->
+                              (_modes = List(SteadyState, StartUpState,MemoryUsage,Profiling,Pinpointing,Instrumenting))
 
   heading                   ("Statistics metrics:")
   val leastConfidenceLevel = "least-confidence-level" / "smallest acceptable confidence level" defaultTo 90
@@ -61,10 +63,6 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   protected val _profileExclude = "profile-exclude" / "classes to be ignored" defaultTo ""
                                   ""                / ("  split by " + Constant.COLON)
 
-  heading                        ("Per-benchmark names for instrumenting:")
-  protected val _instrumentMethods = "instrument-methods" / "methods to be instrumented" defaultTo ""
-                                  ""                / ("  split by " + Constant.COLON)
-
   val profileMethod = "profile-method" / "the method to be profiled" defaultTo ""
   val profileField  = "profile-field"  / "the field to be profiled" defaultTo ""
   val shouldGC      = "profile-gc"     / "whether to profile gc's running" --?
@@ -81,6 +79,10 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
                                     ""                  / "  should not be included in classpath"
   protected val _pinpointExclude  = "pinpoint-exclude"  / "classes to be ignored" defaultTo ""
                                     ""                  / ("  split by " + Constant.COLON)
+
+  heading                        ("Per-benchmark names for instrumenting:")
+  protected val _instrumentMethods = "instrument-methods" / "methods to be instrumented" defaultTo ""
+                                     ""                   / ("  split by " + Constant.COLON)
 
   heading                          ("Specifying paths and additional values, ~ means sbs root:")
   protected val benchmarkDirPath  = "benchmarkdir"   / "path from ~ to benchmark directory" defaultTo "."
@@ -99,7 +101,6 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val isDebug   = "debug"    / "debugging output" --?
 
   heading("Other options:")
-  val isAll        = "run-all"     / "run all benchmarks in directory" --?
   val isCleanup    = "cleanup"     / "delete all stale files and dirs before run" --?
   val isNoCleanLog = "noclean-log" / "do not delete any logfiles" --?
   val isHelp       = "help"        / "print usage message" --?

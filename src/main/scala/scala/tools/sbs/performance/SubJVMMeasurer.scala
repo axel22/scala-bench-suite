@@ -54,8 +54,8 @@ class SubJVMMeasurer(protected val log: Log,
    *
    *  @return	The corresponding `MeasurementResult`
    */
-  protected def dispose(result: String, benchmark: Benchmark, mode: BenchmarkMode): MeasurementResult = try {
-    val xml = scala.xml.Utility trim (scala.xml.XML loadString result)
+  protected def dispose(result: scala.xml.Elem, benchmark: Benchmark, mode: BenchmarkMode): MeasurementResult = try {
+    val xml = scala.xml.Utility trim result
     xml match {
       case <MeasurementSuccess>{ _ }</MeasurementSuccess> =>
         MeasurementSuccess(new Series(
@@ -86,7 +86,7 @@ class SubJVMMeasurer(protected val log: Log,
     case e: Exception => {
       UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)
-      throw new MalformedXMLException(this, mode, scala.xml.XML loadString result)
+      throw new MalformedXMLException(this, mode, result)
     }
   }
 

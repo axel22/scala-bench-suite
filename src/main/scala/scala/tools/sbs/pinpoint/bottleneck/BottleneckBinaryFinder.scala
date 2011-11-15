@@ -35,13 +35,13 @@ class BottleneckBinaryFinder(protected val config: Config,
                              bottleneckMethod: String,
                              callIndexList: List[Int],
                              callList: List[MethodCallExpression],
-                             instrumented: Directory,
+                             instrumentedOut: Directory,
                              backup: Directory)
   extends InstrumentationMeasurer(
     config,
     log,
     benchmark,
-    instrumented,
+    instrumentedOut,
     backup)
   with TwinningDetector
   with PreviousVersionExploiter

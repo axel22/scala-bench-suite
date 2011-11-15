@@ -37,8 +37,8 @@ class MemoryProfiler(log: Log, config: Config) {
    *
    *  @return	The corresponding `MemoryActivity`
    */
-  def dispose(result: String): MemoryActivity = try {
-    val xml = scala.xml.Utility trim (scala.xml.XML loadString result)
+  def dispose(result: scala.xml.Elem): MemoryActivity = try {
+    val xml = scala.xml.Utility trim result
     val heapNode = xml \\ "heap"
     val heap = MemoryUsage(
       (heapNode \\ "init").text.toLong,

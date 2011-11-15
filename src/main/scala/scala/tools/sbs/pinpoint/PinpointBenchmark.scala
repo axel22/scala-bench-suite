@@ -42,6 +42,11 @@ trait PinpointBenchmark extends PerformanceBenchmark {
    */
   def pinpointPrevious: Directory
 
+  /** Maximum recursion depth in the process of finding bottleneck.
+   *  Value of -1 is stand for unlimited depth.
+   */
+  def pinpointDepth: Int
+
 }
 
 class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenchmarkFactory(log, config) {
@@ -54,10 +59,19 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
 
   protected val pinpointExcludeOpt = "--pinpoint-exclude"
 
+  protected val pinpointDepthOpt = "--pinpoint-depth"
+
   override def createFrom(info: BenchmarkInfo): Benchmark = {
     val argMap = BenchmarkInfo.readInfo(
       info.src,
-      List(multiplierOpt, measurementOpt, pinpointClassOpt, pinpointMethodOpt, pinpointExcludeOpt, pinpointPreviousOpt))
+      List(
+        multiplierOpt,
+        measurementOpt,
+        pinpointClassOpt,
+        pinpointMethodOpt,
+        pinpointExcludeOpt,
+        pinpointPreviousOpt,
+        pinpointDepthOpt))
     val multiplier = argMap get multiplierOpt match {
       case Some(arg) => arg.toInt
       case _         => config.multiplier
@@ -82,6 +96,10 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
       case Some(arg) => Directory(arg)
       case _         => config.pinpointPrevious
     }
+    val pinpointDepth = argMap get pinpointPreviousOpt match {
+      case Some(arg) => arg.toInt
+      case _         => -1
+    }
     load(
       info,
       (method: Method, context: ClassLoader) => new PinpointBenchmarkSnippet(
@@ -96,6 +114,7 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
         pinpointMethod,
         pinpointExclude,
         pinpointPrevious,
+        pinpointDepth,
         method,
         context,
         config),

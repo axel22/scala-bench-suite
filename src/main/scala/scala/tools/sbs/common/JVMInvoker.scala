@@ -32,7 +32,7 @@ trait JVMInvoker {
    *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
    *  </ul>
    */
-  def invoke(command: Seq[String]): (String, ArrayBuffer[String])
+  def invoke(command: Seq[String]): (scala.xml.Elem, ArrayBuffer[String])
 
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.

@@ -32,7 +32,7 @@ object BottleneckFinderFactory {
             benchmark: PinpointBenchmark,
             declaringClass: String,
             diggingMethod: String,
-            instrumented: Directory,
+            instrumentedOut: Directory,
             backup: Directory): BottleneckFinder =
     new BottleneckDiggingFinder(
       config,
@@ -40,7 +40,7 @@ object BottleneckFinderFactory {
       benchmark,
       declaringClass,
       diggingMethod,
-      instrumented,
+      instrumentedOut,
       backup)
 
   def apply(config: Config,
@@ -50,7 +50,7 @@ object BottleneckFinderFactory {
             bottleneckMethod: String,
             callIndexList: List[Int],
             callList: List[MethodCallExpression],
-            instrumented: Directory,
+            instrumentedOut: Directory,
             backup: Directory): BottleneckFinder =
     new BottleneckBinaryFinder(
       config,
@@ -60,7 +60,7 @@ object BottleneckFinderFactory {
       bottleneckMethod,
       callIndexList,
       callList,
-      instrumented,
+      instrumentedOut,
       backup)
 
 }

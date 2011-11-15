@@ -30,6 +30,7 @@ class PinpointBenchmarkSnippet(name: String,
                                val pinpointMethod: String,
                                val pinpointExclude: List[String],
                                val pinpointPrevious: Directory,
+                               val pinpointDepth: Int,
                                method: Method,
                                context: ClassLoader,
                                config: Config)
@@ -59,6 +60,7 @@ object PinpointBenchmarkSnippet {
             pinpointMethod: String,
             pinpointExclude: List[String],
             pinpointPrevious: Directory,
+            pinpointDepth: Int,
             method: Method,
             context: ClassLoader,
             config: Config): PinpointBenchmarkSnippet =
@@ -74,11 +76,12 @@ object PinpointBenchmarkSnippet {
       pinpointMethod,
       pinpointExclude,
       pinpointPrevious,
+      pinpointDepth,
       method,
       context,
       config)
 
-  def unapply(snippet: PinpointBenchmarkSnippet): Option[(String, List[String], List[URL], Path, Int, Int, Int, String, String, List[String], Directory, Method, ClassLoader, Config)] =
+  def unapply(snippet: PinpointBenchmarkSnippet): Option[(String, List[String], List[URL], Path, Int, Int, Int, String, String, List[String], Directory, Int, Method, ClassLoader, Config)] =
     Some(
       snippet.name,
       snippet.arguments,
@@ -91,6 +94,7 @@ object PinpointBenchmarkSnippet {
       snippet.pinpointMethod,
       snippet.pinpointExclude,
       snippet.pinpointPrevious,
+      snippet.pinpointDepth,
       snippet.method,
       snippet.context,
       snippet.config)

@@ -26,13 +26,13 @@ import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 class MethodRegressionDetector(protected val config: Config,
                                protected val log: Log,
                                benchmark: PinpointBenchmark,
-                               instrumented: Directory,
+                               instrumentedOut: Directory,
                                backup: Directory)
   extends InstrumentationMeasurer(
     config,
     log,
     benchmark,
-    instrumented,
+    instrumentedOut,
     backup)
   with TwinningDetector
   with PreviousVersionExploiter

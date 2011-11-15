@@ -64,7 +64,7 @@ class ReflectorSpec extends Spec {
     compile(out)
   }
 
-  val reflector = Reflector(testConfig)
+  val reflector = Reflector(testConfig, testLog)
 
   describe("A Reflector") {
 
@@ -176,7 +176,7 @@ class ReflectorSpec extends Spec {
       val out = reflectDir
       init(classA, out)
       val clazz = reflector.getClass(A, List(out.toURL))
-      expect(Some(out))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(out)(reflector.locationOf(A, clazz.getClassLoader))
     }
 
     it("should return the location where a class loaded: parent rather than child dir") {
@@ -188,7 +188,7 @@ class ReflectorSpec extends Spec {
       compile(child)
 
       val clazz = reflector.getClass(A, List(parent.toURL, child.toURL))
-      expect(Some(parent))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(parent)(reflector.locationOf(A, clazz.getClassLoader))
     }
 
     it("should return the location where a class loaded: child rather than parent dir") {
@@ -200,7 +200,7 @@ class ReflectorSpec extends Spec {
       compile(child)
 
       val clazz = reflector.getClass(A, List(child.toURL, parent.toURL))
-      expect(Some(child))(reflector.locationOf(A, clazz.getClassLoader))
+      expect(child)(reflector.locationOf(A, clazz.getClassLoader))
     }
 
   }

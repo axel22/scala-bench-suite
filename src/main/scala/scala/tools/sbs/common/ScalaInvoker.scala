@@ -71,9 +71,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   def command(benchmark: Benchmark, classpathURLs: List[URL]) =
     java ++ asScala ++ asJavaArgument(benchmark, classpathURLs)
 
-  def invoke(command: Seq[String]): (String, ArrayBuffer[String]) = {
-    var result = ""
-    var error = ArrayBuffer[String]()
+  def invoke(command: Seq[String]): (scala.xml.Elem, ArrayBuffer[String]) = {
+    var result: scala.xml.Elem = null
+    val error = ArrayBuffer[String]()
     val processBuilder = Process(command)
 
     UI.debug("Invoked command: " + (command mkString " "))
@@ -81,9 +81,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
     val processIO = new ProcessIO(
       _ => (),
-      stdout => Source.fromInputStream(stdout).getLines.foreach(line =>
-        if (line startsWith "<") result += line else UI(line)),
-      stderr => Source.fromInputStream(stderr).getLines.foreach(error += _))
+      stdout => Source.fromInputStream(stdout).getLines foreach (
+        line => try result = scala.xml.XML loadString line catch { case _: org.xml.sax.SAXParseException => UI(line) }),
+      stderr => Source.fromInputStream(stderr).getLines foreach (error :+ _))
 
     val process = processBuilder.run(processIO)
     val success = process.exitValue

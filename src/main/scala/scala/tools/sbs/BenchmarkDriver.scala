@@ -61,11 +61,7 @@ object BenchmarkDriver {
     log.debug(compiled.toString)
 
     // Add failure compiles for reporting
-    benchmarkInfos filterNot (
-      info => compiled exists (_.name == info.name)) foreach (
-        resultPack add CompileBenchmarkFailure(_))
-
-    UI.info("[Expanding completed]")
+    benchmarkInfos filterNot (compiled contains _) foreach (_ foreach (resultPack add CompileBenchmarkFailure(_)))
 
     config.modes foreach (mode => {
 
@@ -82,7 +78,7 @@ object BenchmarkDriver {
       val runner = RunnerFactory(config, log, mode)
       log.debug("Runner: " + runner.getClass.getName)
 
-      val benchmarks = compiled map (info =>
+      val benchmarks = compiled(mode) map (info =>
         try info.expand(runner.benchmarkFactory, config)
         catch {
           case e @ (_: ClassNotFoundException | _: ClassCastException) => {
@@ -91,6 +87,8 @@ object BenchmarkDriver {
             null
           }
         }) filterNot (_ == null)
+
+      UI.info("[Expanding completed]")
 
       UI.info("[Generating sample histories]")
       try benchmarks filter (_.sampleNumber > 0) foreach (runner generate _)

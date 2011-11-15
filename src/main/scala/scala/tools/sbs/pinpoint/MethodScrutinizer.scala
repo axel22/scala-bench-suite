@@ -18,32 +18,26 @@ import scala.tools.sbs.pinpoint.bottleneck.BottleneckFinderFactory
 
 class MethodScrutinizer(protected val config: Config, protected val log: Log) extends Scrutinizer {
 
-  val instrumented = config.bin / ".instrumented" createDirectory ()
+  val instrumentedOut = config.bin / ".instrumented" createDirectory ()
 
   val backup = config.bin / ".backup" createDirectory ()
 
   def scrutinize(benchmark: PinpointBenchmark): ScrutinyResult = {
 
-    val detector = ScrutinyRegressionDetectorFactory(config, log, benchmark, instrumented, backup)
+    val detector = ScrutinyRegressionDetectorFactory(config, log, benchmark, instrumentedOut, backup)
 
     detector detect benchmark match {
       case regressionSuccess: ScrutinyCIRegressionSuccess => regressionSuccess
       case regressionFailure: ScrutinyCIRegressionFailure if (config.pinpointBottleneckDectect) =>
         try {
-          val bottleneckFound = BottleneckFinderFactory(
+          BottleneckFinderFactory(
             config,
             log,
             benchmark,
             benchmark.pinpointClass,
             benchmark.pinpointMethod,
-            instrumented,
+            instrumentedOut,
             backup) find ()
-
-          bottleneckFound.toReport foreach UI.info
-          bottleneckFound.toReport foreach log.info
-          UI.info("")
-
-          bottleneckFound
         }
         catch {
           case _: MismatchExpressionList => regressionFailure

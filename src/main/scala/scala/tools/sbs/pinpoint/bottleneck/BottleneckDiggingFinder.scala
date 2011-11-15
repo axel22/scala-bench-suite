@@ -15,24 +15,27 @@ package bottleneck
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.io.UI
 
 class BottleneckDiggingFinder(protected val config: Config,
                               protected val log: Log,
                               benchmark: PinpointBenchmark,
-                              declaringClass: String,
-                              diggingMethod: String,
-                              instrumented: Directory,
+                              entryClass: String,
+                              entryMethod: String,
+                              instrumentedOut: Directory,
                               backup: Directory)
   extends PreviousVersionExploiter
   with BottleneckFinder {
 
-  def find(): BottleneckFound = {
+  def find(): BottleneckFound = find(entryClass, entryMethod, List(entryClass + entryMethod))
 
-    // TODO: issue with jar files:
-    // - extracts
-    // - backup
+  // TODO: issue with jar files:
+  // - extracts
+  // - backup
+
+  def find(declaringClass: String, diggingMethod: String, dug: List[String]): BottleneckFound = {
 
     val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
 
@@ -87,7 +90,7 @@ class BottleneckDiggingFinder(protected val config: Config,
       diggingMethod,
       callIndexList,
       currentCallingList,
-      instrumented,
+      instrumentedOut,
       backup) find ()
 
     currentLevelBottleneck.toReport foreach (line => {
@@ -98,6 +101,7 @@ class BottleneckDiggingFinder(protected val config: Config,
 
     currentLevelBottleneck match {
       case Bottleneck(_, position, _, _, _) if ((position.length == 1) &&
+        (shouldProceed(position.head, dug)) &&
         !(benchmark.pinpointExclude exists (declaringClass matches _))) =>
         try {
           UI.verbose("  Digging into: " +
@@ -105,14 +109,11 @@ class BottleneckDiggingFinder(protected val config: Config,
           log.verbose("  Digging into: " +
             position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
 
-          val lowerLevelBottleneckFound = BottleneckFinderFactory(
-            config,
-            log,
-            benchmark,
-            position.head.getClassName,
-            position.head.getMethodName,
-            instrumented,
-            backup) find ()
+          val lowerLevelBottleneckFound =
+            find(
+              position.head.getClassName,
+              position.head.getMethodName,
+              dug :+ (position.head.getClassName + position.head.getMethodName))
 
           lowerLevelBottleneckFound match {
             case _: NoBottleneck => currentLevelBottleneck
@@ -131,5 +132,9 @@ class BottleneckDiggingFinder(protected val config: Config,
     }
 
   }
+
+  def shouldProceed(call: MethodCallExpression, dug: List[String]) =
+    (benchmark.pinpointDepth == -1) ||
+      (dug.length < benchmark.pinpointDepth && !(dug contains (call.getClassName + call.getMethodName)))
 
 }

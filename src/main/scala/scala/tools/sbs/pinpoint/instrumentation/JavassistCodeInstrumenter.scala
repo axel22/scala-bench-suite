@@ -43,8 +43,8 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     }
     catch {
       case _: javassist.NotFoundException =>
-        UI.error("Class " + className + " cannot be found")
-        log.error("Class " + className + " cannot be found")
+        UI.debug("Class " + className + " cannot be found")
+        log.debug("Class " + className + " cannot be found")
         null
     }
   }
