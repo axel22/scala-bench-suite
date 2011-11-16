@@ -10,13 +10,14 @@
 
 package scala.tools.sbs
 
+import java.text.SimpleDateFormat
+import java.util.Date
+
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.common.BenchmarkCompilerFactory
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.FileUtil
-import java.text.SimpleDateFormat
-import java.util.Date
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -48,9 +49,7 @@ object BenchmarkDriver {
     // Clean up in case demanded
     if (config.isCleanup) {
       UI.info("[Cleaning up]")
-      for (mode <- config.modes) {
-        FileUtil.clean(config.history / mode.location)
-      }
+      for (each <- config.history.deepFiles) if (!(each hasExtension "scala") && !(each hasExtension "arg")) each.delete
     }
 
     val resultPack = new ResultPack()

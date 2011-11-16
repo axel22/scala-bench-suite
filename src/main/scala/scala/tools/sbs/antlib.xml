@@ -1,4 +1,3 @@
 <antlib>
-    <taskdef name="sbs"
-             classname="scala.tools.sbs.ant.SBSTask"/>
+	<taskdef name="sbs" classname="scala.tools.sbs.ant.SBSTask" />
 </antlib>

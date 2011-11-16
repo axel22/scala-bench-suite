@@ -12,6 +12,7 @@ package scala.tools.sbs
 
 import java.lang.System
 import java.net.URL
+
 import scala.io.Source
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
@@ -66,7 +67,7 @@ object ArgumentParser {
         else (source.name, source.path + ".arg", source)
       case None => {
         val path = config.benchmarkDirectory / mode.location / name
-        if (path isFile) (name, (path.path stripSuffix "scala") + "arg", null)
+        if (path.isFile && (path hasExtension "scala")) (name, (path.path stripSuffix "scala") + "arg", null)
         else (name, path.path + ".arg", null)
       }
     }
