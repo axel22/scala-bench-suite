@@ -15,6 +15,8 @@ import scala.tools.sbs.common.BenchmarkCompilerFactory
 import scala.tools.sbs.io.ReportFactory
 import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.FileUtil
+import java.text.SimpleDateFormat
+import java.util.Date
 
 /** Object controls the runtime of benchmark classes to do measurements.
  *
@@ -61,7 +63,11 @@ object BenchmarkDriver {
     log.debug(compiled.toString)
 
     // Add failure compiles for reporting
-    benchmarkInfos filterNot (compiled contains _) foreach (_ foreach (resultPack add CompileBenchmarkFailure(_)))
+    benchmarkInfos filterNot (compiled contains _) foreach (_ foreach (failure => {
+      val compileFailed = CompileBenchmarkFailure(failure)
+      notify(compileFailed, null)
+      resultPack add compileFailed
+    }))
 
     config.modes foreach (mode => {
 
@@ -104,7 +110,11 @@ object BenchmarkDriver {
         log.info("Benchmark: " + benchmark.name)
         log.debug("Benchmark: " + benchmark.getClass.getName)
 
-        try resultPack add (runner run benchmark)
+        try {
+          val result = runner run benchmark
+          notify(result, mode)
+          resultPack add result
+        }
         catch {
           case e: Exception => {
             UI.info("[    Run FAILED    ]")
@@ -118,6 +128,7 @@ object BenchmarkDriver {
         FileUtil.cleanLog(config.benchmarkDirectory / mode.location)
       }
     })
+    overallReport(config, resultPack)
     ReportFactory(config)(resultPack)
   }
   catch {
@@ -126,6 +137,25 @@ object BenchmarkDriver {
       UI.error(e.getStackTraceString)
       throw e
     }
+  }
+
+  def notify(each: BenchmarkResult, mode: BenchmarkMode) = {
+    val last = each match {
+      case _: BenchmarkSuccess => "[  OK  ]"
+      case _                   => "[FAILED]"
+    }
+    val modename = if (mode == null) "compile" else mode.location
+    System.out.format("%-10s | %-20s %10s\n", modename, each.benchmarkName, last)
+  }
+
+  def overallReport(config: Config, pack: ResultPack) {
+    println("========================================================================")
+    println("Benchmarking date:   " + new SimpleDateFormat("MM/dd/yyyy 'at' HH:mm:ss").format(new Date))
+    println("Directory:           " + config.benchmarkDirectory.path)
+    println("Total benchmarks:    " + pack.total)
+    println("OK:                  " + pack.ok)
+    println("Failed:              " + pack.failed)
+    println("========================================================================")
   }
 
 }

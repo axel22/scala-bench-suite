@@ -21,7 +21,7 @@ object UI extends Log {
     _config = config
   }
 
-  def apply(message: String) = Console println message
+  def apply(message: String) = if (config != null && !config.isQuiet) Console println message
 
   def print(message: String) = this(message)
 
@@ -31,16 +31,6 @@ object UI extends Log {
 
   override def error(message: String) {
     this("[Error]    " + message)
-  }
-
-  def printUsage() {
-    this print "Usage: sbs <options> <benchmark class> <benchmark arguments>"
-    this print "	Options: [--multiplier <multiplier>] [--noncompile] [--classdir <classdir>] [--help]"
-    this print "	The benchmark runs <runs> times, forcing a garbage collection between runs."
-    this print "	The optional -multiplier causes the benchmark to be repeated <multiplier> times, each time for <runs> executions."
-    this print "	The optional -noncompile causes the benchmark not to be recompiled."
-    this print "	The optional -classdir causes the generated class files to be placed at <classdir>"
-    this print "	The optional -help prints this usage."
   }
 
 }

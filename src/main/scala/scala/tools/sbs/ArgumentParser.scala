@@ -45,7 +45,7 @@ object ArgumentParser {
       pack switchMode mode
       val nameList =
         if (config.parsed.residualArgs.length > 0) config.parsed.residualArgs
-        else ((config.benchmarkDirectory / mode.location).toDirectory.list map (_.name)).toList
+        else (config.benchmarkDirectory / mode.location).toDirectory.list.toList filterNot (_ hasExtension "arg") map (_.name)
       nameList map (name => getInfo(name, mode, config)) filterNot (_ == null) foreach (pack add _)
     })
     (config, log, pack)
@@ -101,7 +101,8 @@ object ArgumentParser {
       argBuffer.close()
     }
     catch { case e => UI.debug("[Read failed] " + argFile + "\n" + e.toString) }
-    BenchmarkInfo(
+    if (src == null) null
+    else BenchmarkInfo(
       mainClassName,
       src,
       args,
@@ -123,17 +124,9 @@ object ArgumentParser {
     if (src exists)
       if (src.isFile && src.hasExtension("scala")) Some(src)
       else if ((src isDirectory) &&
-        (src.toDirectory.deepFiles.filter(p => p.isFile && p.hasExtension("scala"))).length > 0) Some(src)
+        (src.toDirectory.deepFiles exists (p => p.isFile && p.hasExtension("scala")))) Some(src)
       else None
     else None
-  }
-
-  /** Prints a message and exit program with error code of 1.
-   */
-  def exitOnError(message: String) {
-    UI.error(message)
-    UI.printUsage
-    System.exit(1)
   }
 
 }

@@ -99,6 +99,7 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val isShowLog = "show-log" / "show log" --?
   val isVerbose = "verbose"  / "be more verbose" --?
   val isDebug   = "debug"    / "debugging output" --?
+  val isQuiet   = "quiet"    / "no command line output" --?
 
   heading("Other options:")
   val isCleanup    = "cleanup"     / "delete all stale files and dirs before run" --?
