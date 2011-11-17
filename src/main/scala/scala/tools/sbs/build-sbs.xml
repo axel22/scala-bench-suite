@@ -1,0 +1,79 @@
+ <!-- =========================================================================== 
+	SCALA BENCHMARKING SUITE TASKS ============================================================================ -->
+
+<property name="benchmark.dir" value="${basedir}/benchmark" />
+<property name="sbs.version.number" value="0.1" />
+<path id="sbs.classpath">
+	<pathelement location="${build-quick.dir}/classes/library" />
+	<pathelement location="${build-quick.dir}/classes/compiler" />
+	<pathelement location="${build-quick.dir}/classes/sbs" />
+	<pathelement location="${ant.jar}" />
+	<pathelement location="${lib.dir}/fjbg.jar" />
+	<pathelement location="${lib.dir}/commons-math-2.2.jar" />
+	<pathelement location="${lib.dir}/javassist-3.12.1.GA.jar" />
+	<pathelement location="${lib.dir}/tools.jar" />
+	<path refid="lib.extra" />
+</path>
+
+<target xmlns:ivy="antlib:org.apache.ivy.ant" name="quick.pre-sbs"
+	depends="quick.comp">
+	<ivy:retrieve file="src/sbs/scala/tools/sbs/ivy.xml" log="quiet" />
+	<uptodate property="quick.sbs.available" targetfile="${build-quick.dir}/sbs.complete">
+		<srcfiles dir="${src.dir}/sbs" />
+	</uptodate>
+</target>
+
+<target name="quick.sbs" depends="quick.pre-sbs" unless="quick.sbs.available">
+	<stopwatch name="quick.sbs.timer" />
+	<mkdir dir="${build-quick.dir}/classes/sbs" />
+	<scalacfork destdir="${build-quick.dir}/classes/sbs"
+		compilerpathref="locker.classpath" params="${scalac.args.quick}"
+		srcdir="${src.dir}/sbs" jvmargs="${scalacfork.jvmargs}">
+		<include name="**/*.scala" />
+		<compilationpath refid="sbs.classpath" />
+	</scalacfork>
+	<propertyfile file="${build-quick.dir}/classes/sbs/sbs.properties">
+		<entry key="version.number" value="${sbs.version.number}" />
+		<entry key="copyright.string" value="${copyright.string}" />
+	</propertyfile>
+	<copy todir="${build-quick.dir}/classes/sbs">
+		<fileset dir="${src.dir}/sbs">
+			<include name="**/*.xml" />
+		</fileset>
+	</copy>
+	<touch file="${build-quick.dir}/sbs.complete" verbose="no" />
+	<stopwatch name="quick.sbs.timer" action="total" />
+</target>
+
+<target name="sbs.build" description="Builds sbs - scala benchmarking suite package"
+	depends="quick.sbs" unless="quick.sbs.available"></target>
+
+<target name="pack.pre-sbs" depends="pack.scalap">
+	<uptodate property="pack.sbs.available" targetfile="${build-pack.dir}/lib/scala-sbs.jar"
+		srcfile="${build-quick.dir}/sbs.complete" />
+</target>
+
+<target name="pack.sbs" depends="pack.pre-sbs" unless="pack.sbs.available">
+	<mkdir dir="${build-pack.dir}/lib" />
+	<jar destfile="${build-pack.dir}/lib/scala-sbs.jar">
+		<fileset dir="${build-quick.dir}/classes/sbs" />
+	</jar>
+</target>
+
+<target name="sbs.clean">
+	<delete dir="${build-quick.dir}/classes/sbs" includeemptydirs="yes"
+		quiet="yes" failonerror="no" />
+	<delete file="${build-quick.dir}/sbs.complete" quiet="yes"
+		failonerror="no" />
+</target>
+
+<target name="benchmark" depends="quick.sbs">
+	<property name="benchmark.default.dir" value="--benchmarkdir ${benchmark.dir}" />
+	<property name="benchmark.default.mode" value="--steady-performance" />
+	<property name="sbs.args"
+		value="${benchmark.default.dir} ${benchmark.default.mode} --quiet" />
+	<taskdef resource="scala/tools/sbs/antlib.xml">
+		<classpath refid="sbs.classpath" />
+	</taskdef>
+	<sbs args="${sbs.args}" />
+</target>
