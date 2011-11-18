@@ -34,6 +34,10 @@ trait Benchmark {
 
   def createLog(mode: BenchmarkMode): Log
 
+  /** Maximum time for each benchmarking, default to 15 seconds.
+   */
+  def timeout: Int
+
   /** Sets the running context and load benchmark classes.
    */
   def init()

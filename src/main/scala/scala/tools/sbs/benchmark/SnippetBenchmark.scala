@@ -28,6 +28,7 @@ abstract class SnippetBenchmark(_name: String,
                                 _classpathURLs: List[URL],
                                 _src: Path,
                                 _sampleNumber: Int,
+                                _timeout: Int,
                                 method: Method,
                                 _context: ClassLoader,
                                 config: Config) extends Benchmark {
@@ -43,6 +44,8 @@ abstract class SnippetBenchmark(_name: String,
   def sampleNumber = _sampleNumber
 
   def context = _context
+
+  def timeout = _timeout
 
   /** Benchmark process.
    */

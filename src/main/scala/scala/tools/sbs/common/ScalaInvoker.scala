@@ -28,7 +28,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
   /** `java` or `./jre/bin/java`, etc...
    */
-  private val java = Seq(config.javacmd)
+  private val java = Seq(config.javacmd, "-server")
 
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala=<scala-home> scala.tools.nsc.MainGenericRunner`
    */
@@ -71,7 +71,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   def command(benchmark: Benchmark, classpathURLs: List[URL]) =
     java ++ asScala ++ asJavaArgument(benchmark, classpathURLs)
 
-  def invoke(command: Seq[String]): (scala.xml.Elem, ArrayBuffer[String]) = {
+  def invoke(command: Seq[String], timeout: Int): (scala.xml.Elem, ArrayBuffer[String]) = {
     var result: scala.xml.Elem = null
     val error = ArrayBuffer[String]()
     val processBuilder = Process(command)
@@ -85,8 +85,42 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
         line => try result = scala.xml.XML loadString line catch { case _: org.xml.sax.SAXParseException => UI(line) }),
       stderr => Source.fromInputStream(stderr).getLines foreach (error :+ _))
 
-    val process = processBuilder.run(processIO)
-    val success = process.exitValue
+    var success = -1
+    val processStarter = new Thread {
+
+      override def run = {
+        var process: Process = null
+        try {
+          process = processBuilder.run(processIO)
+          success = process.exitValue
+        }
+        catch {
+          case e: InterruptedException =>
+            UI.error("Timeout")
+            log.error("Timeout")
+            process.destroy
+        }
+      }
+
+    }
+    val timer = new Thread {
+
+      override def run = try {
+        Thread sleep timeout
+        processStarter.interrupt()
+      }
+      catch {
+        case e: InterruptedException =>
+          UI.debug("Not timeout")
+          log.debug("Not timeout")
+      }
+
+    }
+
+    processStarter.start()
+    if (timeout > 0) timer.start()
+    processStarter.join
+    timer.interrupt()
 
     UI.debug("Sub-process exit value: " + success)
     log.debug("Sub-process exit value: " + success)

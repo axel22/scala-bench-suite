@@ -108,6 +108,7 @@ class PinpointBenchmarkFactory(log: Log, config: Config) extends PerformanceBenc
         info.classpathURLs,
         info.src,
         info.sampleNumber,
+        info.timeout,
         multiplier,
         measurement,
         pinpointClass,

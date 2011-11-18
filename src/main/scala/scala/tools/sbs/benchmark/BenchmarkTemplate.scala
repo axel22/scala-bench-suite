@@ -46,6 +46,8 @@ trait BenchmarkTemplate {
    */
   val sampleNumber = 0
 
+  val timeout = 15000
+
   def init
 
   def run // Do something wasting time here

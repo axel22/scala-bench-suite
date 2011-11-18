@@ -29,6 +29,13 @@ trait MeasurementFailure extends RunFailure with MeasurementResult {
 
 }
 
+class TimeoutMeasurementFailure extends MeasurementFailure {
+
+  def reason = "Benchmarking timed out"
+
+  def toXML = <TimeoutMeasurementFailure/>
+
+}
 class UnwarmableMeasurementFailure extends MeasurementFailure {
 
   def reason = "Benchmark could not reach steady state"

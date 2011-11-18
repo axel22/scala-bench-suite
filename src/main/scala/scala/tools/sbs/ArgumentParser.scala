@@ -72,6 +72,7 @@ object ArgumentParser {
       }
     }
     var sample = config.sample
+    var timeout = config.timeout
     var shouldCompile = config.shouldCompile
     var classpathURLs = List[URL]()
     var args = List[String]()
@@ -86,6 +87,9 @@ object ArgumentParser {
         }
         else if (line startsWith "--sample") {
           sample = (line split " ")(1).toInt
+        }
+        else if (line startsWith "--timeout") {
+          timeout = (line split " ")(1).toInt
         }
         else if (line startsWith "--noncompile") {
           shouldCompile = false
@@ -109,6 +113,7 @@ object ArgumentParser {
       args,
       classpathURLs,
       sample,
+      timeout,
       shouldCompile)
   }
 

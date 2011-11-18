@@ -54,6 +54,7 @@ class PerformanceBenchmarkFactory(protected val log: Log, protected val config: 
         info.classpathURLs,
         info.src,
         info.sampleNumber,
+        info.timeout,
         multiplier,
         measurement,
         method,

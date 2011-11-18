@@ -46,15 +46,16 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
                               (_modes = List(SteadyState, StartUpState,MemoryUsage,Profiling,Pinpointing,Instrumenting))
 
   heading                   ("Statistics metrics:")
-  val leastConfidenceLevel = "least-confidence-level" / "smallest acceptable confidence level" defaultTo 90
-  val _precisionThreshold  = "precision-threshold"    / "%" defaultTo 2
-  val reMeasurement        = "re-measurement"         / "maximum # for re-measurements" defaultTo 1
-  val warmRepeat           = "warm-repeat"            / "maximum # of repetition to waming up" defaultTo 5
+  val leastConfidenceLevel = "least-confidence-level" / "smallest acceptable confidence level"     defaultTo 90
+  val _precisionThreshold  = "precision-threshold"    / "%"                                        defaultTo 2
+  val reMeasurement        = "re-measurement"         / "maximum # for re-measurements"            defaultTo 1
+  val warmRepeat           = "warm-repeat"            / "maximum # of repetition for warming up"   defaultTo 5
+  val timeout              = "timeout"                / "maximum time for each benchmarking in ms" defaultTo 15000
 
   heading            ("Per-benchmark numbers of performance:")
   val multiplier    = "multiplier" / "# of times to run per measurement" defaultTo 1
-  val measurement   = "measurement" / "# of measurements" defaultTo 11
-  val sample        = "sample" / "# of pre-created samples" defaultTo 0
+  val measurement   = "measurement" / "# of measurements"                defaultTo 11
+  val sample        = "sample" / "# of pre-created samples"              defaultTo 0
   val shouldCompile = !("noncompile" / "not re-compile the benchmarks if set" --?)
 
   heading                        ("Per-benchmark names for profiling:")

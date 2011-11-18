@@ -38,7 +38,8 @@ class SubJVMMeasurer(protected val log: Log,
    */
   def measure(benchmark: PerformanceBenchmark, classpathURLs: List[URL]): MeasurementResult = {
     val invoker = JVMInvokerFactory(log, config)
-    val (result, error) = invoker invoke (invoker.command(measurementHarness, benchmark, classpathURLs))
+    val (result, error) =
+      invoker.invoke(invoker.command(measurementHarness, benchmark, classpathURLs), benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ExceptionMeasurementFailure(new Exception(error mkString "\n"))
@@ -78,6 +79,11 @@ class SubJVMMeasurer(protected val log: Log,
     }
   }
   catch {
+    case _: NullPointerException => {
+      UI.error("Benchmarking timeout")
+      log.error("Benchmarking timeout")
+      new TimeoutMeasurementFailure
+    }
     case e: org.xml.sax.SAXParseException => {
       UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)

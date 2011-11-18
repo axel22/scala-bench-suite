@@ -25,10 +25,10 @@ object SteadyHarness extends MeasurementHarness[PerformanceBenchmark] {
   def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
     val statistic = StatisticsFactory(config, log)
     log.info("[Benchmarking steady state]")
-    benchmarkRunner run (
+    seriesAchiever achieve (
       benchmark,
       series => (statistic CoV series) < config.precisionThreshold,
-      {
+      () => {
         benchmark.init()
         val start = Platform.currentTime
         var i = 0

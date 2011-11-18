@@ -82,6 +82,7 @@ trait BenchmarkFactory {
         (xml \\ "arg") map (_.text) toList,
         (xml \\ "cp") map (cp => Path(cp.text).toURL) toList,
         0,
+        0,
         false))
     catch {
       case c: ClassCastException => {

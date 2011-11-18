@@ -28,11 +28,11 @@ trait JVMInvoker {
    *
    *  @return
    *  <ul>
-   *  <li>A `String`  contains xml element representing the measurement result.
+   *  <li>A `scala.xml.Elem` representing the measurement result.
    *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
    *  </ul>
    */
-  def invoke(command: Seq[String]): (scala.xml.Elem, ArrayBuffer[String])
+  def invoke(command: Seq[String], timeout: Int): (scala.xml.Elem, ArrayBuffer[String])
 
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.

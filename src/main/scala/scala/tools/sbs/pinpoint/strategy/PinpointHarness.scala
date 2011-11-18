@@ -88,10 +88,10 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
     val statistic = StatisticsFactory(config, log)
     UI.info("[Benchmarking pinpointing regression detection]")
     log.info("[Benchmarking pinpointing regression detection]")
-    benchmarkRunner run (
+    seriesAchiever achieve (
       benchmark,
       series => (statistic CoV series) < config.precisionThreshold,
-      {
+      () => {
         reset()
         benchmark.init()
         // TODO: should we sum `runs` of `measured`?

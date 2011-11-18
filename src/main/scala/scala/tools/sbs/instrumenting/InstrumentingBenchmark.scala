@@ -45,6 +45,7 @@ class InstrumentingBenchmarkFactory(protected val log: Log, protected val config
         info.classpathURLs,
         info.src,
         info.sampleNumber,
+        info.timeout,
         instrumentMethod,
         method,
         context,

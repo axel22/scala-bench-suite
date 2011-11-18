@@ -26,6 +26,7 @@ case class BenchmarkInfo(name: String,
                          arguments: List[String],
                          classpathURLs: List[URL],
                          sampleNumber: Int,
+                         timeout: Int,
                          shouldCompile: Boolean) {
 
   def isCompiledOK(compiler: BenchmarkCompiler, config: Config): Boolean =

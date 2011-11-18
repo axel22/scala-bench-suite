@@ -78,6 +78,7 @@ class ProfilingBenchmarkFactory(protected val log: Log, protected val config: Co
         info.classpathURLs,
         info.src,
         info.sampleNumber,
+        info.timeout,
         profileClass,
         profileExclude,
         profileMethod,

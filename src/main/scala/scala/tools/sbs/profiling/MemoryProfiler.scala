@@ -20,7 +20,9 @@ class MemoryProfiler(log: Log, config: Config) {
   def profile(benchmark: ProfilingBenchmark, profile: Profile): ProfilingResult = {
     val invoker = JVMInvokerFactory(log, config)
     val (result, error) =
-      invoker invoke (invoker.command(GCHarness, benchmark, config.classpathURLs ++ benchmark.classpathURLs))
+      invoker.invoke(
+        invoker.command(GCHarness, benchmark, config.classpathURLs ++ benchmark.classpathURLs),
+        benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ProfilingException(benchmark, new Exception(error mkString "\n"))

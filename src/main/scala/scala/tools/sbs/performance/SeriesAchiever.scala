@@ -26,9 +26,9 @@ class SeriesAchiever(config: Config, log: Log) {
    *
    *  @return	The result if success, otherwies a `String` describes the reason.
    */
-  def run(benchmark: PerformanceBenchmark,
+  def achieve(benchmark: PerformanceBenchmark,
           checkWarm: Series => Boolean,
-          measure: => Long,
+          measure: () => Long,
           newlyAchieve: Boolean = true): MeasurementResult = {
 
     var series = new Series(config, log)
@@ -42,7 +42,7 @@ class SeriesAchiever(config: Config, log: Log) {
       series.clear()
       for (_ <- 1 to benchmark.measurement) {
         cleanUp()
-        series += measure
+        series += measure()
         log.verbose("    Measured      " + series.last)
         UI.verbose("    Measured      " + series.last)
       }
@@ -57,10 +57,11 @@ class SeriesAchiever(config: Config, log: Log) {
       warmCount = benchmark.measurement
       while (warmCount < warmMax && !checkWarm(series)) {
         log.verbose("    Measured      " + series.last)
+        UI.verbose("    Measured      " + series.last)
 
         series.remove(0)
         cleanUp()
-        series += measure
+        series += measure()
 
         warmCount += 1
       }

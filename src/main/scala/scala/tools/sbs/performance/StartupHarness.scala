@@ -30,11 +30,10 @@ class StartupHarness(protected val log: Log, protected val config: Config) exten
     val exitValue = process !
 
     if (exitValue == 0) {
-      val benchmarkRunner = new SeriesAchiever(config, log)
-      benchmarkRunner run (
+      new SeriesAchiever(config, log) achieve (
         benchmark,
         _ => true,
-        {
+        () => {
           val start = Platform.currentTime
           process.!
           Platform.currentTime - start

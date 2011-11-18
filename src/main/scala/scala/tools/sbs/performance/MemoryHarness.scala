@@ -24,10 +24,10 @@ object MemoryHarness extends MeasurementHarness[PerformanceBenchmark] {
   def measure(benchmark: PerformanceBenchmark): MeasurementResult = {
     log.info("[Benchmarking memory consumption]")
     val runtime: Runtime = Runtime.getRuntime
-    benchmarkRunner run (
+    seriesAchiever achieve (
       benchmark,
       series => series forall (_ == series.head),
-      {
+      () => {
         benchmark.init()
         val start = runtime.freeMemory
         benchmark.run()

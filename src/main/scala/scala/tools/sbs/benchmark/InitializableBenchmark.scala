@@ -36,6 +36,8 @@ abstract case class InitializableBenchmark(name: String,
    */
   private val oldContext = Thread.currentThread().getContextClassLoader()
 
+  def timeout = benchmarkObject.timeout
+
   def init() = {
     Thread.currentThread.setContextClassLoader(context)
     benchmarkObject.init
