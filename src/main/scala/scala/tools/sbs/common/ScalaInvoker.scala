@@ -32,7 +32,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
 
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala=<scala-home> scala.tools.nsc.MainGenericRunner`
    */
-  private val asScala = Seq("-cp", config.scalaLib, config.javaProp, "scala.tools.nsc.MainGenericRunner")
+  private def asScala(classpathURLs: List[URL]) =
+    Seq("-cp", ClassPath.fromURLs(classpathURLs ++ List(config.scalaLibraryJar.toURL, config.scalaCompilerJar.toURL): _*)) ++
+      Seq(config.javaProp, "scala.tools.nsc.MainGenericRunner")
 
   /** `-cp <classpath from config; classpath from benchmark>`
    */
@@ -53,14 +55,14 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
    *  -cp <classpath from config; classpath from benchmark> Benchmark benchmark.arguments`
    */
   def asJavaArgument(benchmark: Benchmark, classpathURLs: List[URL]) =
-    asScala ++ asBenchmark(benchmark, classpathURLs) ++ benchmark.arguments
+    asScala(classpathURLs) ++ asBenchmark(benchmark, classpathURLs) ++ benchmark.arguments
 
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala.home=<scala-home> scala.tools.nsc.MainGenericRunner
    *  -cp <classpath from config; classpath from benchmark> Runner benchmark.toXML config.args`
    *  Result must be a string on one line and starts with `<`.
    */
   def asJavaArgument(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]) =
-    asScala ++
+    asScala(classpathURLs) ++
       asHarness(harness, benchmark, classpathURLs) ++
       Seq(scala.xml.Utility.trim(benchmark.toXML).toString) ++
       config.args
@@ -69,7 +71,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     java ++ asJavaArgument(harness, benchmark, classpathURLs)
 
   def command(benchmark: Benchmark, classpathURLs: List[URL]) =
-    java ++ asScala ++ asJavaArgument(benchmark, classpathURLs)
+    java ++ asJavaArgument(benchmark, classpathURLs)
 
   def invoke(command: Seq[String], timeout: Int): (scala.xml.Elem, ArrayBuffer[String]) = {
     var result: scala.xml.Elem = null

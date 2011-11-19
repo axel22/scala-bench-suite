@@ -111,7 +111,7 @@ case class Config(args: Array[String])
 
   /** `File` path of scala-library.jar.
    */
-  val scalaLibraryJar: File = getJar(scalaLibPath, "scala-library.jar")
+  val scalaLibraryJar = getJar(scalaLibPath, "scala-library.jar")
 
   /** `File` path of scala-compiler.jar.
    */
