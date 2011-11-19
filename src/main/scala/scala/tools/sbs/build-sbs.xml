@@ -68,10 +68,10 @@
 </target>
 
 <target name="benchmark" depends="quick.sbs">
-	<property name="benchmark.default.dir" value="--benchmarkdir ${benchmark.dir}" />
+	<property name="benchmark.default.dir" value="--benchmarkdir  ${benchmark.dir}" />
 	<property name="benchmark.default.mode" value="--steady-performance" />
 	<property name="sbs.args"
-		value="${benchmark.default.dir} ${benchmark.default.mode} --quiet" />
+		value="${benchmark.default.dir}  ${benchmark.default.mode}  --quiet" />
 	<taskdef resource="scala/tools/sbs/antlib.xml">
 		<classpath refid="sbs.classpath" />
 	</taskdef>

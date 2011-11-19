@@ -99,17 +99,21 @@ class Series(config: Config, log: Log) {
       def formattedDiff =
         (diff formatted "%.2f") + " ~ " + (if (diff != 0) (diff / mean * 100) formatted "%.2f" else "0.00") + "%"
 
-      def toPrint =
-        "  At confidence level  " + statistic.confidenceLevel + "%:" + ENDL +
-          "               Confident Interval " + formattedCI + ENDL +
-          "               Difference         " + formattedDiff
+      def toPrint = "  At confidence level  " + statistic.confidenceLevel + "%:" + ENDL + (
+        if (!statistic.isConfidenceLevelAcceptable) "               Unacceptable"
+        else "               Confident Interval " + formattedCI + ENDL +
+          "               Difference         " + formattedDiff)
 
       log.verbose(toPrint)
       UI.verbose(toPrint)
 
       def ratio = if (diff == 0) 0 else diff / mean
-      while (statistic.isConfidenceLevelAcceptable && ratio >= config.precisionThreshold) {
+      def checkCL = {
         statistic.reduceConfidenceLevel()
+        statistic.isConfidenceLevelAcceptable
+      }
+      while (ratio >= config.precisionThreshold && checkCL) {
+
         val ci = statistic confidenceInterval this
         left = ci._1
         right = ci._2

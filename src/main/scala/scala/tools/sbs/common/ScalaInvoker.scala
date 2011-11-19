@@ -106,7 +106,7 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     val timer = new Thread {
 
       override def run = try {
-        Thread sleep timeout
+        Thread sleep (timeout + 3000)
         processStarter.interrupt()
       }
       catch {

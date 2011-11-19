@@ -17,7 +17,7 @@ class SBSTask extends Task {
 
   private var args: Array[String] = _
   def setArgs(input: String) {
-    args = input split " "
+    args = input split "  "
   }
 
   override def execute() = BenchmarkDriver main args

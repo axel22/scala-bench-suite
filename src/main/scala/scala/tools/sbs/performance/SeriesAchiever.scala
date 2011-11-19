@@ -56,12 +56,12 @@ class SeriesAchiever(config: Config, log: Log) {
 
       warmCount = benchmark.measurement
       while (warmCount < warmMax && !checkWarm(series)) {
-        log.verbose("    Measured      " + series.last)
-        UI.verbose("    Measured      " + series.last)
-
         series.remove(0)
         cleanUp()
         series += measure()
+        
+        log.verbose("    Measured      " + series.last)
+        UI.verbose("    Measured      " + series.last)
 
         warmCount += 1
       }

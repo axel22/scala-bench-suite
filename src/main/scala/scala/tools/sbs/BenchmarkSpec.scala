@@ -50,7 +50,7 @@ trait BenchmarkSpec extends Spec with Meta.StdOpts with Interpolation {
   val _precisionThreshold  = "precision-threshold"    / "%"                                        defaultTo 2
   val reMeasurement        = "re-measurement"         / "maximum # for re-measurements"            defaultTo 1
   val warmRepeat           = "warm-repeat"            / "maximum # of repetition for warming up"   defaultTo 5
-  val timeout              = "timeout"                / "maximum time for each benchmarking in ms" defaultTo 15000
+  val timeout              = "timeout"                / "maximum time for each benchmarking in ms" defaultTo 45000
 
   heading            ("Per-benchmark numbers of performance:")
   val multiplier    = "multiplier" / "# of times to run per measurement" defaultTo 1

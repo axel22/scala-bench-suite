@@ -64,7 +64,7 @@ object BenchmarkDriver {
     // Add failure compiles for reporting
     benchmarkInfos filterNot (compiled contains _) foreach (_ foreach (failure => {
       val compileFailed = CompileBenchmarkFailure(failure)
-      notify(compileFailed, null)
+      if (config.isQuiet) notify(compileFailed, null)
       resultPack add compileFailed
     }))
 
@@ -111,7 +111,7 @@ object BenchmarkDriver {
 
         try {
           val result = runner run benchmark
-          notify(result, mode)
+          if (config.isQuiet) notify(result, mode)
           resultPack add result
         }
         catch {
