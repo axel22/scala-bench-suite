@@ -226,8 +226,9 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
     val previousN = previous.length
 
     val diff = previousMean - currentMean
+    val slower = currentMean > previousMean
 
-    if (confidenceLevel == 100 && diff == 0) {
+    if (confidenceLevel == 100 && !slower) {
       CIRegressionSuccess(
         benchmark,
         100,
@@ -267,7 +268,7 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
         }
       }
 
-      if (!ok) {
+      if (!ok && slower) {
         CIRegressionFailure(
           benchmark,
           (currentMean, currentSD),
@@ -314,9 +315,10 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
     SSA += (currentMean - overall) * (currentMean - overall) * current.length
     current foreach (value => SSE += (value - currentMean) * (value - currentMean))
 
+    val slower = historyMeanAndSDs forall (_._1 < currentMean)
     if (confidenceLevel == 100 && SSE == 0) {
       // Memory case
-      if (SSA != 0) {
+      if ((SSA != 0) && slower) {
         ANOVARegressionFailure(
           benchmark,
           (currentMean, currentSD),
@@ -358,17 +360,17 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
         else reduceConfidenceLevel()
       }
 
-      if (ok) ANOVARegressionSuccess(
+      if (!ok && slower) ANOVARegressionFailure(
         benchmark,
-        confidenceLevel,
         (currentMean, currentSD),
         historyMeanAndSDs,
         SSA,
         SSE,
         FValue,
         F)
-      else ANOVARegressionFailure(
+      else ANOVARegressionSuccess(
         benchmark,
+        confidenceLevel,
         (currentMean, currentSD),
         historyMeanAndSDs,
         SSA,

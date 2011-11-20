@@ -144,7 +144,7 @@ object BenchmarkDriver {
       case _                   => "[FAILED]"
     }
     val modename = if (mode == null) "compile" else mode.location
-    System.out.format("%-10s | %-20s %10s\n", modename, each.benchmarkName, last)
+    System.out.format("%-10s | %-30s %10s\n", modename, each.benchmarkName, last)
   }
 
   def overallReport(config: Config, pack: ResultPack) {

@@ -19,8 +19,8 @@ package object test {
     "11",
     "--measurement",
     "31",
+    "--quiet",
     "--steady-performance",
-    "--show-log",
     "test.Benchmark")
   val testConfig = new Config(args)
   UI.config = testConfig
@@ -35,6 +35,7 @@ package object test {
     def multiplier = 1
     def measurement = 10
     def sampleNumber = 0
+    def timeout = 60000
     def shouldCompile = false
     def createLog(mode: BenchmarkMode) = testLog
     def init() = ()

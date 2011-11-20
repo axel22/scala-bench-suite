@@ -16,6 +16,7 @@ class JVMInvokerSpec extends Spec {
     def arguments = List("$1", "$2")
     def classpathURLs = List(testDir.toURL)
     def sampleNumber = 0
+    def timeout = 60000
     def createLog(mode: BenchmarkMode) = testLog
     def init() = ()
     def run() = ()
@@ -37,7 +38,10 @@ class JVMInvokerSpec extends Spec {
     it("should create precise OS java arguments which intended to launch a harness") {
       expect(Seq(
         "-cp",
-        testConfig.scalaLib,
+        ClassPath.fromURLs(
+          (testConfig.classpathURLs ++
+            DummyBenchmark.classpathURLs ++
+            List(testConfig.scalaLibraryJar.toURL, testConfig.scalaCompilerJar.toURL)): _*),
         testConfig.javaProp,
         "scala.tools.nsc.MainGenericRunner",
         "-cp",
@@ -50,7 +54,10 @@ class JVMInvokerSpec extends Spec {
     it("should create precise OS java arguments which intended to launch a snippet benchmark") {
       expect(Seq(
         "-cp",
-        testConfig.scalaLib,
+        ClassPath.fromURLs(
+          (testConfig.classpathURLs ++
+            DummyBenchmark.classpathURLs ++
+            List(testConfig.scalaLibraryJar.toURL, testConfig.scalaCompilerJar.toURL)): _*),
         testConfig.javaProp,
         "scala.tools.nsc.MainGenericRunner",
         "-cp",
