@@ -228,7 +228,7 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
     val diff = previousMean - currentMean
     val slower = currentMean > previousMean
 
-    if (confidenceLevel == 100 && !slower) {
+    if ((current.confidenceLevel == 100) && (previous.confidenceLevel == 100) && !slower) {
       CIRegressionSuccess(
         benchmark,
         100,
@@ -268,21 +268,17 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
         }
       }
 
-      if (!ok && slower) {
-        CIRegressionFailure(
-          benchmark,
-          (currentMean, currentSD),
-          ArrayBuffer((previousMean, previousSD)),
-          (ciLeft, ciRight))
-      }
-      else {
-        CIRegressionSuccess(
-          benchmark,
-          confidenceLevel,
-          (currentMean, currentSD),
-          ArrayBuffer((previousMean, previousSD)),
-          (ciLeft, ciRight))
-      }
+      if (!ok && slower) CIRegressionFailure(
+        benchmark,
+        (currentMean, currentSD),
+        ArrayBuffer((previousMean, previousSD)),
+        (ciLeft, ciRight))
+      else CIRegressionSuccess(
+        benchmark,
+        confidenceLevel,
+        (currentMean, currentSD),
+        ArrayBuffer((previousMean, previousSD)),
+        (ciLeft, ciRight))
     }
   }
 

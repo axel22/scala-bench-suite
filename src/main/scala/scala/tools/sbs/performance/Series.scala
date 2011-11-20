@@ -84,14 +84,7 @@ class Series(config: Config, log: Log) {
     else {
       val statistic = StatisticsFactory(config, log)
 
-      log.info("Series: " + this.toString)
-      UI.verbose("Series: " + this.toString)
-
       val mean = statistic mean this
-
-      log.info("  Average              " + (mean formatted "%.2f"))
-      UI.info("  Average              " + (mean formatted "%.2f"))
-
       var (left, right) = statistic confidenceInterval this
       var diff = right - left
 
@@ -123,6 +116,10 @@ class Series(config: Config, log: Log) {
         UI.verbose(toPrint)
       }
 
+      log.info("Series: " + this.toString)
+      UI.verbose("Series: " + this.toString)
+      log.info("  Average              " + (mean formatted "%.2f"))
+      UI.info("  Average              " + (mean formatted "%.2f"))
       log.info(toPrint)
       log.info("")
       UI.info(toPrint)
