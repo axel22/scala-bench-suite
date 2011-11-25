@@ -340,7 +340,7 @@ class SimpleStatistics(config: Config, log: Log, var alpha: Double = 0) extends 
       // Performance case
 
       val n1 = history.length
-      val n2 = history.foldLeft(0)((s, p) => s + p.length) + current.length - history.length - 1
+      val n2 = (history foldLeft 0)(_ + _.length) + current.length - history.length - 1
       val FValue = SSA * n2 / SSE / n1
       var F: Double = 0
 

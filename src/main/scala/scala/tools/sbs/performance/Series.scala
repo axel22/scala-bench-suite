@@ -116,6 +116,8 @@ class Series(config: Config, log: Log) {
         UI.verbose(toPrint)
       }
 
+      _confidenceLevel = statistic.confidenceLevel.toInt
+
       log.info("Series: " + this.toString)
       UI.verbose("Series: " + this.toString)
       log.info("  Average              " + (mean formatted "%.2f"))
@@ -125,7 +127,6 @@ class Series(config: Config, log: Log) {
       UI.info(toPrint)
       UI.info("")
 
-      _confidenceLevel = statistic.confidenceLevel.toInt
       ratio < config.precisionThreshold
     }
   }
