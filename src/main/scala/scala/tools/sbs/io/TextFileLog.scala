@@ -22,7 +22,7 @@ import scala.tools.sbs.util.FileUtil
 
 /** An implement of {@link Log}, logging on simple text file.
  */
-case class TextFileLog(logFile: File, override var config: Config) extends Log {
+case class TextFileLog(logFile: File, config: Config) extends Log {
 
   def apply(message: String) {
     if (logFile != null) {

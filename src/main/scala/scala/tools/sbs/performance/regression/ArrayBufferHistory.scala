@@ -15,22 +15,19 @@ package regression
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.io.Log
 
 /** An implement of {@link History}. Uses `ArrayBuffer` to hold previous measurement data.
  */
-class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode) extends History {
+class ArrayBufferHistory(benchmark: Benchmark, mode: BenchmarkMode) extends History {
 
   /** The {@link Series} array.
    */
   private var data = ArrayBuffer[Series]()
 
-  def this(log: Log,
-           config: Config,
-           benchmark: Benchmark,
+  def this(benchmark: Benchmark,
            mode: BenchmarkMode,
            data: ArrayBuffer[Series]) {
-    this(log, config, benchmark, mode)
+    this(benchmark, mode)
     this.data = data
   }
 
@@ -60,9 +57,9 @@ class ArrayBufferHistory(log: Log, config: Config, benchmark: Benchmark, mode: B
 
   def last = data.last
 
-  def tail = new ArrayBufferHistory(log, config, benchmark, mode, data.tail)
+  def tail = new ArrayBufferHistory(benchmark, mode, data.tail)
 
-  def +:(elem: Series) = new ArrayBufferHistory(log, config, benchmark, mode, data :+ elem)
+  def +:(elem: Series) = new ArrayBufferHistory(benchmark, mode, data :+ elem)
 
   def length = data.length
 

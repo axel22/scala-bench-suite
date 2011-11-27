@@ -18,7 +18,6 @@ import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ClassPath
 import scala.tools.sbs.common.Reflector
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.PerformanceBenchmarkFactory
 import scala.tools.sbs.pinpoint.PinpointBenchmarkFactory
 import scala.tools.sbs.profiling.ProfilingBenchmarkFactory
@@ -48,13 +47,11 @@ trait BenchmarkFactory {
           throw new NoSuchMethodException(info.name + ".main is not static")
         }
         log.debug("Snippet benchmark: " + info.name)
-        UI.debug("Snippet benchmark: " + info.name)
         newSnippet(method, clazz.getClassLoader)
       }
       catch {
         case _: NoSuchMethodException => try {
           log.debug("Initializable benchmark: " + info.name)
-          UI.debug("Initializable benchmark: " + info.name)
           newInitializable(clazz.getClassLoader)
         }
         catch {

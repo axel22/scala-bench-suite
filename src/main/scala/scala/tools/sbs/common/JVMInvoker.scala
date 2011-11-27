@@ -23,16 +23,17 @@ trait JVMInvoker {
 
   /** Invokes a new JVM which uses a typical {@link Runner} to run a typical {@link Benchmark}.
    *
-   *  @param measurer	{@link Runner}
-   *  @param benchmark	{@link Benchmark}
+   *  @param command	jvm command line
+   *  @param convert	function converst a `String` from sub-process standard output to a return value.
+   *  @param timeout	maximum time for the sub-process to run.
    *
    *  @return
    *  <ul>
-   *  <li>A `scala.xml.Elem` representing the measurement result.
+   *  <li>A `ArrayBuffer[R]` array of return values.
    *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
    *  </ul>
    */
-  def invoke(command: Seq[String], timeout: Int): (scala.xml.Elem, ArrayBuffer[String])
+  def invoke[R](command: Seq[String], convert: String => R, timeout: Int): (ArrayBuffer[R], ArrayBuffer[String])
 
   /** OS command to invoke an new JVM which has `measurer` as the main scala class
    *  and `benchmark` as an argument.

@@ -16,7 +16,6 @@ import scala.tools.nsc.io.Path.string2path
 import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.FileUtil
 
 /** Backups instrumented .class files
@@ -38,9 +37,6 @@ case class Backuper(log: Log, files: List[File], location: Directory, storage: D
       val backupFile = (current / relative).toFile
       backupFiles.put(file, backupFile)
       placeOf.put(backupFile, current)
-      UI.debug("Move " + file)
-      UI.debug("From " + location)
-      UI.debug("To   " + current)
       log.debug("Move " + file)
       log.debug("From " + location)
       log.debug("To   " + current)
@@ -55,9 +51,6 @@ case class Backuper(log: Log, files: List[File], location: Directory, storage: D
     log.debug("Restore")
     if (backuped) {
       files forall (file => {
-        UI.debug("Move " + backupFiles(file))
-        UI.debug("From " + placeOf(backupFiles(file)))
-        UI.debug("To   " + location)
         log.debug("Move " + backupFiles(file))
         log.debug("From " + placeOf(backupFiles(file)))
         log.debug("To   " + location)

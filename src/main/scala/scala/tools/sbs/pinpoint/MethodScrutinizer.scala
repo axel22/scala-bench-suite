@@ -13,10 +13,9 @@ package pinpoint
 
 import scala.tools.nsc.io.Path.string2path
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.pinpoint.bottleneck.BottleneckFinderFactory
 
-class MethodScrutinizer(protected val config: Config, protected val log: Log) extends Scrutinizer {
+class MethodScrutinizer(val config: Config, val log: Log) extends Scrutinizer {
 
   val instrumentedOut = config.bin / ".instrumented" createDirectory ()
 

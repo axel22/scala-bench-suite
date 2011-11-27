@@ -14,7 +14,6 @@ import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.benchmark.BenchmarkFactory
 import scala.tools.sbs.common.RuntimeTypeChecker
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.MeasurementHarnessFactory
 import scala.tools.sbs.performance.MeasurerFactory
 import scala.tools.sbs.pinpoint.ScrutinizerFactory
@@ -23,11 +22,7 @@ import scala.tools.sbs.instrumenting.InstrumenterFactory
 
 /** Runs the benchmark for some purpose.
  */
-trait Runner extends RuntimeTypeChecker {
-
-  protected def log: Log
-
-  protected def config: Config
+trait Runner extends Configured with RuntimeTypeChecker {
 
   def benchmarkFactory: BenchmarkFactory
 
@@ -36,7 +31,7 @@ trait Runner extends RuntimeTypeChecker {
   def run(benchmark: Benchmark): BenchmarkResult =
     if (check(benchmark.getClass)) {
       val result = doBenchmarking(benchmark)
-      result.toReport foreach UI.info
+      result.toReport foreach log.info
       result
     }
     else {

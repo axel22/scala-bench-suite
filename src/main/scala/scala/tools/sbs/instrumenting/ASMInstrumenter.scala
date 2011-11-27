@@ -13,9 +13,9 @@ package instrumenting
 
 import scala.tools.sbs.io.Log
 
-class ASMInstrumenter (protected val config: Config, protected val log: Log) extends Instrumenter {
-	protected def instrument(benchmark: InstrumentingBenchmark): InstrumentingResult = {
-	  val  instrumentResult = new InstrumentResult
-	  InstrumentingSuccess(benchmark, instrumentResult)
-	}
+class ASMInstrumenter(val config: Config, val log: Log) extends Instrumenter {
+  protected def instrument(benchmark: InstrumentingBenchmark): InstrumentingResult = {
+    val instrumentResult = new InstrumentResult
+    InstrumentingSuccess(benchmark, instrumentResult)
+  }
 }

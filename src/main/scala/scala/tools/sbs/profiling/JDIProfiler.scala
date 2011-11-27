@@ -12,12 +12,11 @@ package scala.tools.sbs
 package profiling
 
 import java.io.IOException
-import java.util.{Map => JMap}
+import java.util.{ Map => JMap }
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 import com.sun.jdi.connect.Connector
 import com.sun.jdi.connect.LaunchingConnector
@@ -26,13 +25,12 @@ import com.sun.jdi.VirtualMachine
 
 /** Java Debug Interface based implement of {@link Profiler}.
  */
-class JDIProfiler(protected val config: Config, protected val log: Log) extends Profiler {
+class JDIProfiler(val config: Config, val log: Log) extends Profiler {
 
   protected def profile(benchmark: ProfilingBenchmark): ProfilingResult = {
     val javaArgument =
       JVMInvokerFactory(log, config).asJavaArgument(benchmark, config.classpathURLs ++ benchmark.classpathURLs)
 
-    UI.debug("Profile command: " + (javaArgument mkString " "))
     log.debug("Profile command: " + (javaArgument mkString " "))
 
     val jvm = launchTarget(javaArgument mkString " ")

@@ -13,22 +13,21 @@ package profiling
 
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 class MemoryProfiler(log: Log, config: Config) {
 
   def profile(benchmark: ProfilingBenchmark, profile: Profile): ProfilingResult = {
     val invoker = JVMInvokerFactory(log, config)
-    val (result, error) =
-      invoker.invoke(
-        invoker.command(GCHarness, benchmark, config.classpathURLs ++ benchmark.classpathURLs),
-        benchmark.timeout)
+    val (result, error) = invoker.invoke(
+      invoker.command(GCHarness, benchmark, config.classpathURLs ++ benchmark.classpathURLs),
+      scala.xml.XML.loadString,
+      benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ProfilingException(benchmark, new Exception(error mkString "\n"))
     }
     else {
-      profile useMemory dispose(result)
+      profile useMemory dispose(result.head)
       ProfilingSuccess(benchmark, profile)
     }
   }
@@ -63,7 +62,6 @@ class MemoryProfiler(log: Log, config: Config) {
   }
   catch {
     case e: Exception => {
-      UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)
       throw new Exception("Malformed XML: " + result)
     }

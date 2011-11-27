@@ -101,7 +101,7 @@ class StatisticsSpec extends Spec {
 
     it("returns BenchmarkSuccess object if old and new Series are `same same`") {
       statistics = StatisticsFactory(testConfig, testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
+      val history = HistoryFactory(DummyBenchmark, SteadyState)
       history add about1kSeries2
       var result = statistics.testDifference(DummyBenchmark, about1kSeries1, history)
       assert(result.isInstanceOf[CIRegressionSuccess])
@@ -109,7 +109,7 @@ class StatisticsSpec extends Spec {
 
     it("returns BenchmarkSuccess object 3 Series are `same same`") {
       statistics = StatisticsFactory(testConfig, testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
+      val history = HistoryFactory(DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
       var result = statistics.testDifference(DummyBenchmark, about1kSeries1, history)
@@ -118,7 +118,7 @@ class StatisticsSpec extends Spec {
 
     it("returns BenchmarkFailure object if 3 Series are statistically significant different") {
       statistics = StatisticsFactory(testConfig, testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
+      val history = HistoryFactory(DummyBenchmark, SteadyState)
       history add about1kSeries2
       history add about1kSeries3
       val result = statistics.testDifference(DummyBenchmark, about5k5Series, history)
@@ -127,14 +127,14 @@ class StatisticsSpec extends Spec {
 
     it("returns BenchmarkFailure object if old and new Series are statistically significant different") {
       statistics = StatisticsFactory(testConfig, testLog)
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
+      val history = HistoryFactory(DummyBenchmark, SteadyState)
       history add about1kSeries3
       val result = statistics.testDifference(DummyBenchmark, about5k5Series, history)
       assert(result.isInstanceOf[CIRegressionFailure])
     }
 
     it("raises Exception if history is less than 1") {
-      val history = HistoryFactory(testLog, testConfig, DummyBenchmark, SteadyState)
+      val history = HistoryFactory(DummyBenchmark, SteadyState)
       intercept[Exception] {
         statistics.testDifference(DummyBenchmark, about1kSeries1, history)
       }

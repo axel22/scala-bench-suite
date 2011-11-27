@@ -13,7 +13,6 @@ package performance
 
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.ImmeasurableFailure
 import scala.tools.sbs.performance.regression.NoPreviousMeasurement
 import scala.tools.sbs.performance.regression.PersistorFactory
@@ -34,19 +33,16 @@ trait Measurer extends Runner {
     measure(benchmark.asInstanceOf[PerformanceBenchmark]) match {
       case metric: MeasurementSuccess => {
 
-        UI.info("[  Run OK  ]")
         log.info("[  Run OK  ]")
         log.debug("--Metric: " + metric.getClass.getName)
 
         val regressionResult = regress(benchmark, metric)
         regressionResult match {
           case _: BenchmarkSuccess => {
-            UI.info("[  Benchmark OK  ]")
             log.info("[  Benchmark OK  ]")
             store(benchmark, metric, true)
           }
           case _ => {
-            UI.info("[Benchmark FAILED]")
             log.info("[Benchmark FAILED]")
             log.debug("--Benchmark failed: " + regressionResult.getClass.getName)
             store(benchmark, metric, false)
@@ -55,7 +51,6 @@ trait Measurer extends Runner {
         regressionResult
       }
       case failed: MeasurementFailure => {
-        UI.info("[Run FAILED]")
         log.info("[Run FAILED]")
         log.debug("--Run failed: " + failed.getClass.getName)
         failure(benchmark, failed)

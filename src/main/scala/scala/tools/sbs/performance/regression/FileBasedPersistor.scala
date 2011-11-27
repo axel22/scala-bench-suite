@@ -18,7 +18,6 @@ import scala.tools.nsc.io.Directory
 import scala.tools.nsc.io.File
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.SLASH
 import scala.tools.sbs.util.FileUtil
 import scala.xml.XML
@@ -47,7 +46,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
 
     var line: String = null
     var series: Series = null
-    var justLoaded = HistoryFactory(log, config, benchmark, mode)
+    var justLoaded = HistoryFactory(benchmark, mode)
 
     log.debug("--Persistor directory--  " + location.path)
 
@@ -69,8 +68,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
         }
         catch {
           case e => {
-            UI.error(e.toString)
-            log.debug(e.toString)
+            log.error(e.toString)
           }
         })
     }
@@ -87,7 +85,6 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
     }
     catch {
       case e => {
-        UI.error("[Read failed] " + file.path + e.toString)
         log.debug("[Read failed] " + file.path + e.toString)
         log.debug(e.getStackTraceString)
         null
@@ -100,7 +97,7 @@ class FileBasedPersistor(log: Log, config: Config, benchmark: Benchmark, mode: B
   def generate(num: Int): History = {
     var i = 0
     val runner = RunnerFactory(config, log, mode)
-    var justCreated = HistoryFactory(log, config, benchmark, mode)
+    var justCreated = HistoryFactory(benchmark, mode)
     while (i < num) {
       runner run benchmark match {
         case success: MeasurementSuccess => {

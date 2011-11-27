@@ -14,20 +14,22 @@ package bottleneck
 
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
+import scala.tools.sbs.pinpoint.strategy.InstrumentationRunner
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
-import scala.tools.sbs.io.UI
 
-class BottleneckDiggingFinder(protected val config: Config,
-                              protected val log: Log,
+class BottleneckDiggingFinder(val config: Config,
+                              val log: Log,
                               benchmark: PinpointBenchmark,
                               entryClass: String,
                               entryMethod: String,
-                              instrumentedOut: Directory,
-                              backup: Directory)
-  extends PreviousVersionExploiter
-  with BottleneckFinder {
+                              val instrumentedOut: Directory,
+                              val backupPlace: Directory)
+  extends BottleneckFinder
+  with Configured
+  with InstrumentationRunner
+  with PreviousVersionExploiter {
 
   def find(): BottleneckFound = find(entryClass, entryMethod, List(entryClass + entryMethod))
 
@@ -44,14 +46,12 @@ class BottleneckDiggingFinder(protected val config: Config,
       declaringClass,
       config.classpathURLs ++ benchmark.classpathURLs)
 
-    UI.info("Finding bottleneck in: " + currentMethod.getLongName)
-    UI.info("")
     log.info("Finding bottleneck in: " + currentMethod.getLongName)
+    log.info("")
 
     val previousMethod = exploit(
       benchmark.pinpointPrevious,
       benchmark.context,
-      backup,
       instrumentor.getMethod(
         diggingMethod,
         declaringClass,
@@ -60,19 +60,16 @@ class BottleneckDiggingFinder(protected val config: Config,
     val currentCallingList = instrumentor callListOf currentMethod
 
     if (currentCallingList == Nil) {
-      UI.info("  No detectable method call found")
-      UI.info("")
       log.info("  No detectable method call found")
+      log.info("")
       throw new BottleneckUndetectableException(benchmark, Nil)
     }
 
-    UI.debug("Not empty calling list from: " + currentMethod.getLongName)
     log.debug("Not empty calling list from: " + currentMethod.getLongName)
 
     val previousCallingList = instrumentor callListOf previousMethod
     if ((currentCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature))) !=
       (previousCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature)))) {
-      UI.error("Mismatch expression lists, skip further detection")
       log.error("Mismatch expression lists, skip further detection")
       throw new MismatchExpressionList(benchmark, currentCallingList, previousCallingList)
     }
@@ -80,7 +77,6 @@ class BottleneckDiggingFinder(protected val config: Config,
     var callIndexList = List[Int]()
     currentCallingList foreach (_ => callIndexList :+= callIndexList.length)
 
-    UI.debug("Binary finding")
     log.debug("Binary finding")
     val currentLevelBottleneck = BottleneckFinderFactory(
       config,
@@ -91,21 +87,18 @@ class BottleneckDiggingFinder(protected val config: Config,
       callIndexList,
       currentCallingList,
       instrumentedOut,
-      backup) find ()
+      backupPlace) find ()
 
     currentLevelBottleneck.toReport foreach (line => {
-      UI.info(line)
       log.info(line)
     })
-    UI.info("")
+    log.info("")
 
     currentLevelBottleneck match {
       case Bottleneck(_, position, _, _, _) if ((position.length == 1) &&
         (shouldProceed(position.head, dug)) &&
         !(benchmark.pinpointExclude exists (declaringClass matches _))) =>
         try {
-          UI.verbose("  Digging into: " +
-            position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
           log.verbose("  Digging into: " +
             position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
 
@@ -122,7 +115,6 @@ class BottleneckDiggingFinder(protected val config: Config,
         }
         catch {
           case e => {
-            UI.debug("Digging failed: " + e)
             log.debug("Digging failed: " + e)
             currentLevelBottleneck
           }

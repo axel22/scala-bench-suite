@@ -20,7 +20,6 @@ import scala.sys.process.ProcessIO
 import scala.tools.nsc.util.ClassPath
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 /** An implement of {@link JVMInvoker}.
  */
@@ -33,7 +32,9 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   /** `-cp <scala-library.jar, scala-compiler.jar> -Dscala=<scala-home> scala.tools.nsc.MainGenericRunner`
    */
   private def asScala(classpathURLs: List[URL]) =
-    Seq("-cp", ClassPath.fromURLs(classpathURLs ++ List(config.scalaLibraryJar.toURL, config.scalaCompilerJar.toURL): _*)) ++
+    Seq(
+      "-cp",
+      ClassPath.fromURLs(classpathURLs ++ List(config.scalaLibraryJar.toURL, config.scalaCompilerJar.toURL): _*)) ++
       Seq(config.javaProp, "scala.tools.nsc.MainGenericRunner")
 
   /** `-cp <classpath from config; classpath from benchmark>`
@@ -73,19 +74,18 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   def command(benchmark: Benchmark, classpathURLs: List[URL]) =
     java ++ asJavaArgument(benchmark, classpathURLs)
 
-  def invoke(command: Seq[String], timeout: Int): (scala.xml.Elem, ArrayBuffer[String]) = {
-    var result: scala.xml.Elem = null
+  def invoke[R](command: Seq[String], convert: String => R, timeout: Int): (ArrayBuffer[R], ArrayBuffer[String]) = {
+    val result = ArrayBuffer[R]()
     val error = ArrayBuffer[String]()
     val processBuilder = Process(command)
 
-    UI.debug("Invoked command: " + (command mkString " "))
     log.debug("Invoked command: " + (command mkString " "))
 
     val processIO = new ProcessIO(
       _ => (),
       stdout => Source.fromInputStream(stdout).getLines foreach (
-        line => try result = scala.xml.XML loadString line catch { case _: org.xml.sax.SAXParseException => UI(line) }),
-      stderr => Source.fromInputStream(stderr).getLines foreach (error :+ _))
+        line => try result append convert(line) catch { case _ => log(line) }),
+      stderr => Source.fromInputStream(stderr).getLines foreach (error append _))
 
     var success = -1
     val processStarter = new Thread {
@@ -98,7 +98,6 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
         }
         catch {
           case e: InterruptedException =>
-            UI.error("Timeout")
             log.error("Timeout")
             process.destroy
         }
@@ -113,7 +112,6 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
       }
       catch {
         case e: InterruptedException =>
-          UI.debug("Not timeout")
           log.debug("Not timeout")
       }
 
@@ -124,7 +122,6 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     processStarter.join
     timer.interrupt()
 
-    UI.debug("Sub-process exit value: " + success)
     log.debug("Sub-process exit value: " + success)
 
     (result, error)

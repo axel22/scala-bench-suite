@@ -37,7 +37,6 @@ object BenchmarkDriver {
    */
   def main(args: Array[String]): Unit = try {
 
-    UI.info("[Parsing arguments]")
     val (config, log, benchmarkInfos) = ArgumentParser parse args
 
     if (config.isHelp) {
@@ -48,13 +47,13 @@ object BenchmarkDriver {
 
     // Clean up in case demanded
     if (config.isCleanup) {
-      UI.info("[Cleaning up]")
+      log.info("[Cleaning up]")
       for (each <- config.history.deepFiles) if (!(each hasExtension "scala") && !(each hasExtension "arg")) each.delete
     }
 
     val resultPack = new ResultPack()
 
-    UI.info("[Compiling benchmarks]")
+    log.info("[Compiling benchmarks]")
     val compiler = BenchmarkCompilerFactory(log, config)
 
     val compiled = benchmarkInfos filter (_.isCompiledOK(compiler, config))
@@ -70,8 +69,7 @@ object BenchmarkDriver {
 
     config.modes foreach (mode => {
 
-      UI.info("[Benchmarking mode: " + mode.description + "]")
-      log.debug("Mode: " + mode.description)
+      log.info("[Benchmarking mode: " + mode.description + "]")
 
       resultPack switchMode mode
 
@@ -87,25 +85,23 @@ object BenchmarkDriver {
         try info.expand(runner.benchmarkFactory, config)
         catch {
           case e @ (_: ClassNotFoundException | _: ClassCastException) => {
-            UI.error(e.toString)
             log.error(e.toString)
             null
           }
         }) filterNot (_ == null)
 
-      UI.info("[Expanding completed]")
+      log.info("[Expanding completed]")
 
-      UI.info("[Generating sample histories]")
+      log.info("[Generating sample histories]")
       try benchmarks filter (_.sampleNumber > 0) foreach (runner generate _)
       catch {
         case e => log.debug(e.toString)
       }
 
       // Benchmarking
-      UI.info("[Start benchmarking]")
+      log.info("[Start benchmarking]")
       benchmarks filter (_.sampleNumber == 0) foreach (benchmark => {
 
-        UI.info("Benchmark: " + benchmark.name)
         log.info("Benchmark: " + benchmark.name)
         log.debug("Benchmark: " + benchmark.getClass.getName)
 
@@ -116,8 +112,7 @@ object BenchmarkDriver {
         }
         catch {
           case e: Exception => {
-            UI.info("[    Run FAILED    ]")
-            log.verbose("[    Run FAILED    ]")
+            log.info("[    Run FAILED    ]")
 
             resultPack add new ExceptionBenchmarkFailure(benchmark.name, e)
           }

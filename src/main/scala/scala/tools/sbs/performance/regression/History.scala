@@ -15,7 +15,6 @@ package regression
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
-import scala.tools.sbs.io.Log
 import scala.tools.sbs.performance.Series
 
 trait History {
@@ -50,7 +49,7 @@ trait History {
 
 object HistoryFactory {
 
-  def apply(log: Log, config: Config, benchmark: Benchmark, mode: BenchmarkMode): History =
-    new ArrayBufferHistory(log, config, benchmark, mode)
+  def apply(benchmark: Benchmark, mode: BenchmarkMode): History =
+    new ArrayBufferHistory(benchmark, mode)
 
 }

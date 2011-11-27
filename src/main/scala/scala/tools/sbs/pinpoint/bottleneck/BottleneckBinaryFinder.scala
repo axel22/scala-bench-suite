@@ -12,40 +12,38 @@ package scala.tools.sbs
 package pinpoint
 package bottleneck
 
+import java.net.URL
+
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.ANOVARegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.regression.RegressionFailure
 import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
-import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
+import scala.tools.sbs.pinpoint.strategy.InstrumentationRunner
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
+import scala.tools.sbs.pinpoint.strategy.PinpointMeasurerFactory
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 
 /** Uses a binary-search-like algorithm to find the bottleneck in a
  *  method call list of a method.
  */
-class BottleneckBinaryFinder(protected val config: Config,
-                             protected val log: Log,
+class BottleneckBinaryFinder(val config: Config,
+                             val log: Log,
                              benchmark: PinpointBenchmark,
                              declaringClass: String,
                              bottleneckMethod: String,
                              callIndexList: List[Int],
                              callList: List[MethodCallExpression],
-                             instrumentedOut: Directory,
-                             backup: Directory)
-  extends InstrumentationMeasurer(
-    config,
-    log,
-    benchmark,
-    instrumentedOut,
-    backup)
+                             val instrumentedOut: Directory,
+                             val backupPlace: Directory)
+  extends BottleneckFinder
+  with Configured
   with TwinningDetector
-  with PreviousVersionExploiter
-  with BottleneckFinder {
+  with InstrumentationRunner
+  with PreviousVersionExploiter {
 
   def find(): BottleneckFound = binaryFind(callIndexList, callList)
 
@@ -99,14 +97,12 @@ class BottleneckBinaryFinder(protected val config: Config,
       call.getClassName + "." + call.getMethodName + call.getSignature + " at line " + call.getLineNumber
 
     if (callIndexList.length == 1) {
-      UI.info("  Checking whether method call " + position(start) + " is a bottleneck")
       log.info("  Checking whether method call " + position(start) + " is a bottleneck")
     }
     else {
-      UI.info("  Finding bottleneck between " + "method call " + position(start) + " and " + position(end))
       log.info("  Finding bottleneck between " + "method call " + position(start) + " and " + position(end))
     }
-    UI.info("")
+    log.info("")
 
     twinningDetect(
       benchmark,
@@ -122,26 +118,24 @@ class BottleneckBinaryFinder(protected val config: Config,
       _ => throw new BottleneckUndetectableException(benchmark, callList))
   }
 
-  private def measureCurrent(callIndexList: List[Int]) = instrumentAndMeasure(
-    declaringClass,
-    bottleneckMethod,
-    (method, instrumentor) => instrumentor.sandwichCallList(
-      method,
-      callIndexList.head, PinpointHarness.javaInstructionCallStart,
-      callIndexList.last, PinpointHarness.javaInstructionCallEnd),
-    config.classpathURLs ++ benchmark.classpathURLs)
+  private def measureCurrent(callIndexList: List[Int]) =
+    measureCommon(callIndexList: List[Int], config.classpathURLs ++ benchmark.classpathURLs)
 
   private def measurePrevious(callIndexList: List[Int]) = exploit(
     benchmark.pinpointPrevious,
     benchmark.context,
-    backup,
-    instrumentAndMeasure(
+    measureCommon(callIndexList, config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+
+  private def measureCommon(callIndexList: List[Int], classpathURLs: List[URL]) =
+    instrumentAndRun(
+      benchmark,
       declaringClass,
       bottleneckMethod,
       (method, instrumentor) => instrumentor.sandwichCallList(
         method,
         callIndexList.head, PinpointHarness.javaInstructionCallStart,
         callIndexList.last, PinpointHarness.javaInstructionCallEnd),
-      config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+      PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedOut.toURL :: classpathURLs),
+      classpathURLs)
 
 }

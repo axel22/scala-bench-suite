@@ -11,41 +11,37 @@
 package scala.tools.sbs
 package pinpoint
 
+import java.net.URL
+
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
-import scala.tools.sbs.performance.MeasurementFailure
 import scala.tools.sbs.performance.MeasurementSuccess
-import scala.tools.sbs.pinpoint.strategy.InstrumentationMeasurer
+import scala.tools.sbs.pinpoint.strategy.InstrumentationRunner
 import scala.tools.sbs.pinpoint.strategy.PinpointHarness
+import scala.tools.sbs.pinpoint.strategy.PinpointMeasurerFactory
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
 
-class MethodRegressionDetector(protected val config: Config,
-                               protected val log: Log,
+class MethodRegressionDetector(val config: Config,
+                               val log: Log,
                                benchmark: PinpointBenchmark,
-                               instrumentedOut: Directory,
-                               backup: Directory)
-  extends InstrumentationMeasurer(
-    config,
-    log,
-    benchmark,
-    instrumentedOut,
-    backup)
+                               val instrumentedOut: Directory,
+                               val backupPlace: Directory)
+  extends ScrutinyRegressionDetector
   with TwinningDetector
-  with PreviousVersionExploiter
-  with ScrutinyRegressionDetector {
+  with Configured
+  with InstrumentationRunner
+  with PreviousVersionExploiter {
 
   def detect(stupidDummyNotTobeUsedBenchmark: PinpointBenchmark): ScrutinyRegressionResult = {
     if (benchmark.pinpointClass == "" || benchmark.pinpointMethod == "") {
       throw new NoPinpointingMethodException(benchmark)
     }
 
-    UI.info("Detecting performance regression of method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
     log.info("Detecting performance regression of method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
-    UI.info("")
+    log.info("")
 
     twinningDetect(
       benchmark,
@@ -66,26 +62,22 @@ class MethodRegressionDetector(protected val config: Config,
       failure => ScrutinyImmeasurableFailure(benchmark, failure))
   }
 
-  private lazy val measureCurrent = instrumentAndMeasure(
+  private lazy val measureCurrent = measureCommon(config.classpathURLs ++ benchmark.classpathURLs)
+
+  private lazy val measurePrevious = exploit(
+    benchmark.pinpointPrevious,
+    benchmark.context,
+    measureCommon(config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+
+  private def measureCommon(classpathURLs: List[URL]) = instrumentAndRun(
+    benchmark,
     benchmark.pinpointClass,
     benchmark.pinpointMethod,
     (method, instrumentor) => instrumentor.sandwich(
       method,
       PinpointHarness.javaInstructionCallStart,
       PinpointHarness.javaInstructionCallEnd),
-    config.classpathURLs ++ benchmark.classpathURLs)
-
-  private lazy val measurePrevious = exploit(
-    benchmark.pinpointPrevious,
-    benchmark.context,
-    backup,
-    instrumentAndMeasure(
-      benchmark.pinpointClass,
-      benchmark.pinpointMethod,
-      (method, instrumentor) => instrumentor.sandwich(
-        method,
-        PinpointHarness.javaInstructionCallStart,
-        PinpointHarness.javaInstructionCallEnd),
-      config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+    PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedOut.toURL :: classpathURLs),
+    classpathURLs)
 
 }

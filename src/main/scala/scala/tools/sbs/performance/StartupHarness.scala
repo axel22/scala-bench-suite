@@ -18,7 +18,7 @@ import scala.tools.sbs.io.Log
 
 /** Measurer for benchmarking on startup state.
  */
-class StartupHarness(protected val log: Log, protected val config: Config) extends Measurer {
+class StartupHarness(val log: Log, val config: Config) extends Measurer {
 
   override protected val mode: BenchmarkMode = StartUpState
 

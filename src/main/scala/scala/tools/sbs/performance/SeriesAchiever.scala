@@ -13,7 +13,6 @@ package performance
 
 import scala.compat.Platform
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 /** Runs and measures metrics of a benchmark in general case.
  */
@@ -44,13 +43,11 @@ class SeriesAchiever(config: Config, log: Log) {
         cleanUp()
         series += measure()
         log.verbose("    Measured      " + series.last)
-        UI.verbose("    Measured      " + series.last)
       }
     }
 
     while (measureCount < config.reMeasurement && !series.isReliable) {
       log.verbose("  Start getting a series  ")
-      UI.info("  Start getting a series  ")
 
       getSeries
 
@@ -61,23 +58,19 @@ class SeriesAchiever(config: Config, log: Log) {
         series += measure()
         
         log.verbose("    Measured      " + series.last)
-        UI.verbose("    Measured      " + series.last)
 
         warmCount += 1
       }
 
       if (checkWarm(series)) {
-        UI.info("  Reached steady state  ")
         unwarmable = false
         if (newlyAchieve) getSeries
       }
       else {
         log.info("  [Unwarmmable]  ")
-        UI.info("  [Unwarmmable]  ")
         unwarmable = true
         series.clear()
       }
-      UI.info("  End measurement  ")
       measureCount += 1
     }
 

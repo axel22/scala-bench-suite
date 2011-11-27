@@ -17,12 +17,11 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.benchmark.Benchmark
 import scala.tools.sbs.common.JVMInvokerFactory
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 /** Measures benchmark metric by invoking a new clean JVM.
  */
-class SubJVMMeasurer(protected val log: Log,
-                     protected val config: Config,
+class SubJVMMeasurer(val log: Log,
+                     val config: Config,
                      val mode: BenchmarkMode,
                      measurementHarness: MeasurementHarness[_])
   extends Measurer {
@@ -38,14 +37,16 @@ class SubJVMMeasurer(protected val log: Log,
    */
   def measure(benchmark: PerformanceBenchmark, classpathURLs: List[URL]): MeasurementResult = {
     val invoker = JVMInvokerFactory(log, config)
-    val (result, error) =
-      invoker.invoke(invoker.command(measurementHarness, benchmark, classpathURLs), benchmark.timeout)
+    val (result, error) = invoker.invoke(
+      invoker.command(measurementHarness, benchmark, classpathURLs),
+      scala.xml.XML.loadString,
+      benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ExceptionMeasurementFailure(new Exception(error mkString "\n"))
     }
     else {
-      dispose(result, benchmark, mode)
+      dispose(result.head, benchmark, mode)
     }
   }
 
@@ -80,17 +81,14 @@ class SubJVMMeasurer(protected val log: Log,
   }
   catch {
     case _: NullPointerException => {
-      UI.error("Benchmarking timeout")
       log.error("Benchmarking timeout")
       new TimeoutMeasurementFailure
     }
     case e: org.xml.sax.SAXParseException => {
-      UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)
       throw e
     }
     case e: Exception => {
-      UI.error("Malformed XML: " + result)
       log.error("Malformed XML: " + result)
       throw new MalformedXMLException(this, mode, result)
     }

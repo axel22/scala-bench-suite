@@ -15,7 +15,7 @@ package io
  */
 trait Log {
 
-  protected var config: Config
+  def config: Config
 
   def apply(message: String)
 
@@ -61,7 +61,7 @@ object LogFactory {
    */
   def apply(config: Config): Log = {
     TextFileLog.createLog(config.benchmarkDirectory) match {
-      case Some(logFile) => new TextFileLog(logFile, config)
+      case Some(logFile) => new DualLog(new TextFileLog(logFile, config), config)
       case None          => UI
     }
   }
@@ -70,7 +70,7 @@ object LogFactory {
    */
   def apply(benchmarkName: String, mode: BenchmarkMode, config: Config): Log = {
     TextFileLog.createLog(benchmarkName, mode: BenchmarkMode, config.benchmarkDirectory) match {
-      case Some(logFile) => new TextFileLog(logFile, config)
+      case Some(logFile) => new DualLog(new TextFileLog(logFile, config), config)
       case None          => UI
     }
   }

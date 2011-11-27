@@ -15,11 +15,7 @@ package io
  */
 object UI extends Log {
 
-  protected var _config: Config = null
-  def config = _config
-  def config_=(config: Config) {
-    _config = config
-  }
+  var config: Config = null
 
   def apply(message: String) = if (config != null && !config.isQuiet) Console println message
 

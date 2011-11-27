@@ -17,7 +17,6 @@ import java.net.URL
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.common.Reflector
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 
 import CodeInstrumentor.Instruction
 import CodeInstrumentor.InstrumentingClass
@@ -43,7 +42,6 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     }
     catch {
       case _: javassist.NotFoundException =>
-        UI.debug("Class " + className + " cannot be found")
         log.debug("Class " + className + " cannot be found")
         null
     }
@@ -96,7 +94,6 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
       override def edit(call: MethodCallExpression) = {
         if (!exclude.exists(call.getClassName matches _)) {
           callList :+= call
-          UI.debug("Method call collected: " + call.getClassName + "." + call.getMethodName)
           log.debug("Method call collected: " + call.getClassName + "." + call.getMethodName)
         }
       }
@@ -116,7 +113,6 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
    *  before the given `InstrumentingExpression`.
    */
   def insertBefore(expression: InstrumentingExpression, instruction: Instruction) {
-    UI.debug("Insert before: " + embrace(instruction + proceedExpression))
     expression replace embrace(instruction + proceedExpression)
   }
 
@@ -137,7 +133,6 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
       override def edit(call: MethodCallExpression) {
         if (!exclude.exists(call.getClassName matches _)) {
 
-          UI.debug("Method call: " + call.getClassName + "." + call.getMethodName + call.getSignature)
           log.debug("Method call: " + call.getClassName + "." + call.getMethodName + call.getSignature)
 
           try if ((index == first) && (index == last)) {
@@ -151,7 +146,7 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
           }
           catch {
             case e =>
-              UI.error(e.toString)
+              log.error(e.toString)
               throw e
           }
           index += 1

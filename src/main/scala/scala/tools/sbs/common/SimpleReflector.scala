@@ -17,7 +17,6 @@ import scala.tools.nsc.io.Path
 import scala.tools.nsc.util.ScalaClassLoader
 import scala.tools.sbs.benchmark.BenchmarkTemplate
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.util.Constant.COMPANION_FIELD
 import scala.tools.sbs.util.Constant.DOLLAR
 
@@ -50,7 +49,6 @@ class SimpleReflector(config: Config, log: Log) extends Reflector {
     }
     catch {
       case f: ClassNotFoundException => {
-        UI.error("Class not found: " + name)
         log.debug("Class not found: " + name)
         throw f
       }

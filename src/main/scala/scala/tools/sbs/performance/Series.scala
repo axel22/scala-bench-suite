@@ -13,7 +13,6 @@ package performance
 
 import scala.collection.mutable.ArrayBuffer
 import scala.tools.sbs.io.Log
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.StatisticsFactory
 import scala.tools.sbs.util.Constant.ENDL
 
@@ -78,7 +77,6 @@ class Series(config: Config, log: Log) {
 
     if (data.length == 0) {
       log.debug("  Cleared result  " + ENDL)
-      UI.debug("  Cleared result  " + ENDL)
       false
     }
     else {
@@ -98,7 +96,6 @@ class Series(config: Config, log: Log) {
           "               Difference         " + formattedDiff)
 
       log.verbose(toPrint)
-      UI.verbose(toPrint)
 
       def ratio = if (diff == 0) 0 else diff / mean
       def checkCL = {
@@ -113,19 +110,14 @@ class Series(config: Config, log: Log) {
         diff = right - left
 
         log.verbose(toPrint)
-        UI.verbose(toPrint)
       }
 
       _confidenceLevel = statistic.confidenceLevel.toInt
 
       log.info("Series: " + this.toString)
-      UI.verbose("Series: " + this.toString)
       log.info("  Average              " + (mean formatted "%.2f"))
-      UI.info("  Average              " + (mean formatted "%.2f"))
       log.info(toPrint)
       log.info("")
-      UI.info(toPrint)
-      UI.info("")
 
       ratio < config.precisionThreshold
     }

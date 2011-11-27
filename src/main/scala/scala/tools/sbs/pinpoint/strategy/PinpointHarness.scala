@@ -12,7 +12,6 @@ package scala.tools.sbs
 package pinpoint
 package strategy
 
-import scala.tools.sbs.io.UI
 import scala.tools.sbs.performance.regression.StatisticsFactory
 import scala.tools.sbs.performance.MeasurementHarness
 import scala.tools.sbs.performance.MeasurementResult
@@ -45,7 +44,6 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
    *  Should be called by the instrumented class.
    */
   def start(timeStone: Long) {
-    UI.debug("Start " + timeStone)
     log.debug("Start " + timeStone)
     if (recursionDepth == 0) {
       firstTimeStone = timeStone
@@ -59,16 +57,13 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
    *  If the running time, `measured`, has been calculated before, simply ignore.
    */
   def end(timeStone: Long) {
-    UI.debug("End " + timeStone)
     log.debug("End " + timeStone)
     recursionDepth -= 1
     if (recursionDepth == 0) {
       // Back to the start of the recursion
       if (measured == -1) {
-        UI.debug("Back to recursion start")
         log.debug("Back to recursion start")
         measured = timeStone - firstTimeStone
-        UI.debug("Runtime " + measured)
         log.debug("Runtime " + measured)
       }
     }
@@ -86,7 +81,6 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
 
   def measure(benchmark: PinpointBenchmark): MeasurementResult = {
     val statistic = StatisticsFactory(config, log)
-    UI.info("[Benchmarking pinpointing regression detection]")
     log.info("[Benchmarking pinpointing regression detection]")
     seriesAchiever achieve (
       benchmark,

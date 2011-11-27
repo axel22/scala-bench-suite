@@ -16,42 +16,56 @@ import scala.collection.mutable.ArrayBuffer
 
 /** Represents a list of method call expressions inside a method body in order of time.
  */
-class InvocationGraph(invocations: ArrayBuffer[Invocation], steps: ArrayBuffer[Step]) {
+case class InvocationGraph(methods: ArrayBuffer[MethodCall],
+                           steps: ArrayBuffer[Step],
+                           startOrdinum: Int,
+                           private var _endOrdinum: Int) {
 
-  def this() = this(ArrayBuffer[Invocation](), ArrayBuffer[Step]())
+  def this() = this(ArrayBuffer[MethodCall](), ArrayBuffer[Step](), 0, 0)
 
   /** Traverses through all method call expressions in order of time.
    */
-  def traverse(operate: Invocation => Unit): Unit = {
+  def traverse(operate: MethodCall => Unit): Unit = {
     operate(first)
     steps foreach (step => operate(step.to))
   }
 
+  /** The ordinal number of the invocation of the method called at the end
+   *  of this graph.
+   */
+  def endOrdinum: Int = _endOrdinum
+
   /** Number of method call expressions.
    */
-  def length: Int = if (steps isEmpty) invocations.length else steps.length + 1
+  def length: Int = if (steps isEmpty) methods.length else steps.length + 1
 
   /** The oldest method call expression in respect of time orders.
    */
-  def first: Invocation = if (steps isEmpty) if (invocations isEmpty) null else invocations.head else steps.head.from
+  def first: MethodCall = if (steps isEmpty) if (methods isEmpty) null else methods.head else steps.head.from
 
   /** The latest method call expression in respect of time orders.
    */
-  def last: Invocation = if (steps isEmpty) if (invocations isEmpty) null else invocations.last else steps.last.to
+  def last: MethodCall = if (steps isEmpty) if (methods isEmpty) null else methods.last else steps.last.to
 
   /** Adds new method call expression into this graph.
    *
    *  @param	prottoype	Name and signature of the method has just been called.
    */
-  def add(prototype: String): Unit = {
-    def addStep(to: Invocation) = steps append Step(if (steps isEmpty) invocations.head else steps.last.to, to)
-    invocations find (_.prototype == prototype) match {
+  def add(declaringClass: String, methodName: String, signature: String, lineNumber: Int) {
+    def addStep(to: MethodCall) {
+      val from = if (steps isEmpty) methods.head else steps.last.to
+      steps append Step(from, from.timesCalled, to, to.timesCalled)
+    }
+    val newCall = MethodCall(declaringClass, methodName, signature, lineNumber)
+    methods find (_.id == newCall.id) match {
       case Some(existed) =>
+        existed.calledAgain
         addStep(existed)
       case None =>
-        invocations append Invocation(prototype)
-        if (invocations.length > 1) addStep(invocations.last)
+        methods append newCall
+        if (methods.length > 1) addStep(methods.last)
     }
+    _endOrdinum = if (steps isEmpty) 1 else steps.last.toOrdinum
   }
 
   /** Splits this graph into two new graphs which have equivalent length
@@ -62,7 +76,7 @@ class InvocationGraph(invocations: ArrayBuffer[Invocation], steps: ArrayBuffer[S
     else {
       def attendIn(stepList: ArrayBuffer[Step]) =
         if (stepList isEmpty) None
-        else Some(invocations filter (i => stepList exists (s => s.from == i || s.to == i)))
+        else Some(methods filter (i => stepList exists (s => s.from == i || s.to == i)))
 
       val break = steps.length / 2
 
@@ -70,11 +84,46 @@ class InvocationGraph(invocations: ArrayBuffer[Invocation], steps: ArrayBuffer[S
       val secondSteps = steps takeRight (steps.length - break - 1)
       val firstInvocations = attendIn(firstSteps) getOrElse ArrayBuffer(first)
       val secondInvocations = attendIn(secondSteps) getOrElse ArrayBuffer(last)
-      (new InvocationGraph(firstInvocations, firstSteps), new InvocationGraph(secondInvocations, secondSteps))
+      (new InvocationGraph(firstInvocations, firstSteps, startOrdinum, steps(break).fromOrdinum),
+        new InvocationGraph(secondInvocations, secondSteps, steps(break).toOrdinum, endOrdinum))
     }
+
+  /** Checks whether this graph represents the same invocation list
+   *  with the given one.
+   */
+  def matches(that: InvocationGraph): Boolean =
+    (startOrdinum == that.startOrdinum) &&
+      (endOrdinum == that.endOrdinum) &&
+      ((methods map (_ id)) == (that.methods map (_ id))) &&
+      ((methods map (_ timesCalled)) == (that.methods map (_ timesCalled))) &&
+      ((steps map (_.from.id)) == (that.steps map (_.from.id))) &&
+      ((steps map (_.to.id)) == (that.steps map (_.to.id))) &&
+      ((steps map (_ fromOrdinum)) == (that.steps map (_ fromOrdinum))) &&
+      ((steps map (_ toOrdinum)) == (that.steps map (_ toOrdinum)))
 
 }
 
-case class Invocation(prototype: String)
+/** Method call expression - node of the graph.
+ */
+case class MethodCall(declaringClass: String, methodName: String, signature: String, lineNumber: Int) {
 
-case class Step(from: Invocation, to: Invocation)
+  private var _timesCalled = 1
+
+  /** Number of times this method call expression has been run.
+   */
+  def timesCalled = _timesCalled
+
+  /** This method should be called whenever the represented
+   *  method call expression is run.
+   */
+  def calledAgain = _timesCalled += 1
+
+  /** Call expression identifier.
+   */
+  val id: String = declaringClass + methodName + signature + lineNumber
+
+}
+
+/** Vertex of the graph.
+ */
+case class Step(from: MethodCall, fromOrdinum: Int, to: MethodCall, toOrdinum: Int)
