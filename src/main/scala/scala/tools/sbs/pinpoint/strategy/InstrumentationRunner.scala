@@ -26,10 +26,10 @@ trait InstrumentationRunner extends Backupable with Instrumentable {
                           declaringClass: String,
                           instrumentingMethod: String,
                           instrument: (InstrumentingMethod, CodeInstrumentor) => Unit,
-                          run: => R,
-                          classpathURLs: List[java.net.URL]): R = {
+                          originalClasspathURLs: List[java.net.URL],
+                          run: List[java.net.URL] => R): R = {
     val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
-    val (clazz, method) = instrumentor.getClassAndMethod(declaringClass, instrumentingMethod, classpathURLs)
+    val (clazz, method) = instrumentor.getClassAndMethod(declaringClass, instrumentingMethod, originalClasspathURLs)
     if (method == null) throw new PinpointingMethodNotFoundException(benchmark)
     instrument(method, instrumentor)
     instrumentor.writeFile(clazz, instrumentedOut)
@@ -40,7 +40,7 @@ trait InstrumentationRunner extends Backupable with Instrumentable {
       (classFile /: (clazz.getName split "/."))((path, _) => path.parent).toDirectory,
       backupPlace)
     backuper.backup
-    val result = run
+    val result = run(instrumentedOut.toURL :: originalClasspathURLs)
     backuper.restore
     FileUtil clean instrumentedOut
     result

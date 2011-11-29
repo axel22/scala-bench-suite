@@ -40,7 +40,9 @@ trait ProfilingBenchmark extends Benchmark {
 
 }
 
-class ProfilingBenchmarkFactory(protected val log: Log, protected val config: Config) extends BenchmarkFactory {
+class ProfilingBenchmarkFactory(val log: Log, val config: Config)
+  extends Configured
+  with BenchmarkFactory {
 
   protected val profileClassOpt = "--profile-class"
 

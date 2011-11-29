@@ -26,7 +26,10 @@ trait InstrumentingBenchmark extends Benchmark {
 
 }
 
-class InstrumentingBenchmarkFactory(protected val log: Log, protected val config: Config) extends BenchmarkFactory {
+class InstrumentingBenchmarkFactory(val log: Log, val config: Config)
+  extends Configured
+  with BenchmarkFactory {
+
   protected val instrumentMethodOpt = "--instrument-methods"
 
   def createFrom(info: BenchmarkInfo): Benchmark = {

@@ -21,21 +21,26 @@ import scala.tools.sbs.io.Log
  */
 trait JVMInvoker {
 
-  /** Invokes a new JVM which uses a typical {@link Runner} to run a typical {@link Benchmark}.
+  /** Invokes a new JVM which uses a typical {@link scala.tools.sbs.Runner}
+   *  to run a typical {@link scala.tools.sbs.benchmark.Benchmark}.
    *
-   *  @param command	jvm command line
-   *  @param convert	function converst a `String` from sub-process standard output to a return value.
-   *  @param timeout	maximum time for the sub-process to run.
+   *  @param command	OS command to invoke the wanted jvm under the form of a `Seq[String]`.
+   *  @param stdout 	function converts a `String` which is a line from the jvm's standard output to `R`.
+   *  @param stderr 	function converts a `String` which is a line from the jvm's standard error to `E`.
+   *  @param timeout	maximum time for the jvm to run.
    *
    *  @return
    *  <ul>
-   *  <li>A `ArrayBuffer[R]` array of return values.
-   *  <li>A `ArrayBuffer[String]` contains runtime errors if any.
+   *  <li>A `ArrayBuffer[R]` array of values each had been created from one line of the jvm's standard output.
+   *  <li>A `ArrayBuffer[E]` array of values each had been created from one line of the jvm's standard error.
    *  </ul>
    */
-  def invoke[R](command: Seq[String], convert: String => R, timeout: Int): (ArrayBuffer[R], ArrayBuffer[String])
+  def invoke[R, E](command: Seq[String],
+                   stdout: String => R,
+                   stderr: String => E,
+                   timeout: Int): (ArrayBuffer[R], ArrayBuffer[E])
 
-  /** OS command to invoke an new JVM which has `measurer` as the main scala class
+  /** OS command to invoke an new JVM which has `harness` as the main scala class
    *  and `benchmark` as an argument.
    */
   def command(harness: ObjectHarness, benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
@@ -45,7 +50,7 @@ trait JVMInvoker {
   def command(benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 
   /** OS command argument to run with java.
-   *  Ex: `Seq("-cp", ".", "scala.tools.nsc.MainGenericRunner", "-vesion")`.
+   *  Ex: `Seq("-cp", ".", "scala.tools.nsc.MainGenericRunner", "-version")`.
    */
   def asJavaArgument(benchmark: Benchmark, classpathURLs: List[URL]): Seq[String]
 

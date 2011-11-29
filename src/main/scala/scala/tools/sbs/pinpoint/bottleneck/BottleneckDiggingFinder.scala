@@ -41,6 +41,15 @@ class BottleneckDiggingFinder(val config: Config,
 
     val instrumentor = CodeInstrumentor(config, log, benchmark.pinpointExclude)
 
+    val invocationCollector = new InvocationCollector(
+      config,
+      log,
+      benchmark,
+      declaringClass,
+      diggingMethod,
+      instrumentedOut,
+      backupPlace)
+
     val currentMethod = instrumentor.getMethod(
       diggingMethod,
       declaringClass,
@@ -49,33 +58,18 @@ class BottleneckDiggingFinder(val config: Config,
     log.info("Finding bottleneck in: " + currentMethod.getLongName)
     log.info("")
 
-    val previousMethod = exploit(
-      benchmark.pinpointPrevious,
-      benchmark.context,
-      instrumentor.getMethod(
-        diggingMethod,
-        declaringClass,
-        benchmark.pinpointPrevious.toURL :: config.classpathURLs ++ benchmark.classpathURLs))
-
-    val currentCallingList = instrumentor callListOf currentMethod
-
-    if (currentCallingList == Nil) {
+    if (invocationCollector.graph.length == 0) {
       log.info("  No detectable method call found")
       log.info("")
-      throw new BottleneckUndetectableException(benchmark, Nil)
+      throw new BottleneckUndetectableException(declaringClass, diggingMethod, invocationCollector.graph)
     }
 
     log.debug("Not empty calling list from: " + currentMethod.getLongName)
 
-    val previousCallingList = instrumentor callListOf previousMethod
-    if ((currentCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature))) !=
-      (previousCallingList map (call => (call.getClassName, call.getMethodName, call.getSignature)))) {
+    if (!invocationCollector.isMatchOK) {
       log.error("Mismatch expression lists, skip further detection")
-      throw new MismatchExpressionList(benchmark, currentCallingList, previousCallingList)
+      throw new MismatchExpressionList(declaringClass, diggingMethod, invocationCollector)
     }
-
-    var callIndexList = List[Int]()
-    currentCallingList foreach (_ => callIndexList :+= callIndexList.length)
 
     log.debug("Binary finding")
     val currentLevelBottleneck = BottleneckFinderFactory(
@@ -84,8 +78,7 @@ class BottleneckDiggingFinder(val config: Config,
       benchmark,
       declaringClass,
       diggingMethod,
-      callIndexList,
-      currentCallingList,
+      invocationCollector.graph,
       instrumentedOut,
       backupPlace) find ()
 
@@ -96,17 +89,16 @@ class BottleneckDiggingFinder(val config: Config,
 
     currentLevelBottleneck match {
       case Bottleneck(_, position, _, _, _) if ((position.length == 1) &&
-        (shouldProceed(position.head, dug)) &&
-        !(benchmark.pinpointExclude exists (declaringClass matches _))) =>
+        (shouldProceed(position.first.prototype, dug)) &&
+        !(benchmark.pinpointExclude exists (position.first.declaringClass matches _))) =>
         try {
-          log.verbose("  Digging into: " +
-            position.head.getClassName() + "." + position.head.getMethodName + position.head.getSignature)
+          log.verbose("  Digging into: " + position.first.prototype)
 
           val lowerLevelBottleneckFound =
             find(
-              position.head.getClassName,
-              position.head.getMethodName,
-              dug :+ (position.head.getClassName + position.head.getMethodName))
+              position.first.declaringClass,
+              position.first.methodName,
+              dug :+ position.first.prototype)
 
           lowerLevelBottleneckFound match {
             case _: NoBottleneck => currentLevelBottleneck
@@ -125,8 +117,7 @@ class BottleneckDiggingFinder(val config: Config,
 
   }
 
-  def shouldProceed(call: MethodCallExpression, dug: List[String]) =
-    (benchmark.pinpointDepth == -1) ||
-      (dug.length < benchmark.pinpointDepth && !(dug contains (call.getClassName + call.getMethodName)))
+  def shouldProceed(prototype: String, dug: List[String]) =
+    (benchmark.pinpointDepth == -1) || (dug.length < benchmark.pinpointDepth && !(dug contains prototype))
 
 }

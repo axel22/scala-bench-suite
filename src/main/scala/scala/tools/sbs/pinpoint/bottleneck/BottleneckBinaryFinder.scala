@@ -20,12 +20,12 @@ import scala.tools.sbs.performance.regression.ANOVARegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionFailure
 import scala.tools.sbs.performance.regression.CIRegressionSuccess
 import scala.tools.sbs.performance.regression.RegressionFailure
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
+import scala.tools.sbs.pinpoint.instrumentation.JavaUtility
 import scala.tools.sbs.pinpoint.strategy.InstrumentationRunner
-import scala.tools.sbs.pinpoint.strategy.PinpointHarness
 import scala.tools.sbs.pinpoint.strategy.PinpointMeasurerFactory
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
+import scala.tools.sbs.pinpoint.BottleneckUndetectableException
 
 /** Uses a binary-search-like algorithm to find the bottleneck in a
  *  method call list of a method.
@@ -35,8 +35,7 @@ class BottleneckBinaryFinder(val config: Config,
                              benchmark: PinpointBenchmark,
                              declaringClass: String,
                              bottleneckMethod: String,
-                             callIndexList: List[Int],
-                             callList: List[MethodCallExpression],
+                             graph: InvocationGraph,
                              val instrumentedOut: Directory,
                              val backupPlace: Directory)
   extends BottleneckFinder
@@ -45,9 +44,9 @@ class BottleneckBinaryFinder(val config: Config,
   with InstrumentationRunner
   with PreviousVersionExploiter {
 
-  def find(): BottleneckFound = binaryFind(callIndexList, callList)
+  def find(): BottleneckFound = binaryFind(graph)
 
-  private def binaryFind(callIndexList: List[Int], callList: List[MethodCallExpression]): BottleneckFound = {
+  private def binaryFind(graph: InvocationGraph): BottleneckFound = {
     def narrow(regressionFailure: RegressionFailure): BottleneckFound = {
       /** Creates only incase necessary.
        */
@@ -55,7 +54,7 @@ class BottleneckBinaryFinder(val config: Config,
         case CIRegressionFailure(_, current, previous, ci) => {
           Bottleneck(
             benchmark,
-            callList.slice(callIndexList.head, callIndexList.last + 1),
+            graph,
             current,
             previous,
             ci)
@@ -63,12 +62,12 @@ class BottleneckBinaryFinder(val config: Config,
         case _: ANOVARegressionFailure => throw new ANOVAUnsupportedException
         case _                         => throw new AlgorithmFlowException(this.getClass)
       }
-      if (callIndexList.length > 1) {
-        val (firstHalf, secondHalf) = callIndexList partition (callIndexList.indexOf(_) < callIndexList.length / 2)
+      if (graph.length > 1) {
+        val (firstHalf, secondHalf) = graph.split
         try {
-          lazy val secondBottleNeck = binaryFind(secondHalf, callList)
+          lazy val secondBottleNeck = binaryFind(secondHalf)
           val firstBottleNeck =
-            try { binaryFind(firstHalf, callList) }
+            try { binaryFind(firstHalf) }
             catch {
               case _: BottleneckUndetectableException =>
                 secondBottleNeck match {
@@ -91,23 +90,21 @@ class BottleneckBinaryFinder(val config: Config,
       else { currentBottleneck }
     }
 
-    val start = callList(callIndexList.head)
-    val end = callList(callIndexList.last)
-    def position(call: MethodCallExpression) =
-      call.getClassName + "." + call.getMethodName + call.getSignature + " at line " + call.getLineNumber
-
-    if (callIndexList.length == 1) {
-      log.info("  Checking whether method call " + position(start) + " is a bottleneck")
+    if (graph.length == 1) {
+      log.info("  Checking whether the " + graph.startOrdinum + " time invocation " +
+        "of method call " + graph.first.prototype + "is a bottleneck")
     }
     else {
-      log.info("  Finding bottleneck between " + "method call " + position(start) + " and " + position(end))
+      log.info("  Finding bottleneck between " +
+        "the " + graph.startOrdinum + " time invocation of method call " + graph.first.prototype +
+        " and the " + graph.endOrdinum + " time invocation of method call " + graph.last.prototype)
     }
     log.info("")
 
     twinningDetect(
       benchmark,
-      measureCurrent(callIndexList),
-      measurePrevious(callIndexList),
+      measureCurrent(graph),
+      measurePrevious(graph),
       regressOK => regressOK match {
         case ciOK: CIRegressionSuccess =>
           NoBottleneck(benchmark, regressOK.confidenceLevel, ciOK.current, ciOK.previous, ciOK.CI)
@@ -115,27 +112,28 @@ class BottleneckBinaryFinder(val config: Config,
           throw new ANOVAUnsupportedException
       },
       narrow,
-      _ => throw new BottleneckUndetectableException(benchmark, callList))
+      _ => throw new BottleneckUndetectableException(declaringClass, bottleneckMethod, graph))
   }
 
-  private def measureCurrent(callIndexList: List[Int]) =
-    measureCommon(callIndexList: List[Int], config.classpathURLs ++ benchmark.classpathURLs)
+  private def measureCurrent(graph: InvocationGraph) =
+    measureCommon(graph, config.classpathURLs ++ benchmark.classpathURLs)
 
-  private def measurePrevious(callIndexList: List[Int]) = exploit(
+  private def measurePrevious(graph: InvocationGraph) = exploit(
     benchmark.pinpointPrevious,
     benchmark.context,
-    measureCommon(callIndexList, config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+    config.classpathURLs ++ benchmark.classpathURLs,
+    measureCommon(graph, _))
 
-  private def measureCommon(callIndexList: List[Int], classpathURLs: List[URL]) =
+  private def measureCommon(graph: InvocationGraph, classpathURLs: List[URL]) =
     instrumentAndRun(
       benchmark,
       declaringClass,
       bottleneckMethod,
-      (method, instrumentor) => instrumentor.sandwichCallList(
-        method,
-        callIndexList.head, PinpointHarness.javaInstructionCallStart,
-        callIndexList.last, PinpointHarness.javaInstructionCallEnd),
-      PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedOut.toURL :: classpathURLs),
-      classpathURLs)
+      (method, instrumentor) => {
+        instrumentor.insertBeforeCall(method, graph.first.prototype, JavaUtility.callPinpointHarnessStart)
+        instrumentor.insertAfterCall(method, graph.first.prototype, JavaUtility.callPinpointHarnessEnd)
+      },
+      classpathURLs,
+      PinpointMeasurerFactory(config, log).measure(benchmark, _))
 
 }

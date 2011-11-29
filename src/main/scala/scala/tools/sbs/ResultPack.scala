@@ -55,15 +55,3 @@ class ReportMode(mode: BenchmarkMode) {
   def toReport = "[" + mode.description + "]"
 
 }
-
-/** Used for reporting error on compiling results.
- */
-object DummyMode extends BenchmarkMode {
-
-  val location = "dummy"
-
-  override val toString = "dummy"
-
-  val description = "Error on compiling"
-
-}

@@ -24,10 +24,6 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
 
   protected val upperBound = manifest[PinpointBenchmark]
 
-  val javaInstructionCallStart = getClass.getName.replace("$", "") + ".start(" + javaExpressionCurrentTime + ");"
-  val javaInstructionCallEnd = getClass.getName.replace("$", "") + ".end(" + javaExpressionCurrentTime + ");"
-  private def javaExpressionCurrentTime = "System.currentTimeMillis()"
-
   /** Set only once at the first time measured.
    */
   private var measured = -1L
@@ -40,13 +36,50 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
    */
   private var firstTimeStone = 0L
 
+  /** Ordinal number of the running of the method call which is marked
+   *  as the starting point to record time. Time recording is started
+   *  at the time that method call expression is run for the ordinal
+   *  number, equals to this value, time.
+   *  The neccessary value of this field is set only once when entering
+   *  the benchmark's pinpoint method.
+   *  Current value is starting with 1.
+   *  For example, consider the following pinpoint method:
+   *  {{{
+   *  def run() = for (_ <- 1 to 10) foo
+   *  }}}
+   *  if this variable is set to 5, time recording is started at the
+   *  5th time `foo` is called.
+   */
+  private var startOrdinal = -1
+  private var currentStartOrdinal = 0
+  def setStartOrdinal(ordinal: Int) = if (startOrdinal == -1) startOrdinal = ordinal
+
+  /** Ordinal number of the running of the method call which is marked
+   *  as the ending point to record time. Time recording is stopped
+   *  at the time that method call expression is run for the ordinal
+   *  number, equals to this value, time.
+   *  The neccessary value of this field is set only once when entering
+   *  the benchmark's pinpoint method.
+   *  Current value is starting with 1.
+   *  For example, consider the following pinpoint method:
+   *  {{{
+   *  def run() = for (_ <- 1 to 10) foo
+   *  }}}
+   *  if this variable is set to 5, time recording is stopped at the
+   *  5th time `foo` is called.
+   */
+  private var endOrdinal = -1
+  private var currentEndOrdinal = 0
+  def setEndOrdinal(ordinal: Int) = if (endOrdinal == -1) endOrdinal = ordinal
+
   /** Sets values at the time enter the observed piece of code.
    *  Should be called by the instrumented class.
    */
   def start(timeStone: Long) {
     log.debug("Start " + timeStone)
     if (recursionDepth == 0) {
-      firstTimeStone = timeStone
+      currentStartOrdinal += 1
+      if (currentStartOrdinal == startOrdinal) firstTimeStone = timeStone
     }
     recursionDepth += 1
   }
@@ -60,9 +93,9 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
     log.debug("End " + timeStone)
     recursionDepth -= 1
     if (recursionDepth == 0) {
-      // Back to the start of the recursion
-      if (measured == -1) {
-        log.debug("Back to recursion start")
+      log.debug("Back to recursion start")
+      currentEndOrdinal += 1
+      if (currentEndOrdinal == endOrdinal) {
         measured = timeStone - firstTimeStone
         log.debug("Runtime " + measured)
       }
@@ -73,8 +106,8 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
    */
   def reset() {
     measured = -1
-    recursionDepth = 0
-    firstTimeStone = 0
+    currentStartOrdinal = 0
+    currentEndOrdinal = 0
   }
 
   protected val mode = Pinpointing
@@ -88,7 +121,6 @@ object PinpointHarness extends MeasurementHarness[PinpointBenchmark] {
       () => {
         reset()
         benchmark.init()
-        // TODO: should we sum `runs` of `measured`?
         benchmark.run()
         benchmark.reset()
         if (measured == -1) {

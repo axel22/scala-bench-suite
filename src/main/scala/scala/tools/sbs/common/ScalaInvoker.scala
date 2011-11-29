@@ -74,27 +74,30 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
   def command(benchmark: Benchmark, classpathURLs: List[URL]) =
     java ++ asJavaArgument(benchmark, classpathURLs)
 
-  def invoke[R](command: Seq[String], convert: String => R, timeout: Int): (ArrayBuffer[R], ArrayBuffer[String]) = {
-    val result = ArrayBuffer[R]()
-    val error = ArrayBuffer[String]()
-    val processBuilder = Process(command)
+  def invoke[R, E](command: Seq[String],
+                   stdout: String => R,
+                   stderr: String => E,
+                   timeout: Int): (ArrayBuffer[R], ArrayBuffer[E]) = {
 
     log.debug("Invoked command: " + (command mkString " "))
 
+    val result = ArrayBuffer[R]()
+    val error = ArrayBuffer[E]()
+    val processBuilder = Process(command)
+
     val processIO = new ProcessIO(
       _ => (),
-      stdout => Source.fromInputStream(stdout).getLines foreach (
-        line => try result append convert(line) catch { case _ => log(line) }),
-      stderr => Source.fromInputStream(stderr).getLines foreach (error append _))
+      Source.fromInputStream(_).getLines foreach (result append stdout(_)),
+      Source.fromInputStream(_).getLines foreach (error append stderr(_)))
 
-    var success = -1
     val processStarter = new Thread {
 
       override def run = {
         var process: Process = null
         try {
           process = processBuilder.run(processIO)
-          success = process.exitValue
+          val success = process.exitValue
+          log.debug("Sub-process exit value: " + success)
         }
         catch {
           case e: InterruptedException =>
@@ -121,8 +124,6 @@ class ScalaInvoker(log: Log, config: Config) extends JVMInvoker {
     if (timeout > 0) timer.start()
     processStarter.join
     timer.interrupt()
-
-    log.debug("Sub-process exit value: " + success)
 
     (result, error)
   }

@@ -30,6 +30,19 @@ trait BenchmarkMode {
 
 }
 
+/** Used for reporting error on compiling results and
+ *  benchmarks that run independently from mode.
+ */
+object DummyMode extends BenchmarkMode {
+
+  val location = "dummy"
+
+  override val toString = "dummy"
+
+  val description = "Just running"
+
+}
+
 object StartUpState extends BenchmarkMode {
 
   val location = "startup"

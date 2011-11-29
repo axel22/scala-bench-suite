@@ -28,7 +28,9 @@ trait PerformanceBenchmark extends Benchmark {
 
 }
 
-class PerformanceBenchmarkFactory(protected val log: Log, protected val config: Config) extends BenchmarkFactory {
+class PerformanceBenchmarkFactory(val log: Log, val config: Config)
+  extends Configured
+  with BenchmarkFactory {
 
   protected val multiplierOpt = "--multiplier"
 

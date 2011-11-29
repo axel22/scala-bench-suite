@@ -12,7 +12,6 @@ package scala.tools.sbs
 package pinpoint
 
 import java.net.URL
-
 import scala.tools.nsc.io.Directory
 import scala.tools.sbs.io.Log
 import scala.tools.sbs.performance.regression.CIRegressionFailure
@@ -23,6 +22,7 @@ import scala.tools.sbs.pinpoint.strategy.PinpointHarness
 import scala.tools.sbs.pinpoint.strategy.PinpointMeasurerFactory
 import scala.tools.sbs.pinpoint.strategy.PreviousVersionExploiter
 import scala.tools.sbs.pinpoint.strategy.TwinningDetector
+import scala.tools.sbs.pinpoint.instrumentation.JavaUtility
 
 class MethodRegressionDetector(val config: Config,
                                val log: Log,
@@ -67,7 +67,8 @@ class MethodRegressionDetector(val config: Config,
   private lazy val measurePrevious = exploit(
     benchmark.pinpointPrevious,
     benchmark.context,
-    measureCommon(config.classpathURLs ++ benchmark.classpathURLs :+ benchmark.pinpointPrevious.toURL))
+    config.classpathURLs ++ benchmark.classpathURLs,
+    measureCommon)
 
   private def measureCommon(classpathURLs: List[URL]) = instrumentAndRun(
     benchmark,
@@ -75,9 +76,9 @@ class MethodRegressionDetector(val config: Config,
     benchmark.pinpointMethod,
     (method, instrumentor) => instrumentor.sandwich(
       method,
-      PinpointHarness.javaInstructionCallStart,
-      PinpointHarness.javaInstructionCallEnd),
-    PinpointMeasurerFactory(config, log).measure(benchmark, instrumentedOut.toURL :: classpathURLs),
-    classpathURLs)
+      JavaUtility.callPinpointHarnessStart,
+      JavaUtility.callPinpointHarnessEnd),
+    classpathURLs,
+    PinpointMeasurerFactory(config, log).measure(benchmark, _))
 
 }

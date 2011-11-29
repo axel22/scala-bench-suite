@@ -24,7 +24,7 @@ abstract class BottleneckFound(benchmark: Benchmark) extends ScrutinyResult {
 }
 
 case class Bottleneck(benchmark: Benchmark,
-                      position: List[MethodCallExpression],
+                      position: InvocationGraph,
                       current: (Double, Double),
                       previous: ArrayBuffer[(Double, Double)],
                       CI: (Double, Double))
@@ -36,12 +36,10 @@ case class Bottleneck(benchmark: Benchmark,
     ArrayBuffer(
       "Bottleneck found:",
       "  from method call " +
-        position.head.getClassName + "." + position.head.getMethodName +
-        " at line " + position.head.getLineNumber) ++
+        position.first.prototype + " at the " + position.startOrdinum + " time of its invocations") ++
       (if (position.length > 1)
         ArrayBuffer("  to method call " +
-        position.last.getClassName + "." + position.last.getMethodName +
-        " at line " + position.last.getLineNumber, "")
+        position.last.prototype + " at the " + position.endOrdinum, " time of its invocations")
       else Nil) ++
       super.toReport
   }

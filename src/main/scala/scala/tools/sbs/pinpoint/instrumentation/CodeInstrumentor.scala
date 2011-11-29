@@ -61,23 +61,26 @@ trait CodeInstrumentor {
   def sandwich(method: InstrumentingMethod, upper: Instruction, lower: Instruction)
 
   /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
-   *  before the given `InstrumentingExpression`.
+   *  before every `MethodCallExpression` which has the given `prototype`. This
+   *  prototype has to be generated using `CodeInstrumentor.prototype`.
    */
-  def insertBefore(expression: InstrumentingExpression, instruction: Instruction)
+  def insertBeforeCall(method: InstrumentingMethod, prototype: String, instruction: Instruction)
 
   /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
-   *  after the given `InstrumentingExpression`.
+   *  after every `MethodCallExpression` which has the given `prototype`. This
+   *  prototype has to be generated using `CodeInstrumentor.prototype`.
    */
-  def insertAfter(expression: InstrumentingExpression, instruction: Instruction)
+  def insertAfterCall(method: InstrumentingMethod, prototype: String, instruction: Instruction)
 
   /** Inserts `upper` at the start and `lower` at the end of `expression`.
    */
   def sandwich(expression: InstrumentingExpression, upper: Instruction, lower: Instruction)
 
-  /** Inserts `upper` at the start and `lower` at the end of method call list from
-   *  `first` to `last` in `method`.
+  /** Instruments the body of a method to notify that each method call when it is run.
+   *  User has to to create their own notifying instruction if the form on a method:
+   *  `notiyingInstruction: (classname: String, methodname: String, signature: String) => String`
    */
-  def sandwichCallList(method: InstrumentingMethod, first: Int, upper: Instruction, last: Int, lower: Instruction)
+  def notifyCallExpression(method: InstrumentingMethod, notifyingInstruction: (String, String, String) => String)
 
   /** Overwrites the .class file contains `clazz` with the instrumented `clazz`.
    *
@@ -99,6 +102,9 @@ object CodeInstrumentor {
   type InstrumentingMethod = javassist.CtMethod
   type InstrumentingExpression = javassist.expr.Expr
   type MethodCallExpression = javassist.expr.MethodCall
+
+  def prototype(classname: String, methodname: String, signature: String): String =
+    classname + "." + methodname + signature
 
   def apply(config: Config, log: Log, exclude: List[String]): CodeInstrumentor = {
     new JavassistCodeInstrumenter(config, log, exclude)

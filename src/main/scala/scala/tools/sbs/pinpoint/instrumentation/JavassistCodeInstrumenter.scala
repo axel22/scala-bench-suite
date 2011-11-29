@@ -109,52 +109,80 @@ class JavassistCodeInstrumenter(config: Config, log: Log, exclude: List[String])
     method insertAfter lower
   }
 
-  /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
-   *  before the given `InstrumentingExpression`.
-   */
-  def insertBefore(expression: InstrumentingExpression, instruction: Instruction) {
-    expression replace embrace(instruction + proceedExpression)
-  }
-
-  /** Inserts an {@link scala.tools.sbs.pinpoint.CodeInstrumenter.Instruction}
-   *  after the given `InstrumentingExpression`.
-   */
-  def insertAfter(expression: InstrumentingExpression, instruction: Instruction) =
-    expression replace embrace(proceedExpression + instruction)
-
   def sandwich(expression: InstrumentingExpression, upper: Instruction, lower: Instruction) {
     expression replace embrace(upper + proceedExpression + lower)
   }
 
-  def sandwichCallList(method: InstrumentingMethod, first: Int, upper: Instruction, last: Int, lower: Instruction) {
-    var index = 0
+  def sandwich(method: InstrumentingMethod,
+               prototypeStart: String,
+               upper: Instruction,
+               prototypeEnd: String,
+               lower: Instruction) {
+    replaceAllCallExpression(
+      method,
+      call => {
+        val prototype = CodeInstrumentor.prototype(call.getClassName, call.getMethodName, call.getSignature)
+        if ((prototype == prototypeStart) && (prototype == prototypeEnd)) {
+          call replace embrace(upper + proceedExpression + lower)
+        }
+        else if (prototype == prototypeStart) {
+          call replace embrace(upper + proceedExpression)
+        }
+        else if (prototype == prototypeEnd) {
+          call replace embrace(proceedExpression + lower)
+        }
+      })
+  }
+
+  def insertBeforeCall(method: InstrumentingMethod,
+                       prototype: String,
+                       instruction: Instruction) =
+    replaceCallExpression(
+      method,
+      prototype,
+      List(instruction, proceedExpression))
+
+  def insertAfterCall(method: InstrumentingMethod,
+                      prototype: String,
+                      instruction: Instruction) =
+    replaceCallExpression(
+      method,
+      prototype,
+      List(proceedExpression, instruction))
+
+  def replaceCallExpression(method: InstrumentingMethod,
+                            prototype: String,
+                            statementList: List[Instruction]) =
+    replaceAllCallExpression(
+      method,
+      call => if (CodeInstrumentor.prototype(call.getClassName, call.getMethodName, call.getSignature) == prototype)
+        call replace embrace(statementList mkString ""))
+
+  def notifyCallExpression(method: InstrumentingMethod,
+                           notifyingInstruction: (String, String, String) => String) =
+    replaceAllCallExpression(
+      method,
+      call => call replace embrace(
+        notifyingInstruction(call.getClassName, call.getMethodName, call.getSignature) +
+          proceedExpression))
+
+  def replaceAllCallExpression(method: InstrumentingMethod, replace: MethodCallExpression => Unit) =
     method instrument new javassist.expr.ExprEditor {
 
-      override def edit(call: MethodCallExpression) {
+      override def edit(call: MethodCallExpression) =
         if (!exclude.exists(call.getClassName matches _)) {
 
           log.debug("Method call: " + call.getClassName + "." + call.getMethodName + call.getSignature)
 
-          try if ((index == first) && (index == last)) {
-            call replace embrace(upper + proceedExpression + lower)
-          }
-          else if (index == first) {
-            call replace embrace(upper + proceedExpression)
-          }
-          else if (index == last) {
-            call replace embrace(proceedExpression + lower)
-          }
+          try replace(call)
           catch {
             case e =>
               log.error(e.toString)
               throw e
           }
-          index += 1
         }
-      }
 
     }
-  }
 
   def overwrite(clazz: InstrumentingClass, context: ClassLoader) =
     clazz writeFile (Reflector(config, log).locationOf(clazz.getName, context).path)

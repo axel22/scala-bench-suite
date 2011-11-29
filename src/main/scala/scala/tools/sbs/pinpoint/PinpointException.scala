@@ -11,8 +11,8 @@
 package scala.tools.sbs
 package pinpoint
 
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.InstrumentingExpression
-import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor.MethodCallExpression
+import scala.tools.sbs.pinpoint.bottleneck.InvocationCollector
+import scala.tools.sbs.pinpoint.bottleneck.InvocationGraph
 import scala.tools.sbs.util.Constant
 
 class PinpointException(message: String) extends BenchmarkException(message)
@@ -22,21 +22,22 @@ case class PinpointingMethodNotFoundException(benchmark: PinpointBenchmark)
     "Pinpointing method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod +
       " not found in " + benchmark.pinpointClass)
 
-case class MismatchExpressionList(benchmark: PinpointBenchmark,
-                                  currentCallingList: List[MethodCallExpression],
-                                  previousCallingList: List[MethodCallExpression])
+case class MismatchExpressionList(declaringClass: String,
+                                  method: String,
+                                  collector: InvocationCollector)
   extends PinpointException("Mismatching expression list: " + Constant.ENDL +
-    (currentCallingList map (c => c.getClassName + "." + c.getMethodName) mkString " ") + Constant.ENDL +
-    (previousCallingList map (c => c.getClassName + "." + c.getMethodName) mkString " ") + Constant.ENDL +
-    "in method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod)
+    (collector.currentGraph traverse (_ prototype) mkString " -> ") + Constant.ENDL +
+    (collector.previousGraph traverse (_ prototype) mkString " -> ") + Constant.ENDL +
+    "in method " + declaringClass + "." + method)
 
-case class BottleneckUndetectableException(benchmark: PinpointBenchmark, callingList: List[InstrumentingExpression])
+case class BottleneckUndetectableException(declaringClass: String,
+                                           method: String,
+                                           graph: InvocationGraph)
   extends PinpointException("Measurement failure " + (
-    if (callingList == Nil) ""
-    else "from line " + callingList.head.getLineNumber +
-      " to line " + callingList.last.getLineNumber +
-      " in method " + benchmark.pinpointClass + "." + benchmark.pinpointMethod) +
-    " from benchmark " + benchmark.name)
+    if (graph.length == 0) ""
+    else "from method call " + graph.first.prototype + " at the " + graph.startOrdinum + " time of its invocations" +
+      " to method call " + graph.last.prototype + " at the " + graph.endOrdinum + " time of its invocations" +
+      " in method " + declaringClass + "." + method))
 
 case class NoPinpointingMethodException(benchmark: PinpointBenchmark)
   extends PinpointException("No pinpointing method specified in " + benchmark.name)

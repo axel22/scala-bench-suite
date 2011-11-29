@@ -20,14 +20,15 @@ class MemoryProfiler(log: Log, config: Config) {
     val invoker = JVMInvokerFactory(log, config)
     val (result, error) = invoker.invoke(
       invoker.command(GCHarness, benchmark, config.classpathURLs ++ benchmark.classpathURLs),
-      scala.xml.XML.loadString,
+      line => try scala.xml.XML loadString line catch { case _ => log(line); null },
+      any => any,
       benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ProfilingException(benchmark, new Exception(error mkString "\n"))
     }
     else {
-      profile useMemory dispose(result.head)
+      profile useMemory dispose(result filterNot null.== head)
       ProfilingSuccess(benchmark, profile)
     }
   }

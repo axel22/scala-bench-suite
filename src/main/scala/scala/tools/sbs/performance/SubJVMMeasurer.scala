@@ -32,21 +32,27 @@ class SubJVMMeasurer(val log: Log,
     measure(benchmark, config.classpathURLs ++ benchmark.classpathURLs)
 
   /** Lauches a new process with a {@link MeasurementHarness} runs a
-   *  {@link scala.tools.sbs.Benchmark}. User classes will be loaded from
-   *  the given `classpathURLs`.
+   *  {@link scala.tools.sbs.performance.PerformanceBenchmark}.
+   *  User classes will be loaded from the given `classpathURLs`.
    */
   def measure(benchmark: PerformanceBenchmark, classpathURLs: List[URL]): MeasurementResult = {
     val invoker = JVMInvokerFactory(log, config)
     val (result, error) = invoker.invoke(
       invoker.command(measurementHarness, benchmark, classpathURLs),
-      scala.xml.XML.loadString,
+      line => try scala.xml.XML loadString line
+      catch {
+        case _ =>
+          log(line)
+          null
+      },
+      line => line,
       benchmark.timeout)
     if (error.length > 0) {
       error foreach log.error
       ExceptionMeasurementFailure(new Exception(error mkString "\n"))
     }
     else {
-      dispose(result.head, benchmark, mode)
+      dispose(result filter null.!= head, benchmark, mode)
     }
   }
 

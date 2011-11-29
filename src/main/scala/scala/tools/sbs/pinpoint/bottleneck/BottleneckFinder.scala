@@ -48,8 +48,7 @@ object BottleneckFinderFactory {
             benchmark: PinpointBenchmark,
             declaringClass: String,
             bottleneckMethod: String,
-            callIndexList: List[Int],
-            callList: List[MethodCallExpression],
+            graph: InvocationGraph,
             instrumentedOut: Directory,
             backup: Directory): BottleneckFinder =
     new BottleneckBinaryFinder(
@@ -58,8 +57,7 @@ object BottleneckFinderFactory {
       benchmark,
       declaringClass,
       bottleneckMethod,
-      callIndexList,
-      callList,
+      graph,
       instrumentedOut,
       backup)
 

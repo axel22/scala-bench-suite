@@ -26,10 +26,7 @@ import scala.xml.Elem
 /** Factory object used to create a benchmark entity.
  */
 trait BenchmarkFactory {
-
-  protected def log: Log
-
-  protected def config: Config
+  self: Configured =>
 
   def createFrom(info: BenchmarkInfo): Benchmark
 
@@ -101,6 +98,7 @@ trait BenchmarkFactory {
 object BenchmarkFactory {
 
   def apply(log: Log, config: Config, mode: BenchmarkMode): BenchmarkFactory = mode match {
+    case DummyMode   => new DummyBenchmarkFactory(log, config)
     case Profiling   => new ProfilingBenchmarkFactory(log, config)
     case Pinpointing => new PinpointBenchmarkFactory(log, config)
     case _           => new PerformanceBenchmarkFactory(log, config)

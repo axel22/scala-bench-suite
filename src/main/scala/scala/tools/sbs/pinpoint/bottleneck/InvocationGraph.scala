@@ -13,6 +13,7 @@ package pinpoint
 package bottleneck
 
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.sbs.pinpoint.instrumentation.CodeInstrumentor
 
 /** Represents a list of method call expressions inside a method body in order of time.
  */
@@ -25,9 +26,8 @@ case class InvocationGraph(methods: ArrayBuffer[MethodCall],
 
   /** Traverses through all method call expressions in order of time.
    */
-  def traverse(operate: MethodCall => Unit): Unit = {
-    operate(first)
-    steps foreach (step => operate(step.to))
+  def traverse(operate: MethodCall => Any) = {
+    operate(first) +: (steps map (step => operate(step.to)))
   }
 
   /** The ordinal number of the invocation of the method called at the end
@@ -51,13 +51,13 @@ case class InvocationGraph(methods: ArrayBuffer[MethodCall],
    *
    *  @param	prottoype	Name and signature of the method has just been called.
    */
-  def add(declaringClass: String, methodName: String, signature: String, lineNumber: Int) {
+  def add(declaringClass: String, methodName: String, signature: String) {
     def addStep(to: MethodCall) {
       val from = if (steps isEmpty) methods.head else steps.last.to
       steps append Step(from, from.timesCalled, to, to.timesCalled)
     }
-    val newCall = MethodCall(declaringClass, methodName, signature, lineNumber)
-    methods find (_.id == newCall.id) match {
+    val newCall = MethodCall(declaringClass, methodName, signature)
+    methods find (_.prototype == newCall.prototype) match {
       case Some(existed) =>
         existed.calledAgain
         addStep(existed)
@@ -94,10 +94,10 @@ case class InvocationGraph(methods: ArrayBuffer[MethodCall],
   def matches(that: InvocationGraph): Boolean =
     (startOrdinum == that.startOrdinum) &&
       (endOrdinum == that.endOrdinum) &&
-      ((methods map (_ id)) == (that.methods map (_ id))) &&
+      ((methods map (_ prototype)) == (that.methods map (_ prototype))) &&
       ((methods map (_ timesCalled)) == (that.methods map (_ timesCalled))) &&
-      ((steps map (_.from.id)) == (that.steps map (_.from.id))) &&
-      ((steps map (_.to.id)) == (that.steps map (_.to.id))) &&
+      ((steps map (_.from.prototype)) == (that.steps map (_.from.prototype))) &&
+      ((steps map (_.to.prototype)) == (that.steps map (_.to.prototype))) &&
       ((steps map (_ fromOrdinum)) == (that.steps map (_ fromOrdinum))) &&
       ((steps map (_ toOrdinum)) == (that.steps map (_ toOrdinum)))
 
@@ -105,7 +105,7 @@ case class InvocationGraph(methods: ArrayBuffer[MethodCall],
 
 /** Method call expression - node of the graph.
  */
-case class MethodCall(declaringClass: String, methodName: String, signature: String, lineNumber: Int) {
+case class MethodCall(declaringClass: String, methodName: String, signature: String) {
 
   private var _timesCalled = 1
 
@@ -120,7 +120,7 @@ case class MethodCall(declaringClass: String, methodName: String, signature: Str
 
   /** Call expression identifier.
    */
-  val id: String = declaringClass + methodName + signature + lineNumber
+  val prototype: String = CodeInstrumentor.prototype(declaringClass, methodName, signature)
 
 }
 
